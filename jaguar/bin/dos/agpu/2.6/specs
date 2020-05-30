@@ -1,0 +1,39 @@
+*asm:
+-cgcc -fb
+
+*asm_final:
+
+
+*cpp:
+-nostdinc -Ic:/jaguar/include
+
+*cc1:
+-fno-builtin
+
+*cc1plus:
+
+
+*endfile:
+
+
+*link:
+
+
+*lib:
+%{g*:-lg} %{!p:%{!pg:-lc}}%{p:-lc_p}%{pg:-lc_p}
+
+*startfile:
+%{pg:gcrt0.o%s}%{!pg:%{p:mcrt0.o%s}%{!p:crt0.o%s}}
+
+*switches_need_spaces:
+
+
+*signed_char:
+%{funsigned-char:-D__CHAR_UNSIGNED__}
+
+*predefines:
+-DJAGUAR -Amachine(JAGUAR) -DAGPU -Acpu(AGPU)
+
+*cross_compile:
+1
+
