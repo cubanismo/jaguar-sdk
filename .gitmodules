@@ -4,3 +4,6 @@
 [submodule "tools/src/rmac"]
 	path = tools/src/rmac
 	url = http://shamusworld.gotdns.org/git/rmac
+[submodule "tools/src/lo_inp"]
+	path = tools/src/lo_inp
+	url = https://github.com/cubanismo/lo_inp
