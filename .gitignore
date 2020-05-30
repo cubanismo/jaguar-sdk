@@ -16,3 +16,11 @@
 !/jaguar/bin/maketoc.cof
 !/jaguar/cinepak/decomp/codec.o
 !/jaguar/cinepak/decomp/codec_a.o
+
+# Ignore all the tools built from source
+/tools/bin
+/tools/src/gcc
+/tools/lib
+/tools/libexec
+/tools/m68k-aout
+/tools/share

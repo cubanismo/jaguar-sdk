@@ -1,0 +1,105 @@
+diff -rudN binutils-2.16.1/bfd/archive.c binutils-2.16.1-fixed/bfd/archive.c
+--- binutils-2.16.1/bfd/archive.c	2005-03-03 03:40:56.000000000 -0800
++++ binutils-2.16.1-fixed/bfd/archive.c	2020-04-15 11:01:28.804637700 -0700
+@@ -1319,6 +1319,7 @@
+   struct stat status;
+   struct areltdata *ared;
+   struct ar_hdr *hdr;
++  char tmp_string[13];
+   char *temp, *temp1;
+   bfd_size_type amt;
+ 
+@@ -1350,7 +1351,8 @@
+   strncpy (hdr->ar_fmag, ARFMAG, 2);
+ 
+   /* Goddamned sprintf doesn't permit MAXIMUM field lengths.  */
+-  sprintf ((hdr->ar_date), "%-12ld", (long) status.st_mtime);
++  sprintf (tmp_string, "%-12ld", (long) status.st_mtime);
++  strncpy ((hdr->ar_date), tmp_string, sizeof(hdr->ar_date));
+ #ifdef HPUX_LARGE_AR_IDS
+   /* HP has a very "special" way to handle UID/GID's with numeric values
+      > 99999.  */
+@@ -1367,8 +1369,10 @@
+   else
+ #endif
+   sprintf ((hdr->ar_gid), "%ld", (long) status.st_gid);
+-  sprintf ((hdr->ar_mode), "%-8o", (unsigned int) status.st_mode);
+-  sprintf ((hdr->ar_size), "%-10ld", (long) status.st_size);
++  sprintf (tmp_string, "%-8o", (unsigned int) status.st_mode);
++  strncpy ((hdr->ar_mode), tmp_string, sizeof(hdr->ar_mode));
++  sprintf (tmp_string, "%-10ld", (long) status.st_size);
++  strncpy ((hdr->ar_size), tmp_string, sizeof(hdr->ar_size));
+   /* Correct for a lossage in sprintf whereby it null-terminates.  I cannot
+      understand how these C losers could design such a ramshackle bunch of
+      IO operations.  */
+@@ -1656,12 +1660,14 @@
+   if (elength != 0)
+     {
+       struct ar_hdr hdr;
++      char tmp_string[11];
+ 
+       memset (&hdr, 0, sizeof (struct ar_hdr));
+       strcpy (hdr.ar_name, ename);
+       /* Round size up to even number in archive header.  */
+-      sprintf (&(hdr.ar_size[0]), "%-10d",
++      sprintf (tmp_string, "%-10d",
+ 	       (int) ((elength + 1) & ~(bfd_size_type) 1));
++      strncpy (&(hdr.ar_size[0]), tmp_string, sizeof(hdr.ar_size));
+       strncpy (hdr.ar_fmag, ARFMAG, 2);
+       for (i = 0; i < sizeof (struct ar_hdr); i++)
+ 	if (((char *) (&hdr))[i] == '\0')
+@@ -1898,6 +1904,7 @@
+   bfd_byte temp[4];
+   unsigned int count;
+   struct ar_hdr hdr;
++  char tmp_string[11];
+   struct stat statbuf;
+   unsigned int i;
+ 
+@@ -1913,7 +1920,8 @@
+   sprintf (hdr.ar_date, "%ld", bfd_ardata (arch)->armap_timestamp);
+   sprintf (hdr.ar_uid, "%ld", (long) getuid ());
+   sprintf (hdr.ar_gid, "%ld", (long) getgid ());
+-  sprintf (hdr.ar_size, "%-10d", (int) mapsize);
++  sprintf (tmp_string, "%-10d", (int) mapsize);
++  strncpy (hdr.ar_size, tmp_string, sizeof(hdr.ar_size));
+   strncpy (hdr.ar_fmag, ARFMAG, 2);
+   for (i = 0; i < sizeof (struct ar_hdr); i++)
+     if (((char *) (&hdr))[i] == '\0')
+@@ -2054,6 +2062,7 @@
+   bfd *current = arch->archive_head;
+   unsigned int count;
+   struct ar_hdr hdr;
++  char tmp_string[11];
+   unsigned int i;
+   int padit = mapsize & 1;
+ 
+@@ -2068,12 +2077,14 @@
+ 
+   memset (&hdr, 0, sizeof (struct ar_hdr));
+   hdr.ar_name[0] = '/';
+-  sprintf (hdr.ar_size, "%-10d", (int) mapsize);
++  sprintf (tmp_string, "%-10d", (int) mapsize);
++  strncpy (hdr.ar_size, tmp_string, sizeof(hdr.ar_size));
+   sprintf (hdr.ar_date, "%ld", (long) time (NULL));
+   /* This, at least, is what Intel coff sets the values to.  */
+   sprintf ((hdr.ar_uid), "%d", 0);
+   sprintf ((hdr.ar_gid), "%d", 0);
+-  sprintf ((hdr.ar_mode), "%-7o", (unsigned) 0);
++  sprintf (tmp_string, "%-7o", (unsigned) 0);
++  strncpy ((hdr.ar_mode), tmp_string, sizeof(hdr.ar_mode));
+   strncpy (hdr.ar_fmag, ARFMAG, 2);
+ 
+   for (i = 0; i < sizeof (struct ar_hdr); i++)
+diff -rudN binutils-2.16.1/gas/config/tc-m68k.c binutils-2.16.1-fixed/gas/config/tc-m68k.c
+--- binutils-2.16.1/gas/config/tc-m68k.c	2005-03-22 07:31:48.000000000 -0800
++++ binutils-2.16.1-fixed/gas/config/tc-m68k.c	2020-04-15 23:51:50.604433076 -0700
+@@ -384,7 +384,7 @@
+     { mcfisa_a|mcfhwdiv|mcfisa_b|mcfemac|mcfusp|cfloat,	mcf5480, "548x", 0 },
+     /* Aliases (effectively, so far as gas is concerned) for the above
+        cpus.  */
+-    { m68020,						m68020,	"68k", 1 },
++    { m68000,						m68000,	"68k", 1 },
+     { m68000,						m68000,	"68008", 1 },
+     { m68000,						m68000,	"68302", 1 },
+     { m68000,						m68000,	"68306", 1 },

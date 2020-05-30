@@ -1,0 +1,55 @@
+diff -rudN gcc-3.4.6/gcc/collect2.c gcc-3.4.6-fixed/gcc/collect2.c
+--- gcc-3.4.6/gcc/collect2.c	2005-01-10 07:25:23.000000000 -0800
++++ gcc-3.4.6-fixed/gcc/collect2.c	2020-04-15 09:56:24.905593068 -0700
+@@ -1534,7 +1534,8 @@
+   if (redir)
+     {
+       /* Open response file.  */
+-      redir_handle = open (redir, O_WRONLY | O_TRUNC | O_CREAT);
++      redir_handle = open (redir, O_WRONLY | O_TRUNC | O_CREAT,
++		      S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+ 
+       /* Duplicate the stdout and stderr file handles
+ 	 so they can be restored later.  */
+diff -rudN gcc-3.4.6/gcc/config/m68k/m68k.md gcc-3.4.6-fixed/gcc/config/m68k/m68k.md
+--- gcc-3.4.6/gcc/config/m68k/m68k.md	2005-07-26 13:32:25.000000000 -0700
++++ gcc-3.4.6-fixed/gcc/config/m68k/m68k.md	2020-04-15 10:26:39.303053065 -0700
+@@ -3679,7 +3679,7 @@
+       target = operand_subword_force (operands[0], 0, SFmode);
+       result = expand_binop (SImode, xor_optab,
+ 			     operand_subword_force (operands[1], 0, SFmode),
+-			     GEN_INT (0x80000000), target, 0, OPTAB_WIDEN);
++			     GEN_INT (-2147483647 - 1), target, 0, OPTAB_WIDEN);
+       if (result == 0)
+ 	abort ();
+ 
+@@ -3723,7 +3723,7 @@
+       target = operand_subword (operands[0], 0, 1, DFmode);
+       result = expand_binop (SImode, xor_optab,
+ 			     operand_subword_force (operands[1], 0, DFmode),
+-			     GEN_INT (0x80000000), target, 0, OPTAB_WIDEN);
++			     GEN_INT (-2147483647 - 1), target, 0, OPTAB_WIDEN);
+       if (result == 0)
+ 	abort ();
+ 
+@@ -7170,7 +7170,7 @@
+       target = operand_subword (operands[0], 0, 1, XFmode);
+       result = expand_binop (SImode, xor_optab,
+ 			     operand_subword_force (operands[1], 0, XFmode),
+-			     GEN_INT (0x80000000), target, 0, OPTAB_WIDEN);
++			     GEN_INT (-2147483647 - 1), target, 0, OPTAB_WIDEN);
+       if (result == 0)
+ 	abort ();
+ 
+diff -rudN gcc-3.4.6/gcc/config/m68k/m68k-none.h gcc-3.4.6-fixed/gcc/config/m68k/m68k-none.h
+--- gcc-3.4.6/gcc/config/m68k/m68k-none.h	2003-10-10 20:06:45.000000000 -0700
++++ gcc-3.4.6-fixed/gcc/config/m68k/m68k-none.h	2020-04-15 23:35:11.701227296 -0700
+@@ -20,7 +20,7 @@
+ 
+ /* Default to m68k (m68020).  */
+ #ifndef TARGET_CPU_DEFAULT
+-#define TARGET_CPU_DEFAULT M68K_CPU_m68k
++#define TARGET_CPU_DEFAULT M68K_CPU_m68000
+ #endif
+ 
+ /* These are values set by the configure script in TARGET_CPU_DEFAULT.
