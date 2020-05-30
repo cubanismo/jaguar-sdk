@@ -1,0 +1,6 @@
+[submodule "tools/src/rln"]
+	path = tools/src/rln
+	url = http://shamusworld.gotdns.org/git/rln
+[submodule "tools/src/rmac"]
+	path = tools/src/rmac
+	url = http://shamusworld.gotdns.org/git/rmac
