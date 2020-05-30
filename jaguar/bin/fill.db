@@ -1,0 +1,21 @@
+procedure fill addr nb with size
+	local	oldpc
+
+	if (`argc<=1)	goto	usage
+	if (`argc<=2)	set	with	0	;#default value=0
+	if (`argc<=3)	set	size	0	;#default size=byte
+	gag on
+	read /root/jaguar/bin/fillcode.dat 2200
+	gag off
+	sl 2200+2 size
+	sl 2200+6 with
+	sl 2200+a nb
+	sl 2200+e addr
+	set oldpc pc
+	g 2200
+	set pc oldpc
+	goto	end
+#:usage
+	print "Usage: fill <addr nb with(default=0) size(default=0)>"
+#:end
+.

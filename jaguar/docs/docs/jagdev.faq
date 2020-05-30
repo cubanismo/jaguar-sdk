@@ -1,0 +1,268 @@
+Frequently Asked Questions about the Jaguar Developer's Kit Tools
+-----------------------------------------------------------------
+
+Q: I don't understand something.
+
+A: Please double-check the main printed documentation, as well as the 
+   online updates to the documentation (like ALN.TXT and ADDENDUM.ALN for
+   the ALN linker or MAC.TXT and ADDENDUM.MAC for the Madmac assembler).
+
+   If you still have questions, then please contact Atari developer 
+   support.
+
+
+
+Q: I think I have found a bug or malfunction in MADMAC, ALN or RDBJAG/WDB.
+
+A: First make sure you are using the most recent release of the program.
+   The latest releases are officially released on the Atari Software Development
+   BBS at (408) 745-2157 as well as on Compuserve (library 12 of the Atari Gaming
+   forum).  Later versions not yet officially released may be available on the 
+   Brainstorm BBS at +33 1 44670844.
+
+   If you still have problems with the latest release, then please contact
+   Mike Fulton at Atari, as well as Brainstorm, with as much information
+   about the problem as you can.  A small chunk of stand-alone code that
+   shows the problem is very helpful.
+
+
+Q: I want to start immediately a nop project, just as a reality check,
+   and I don't want to have to read all the documentation first.
+
+A: First of all, please understand that we don't want to encourage people
+   to try to jump in and do things without reading the documentation.  This
+   can make you overlook important information later, because it makes you
+   think you already know certain things and then you don't read the
+   documentation.  Having said that, the basic steps are:
+
+  1) Type in your program (NOP ...) and save it as NOP.S.
+  
+  2) Assemble it with MAC.EXE by typing in command line "mac -fb nop.s".
+     Edit the program as necessary until it assembles without errors.
+
+  3) Link the program with ALN.EXE by typing in the command line 
+     "aln -e -a 4000 x x nop.o".  This will generate a Jaguar executable
+     program file designed to execute at address $4000.
+  
+  4) Call the RDBJAG debugger by typing in the command line "rdbjag nop".
+     This will load the debugger and tell it to look for an executable
+     program with the filename of "nop" and an extension of either ".abs"
+     or ".cof" (as produced by ALN).
+  
+  5) Step through the execution of your program using the "t" command in
+     RDBJAG.  This is the trace command that executes one 68000 instruction
+     and returns.
+
+
+
+Q: When calling ALN during my make session, I have a make error:
+   "Make error 2. ...".
+
+A: This means you have to many arguments in your DOS command line. Use
+   ALN's '-c <fname>' command line option instead.
+
+
+
+Q: When calling ALN during my make session, I have a ALN warning:
+   "Warning: DATA segment size of MYPROG is not a phrase multiple".
+
+A: This means that the data segment of the program is not a multiple of
+   8 bytes long.  This is a "phrase" which is an important memory boundary
+   to certain parts of the Jaguar hardware.
+
+   There are two ways around this.  First is to put a ".phrase" directive at
+   the end of the DATA section in each source code file.  The second is to use
+   the "-rp" directive with both Madmac and ALN, which tells them to automatically
+   phrase-align each section of each file. 
+
+
+
+Q: When I use ALN, I have warnings and/or errors about doubly defined
+   labels but only their 8 first characters clash.
+
+A: The default output format of MADMAC is Alcyon-format object modules,
+   which have an 8-character symbol name length limitation.  To avoid
+   this problem, use the BSD object module instead by specifying the 
+   "-fb" command line option.
+
+
+Q: When I use RDBJAG, symbols are truncated to 8 characters.
+
+A: Either you have linked to an Alcyon-format executable file, or you
+   have assembled using Alycon-format object modules.  Use the "-fb" 
+   command line option with Madmac to specify the BSD object module format
+   (with unlimited length symbol names) and use the "-e" option with ALN 
+   to specify a COFF format executable with BSD symbols.
+ 
+
+
+Q: I don't know if I have the source level debugging information.
+
+A: Try 'mlist' under RDBJAG. If nothing happens, you're not in source level.
+
+
+
+Q: I want to have the source level debugging information.
+
+A: Use '-fb' and '-g' with MADMAC, '-e' and '-g' with ALN.
+
+
+
+Q: I have an external label used in a MOVEI instruction and MADMAC says
+   "Error: Illegal (GPU/DSP) relocation type."
+
+A: The MOVEI instruction requires a special kind of relocation information
+   not available with the Alcyon object module and executable file formats.
+   Use BSD-format object modules instead by including "-fb" in your command line.
+
+
+Q: I have an (not-orged) label used in a MOVEI instruction and MADMAC says
+   "Error: Illegal (GPU/DSP) relocation type."
+
+A: See above.
+
+
+
+Q: I use a 'LIST' directive in my source, but no listing is output from
+   Madmac.
+
+A: Use the '-l' command line option.
+
+
+
+Q: I define an 'EQUR' and MADMAC is not happy.
+
+A: The EQUR directive can only be defined AND used in GPU/DSP sections.
+
+
+
+Q: I use a 'NLIST' directive and MADMAC is not happy.
+
+A: Use 'NOLIST' instead.
+
+
+
+Q: I use a 'UNDEFMAC' directive and MADMAC is not happy.
+
+A: Use 'MACUNDEF' instead.
+
+
+
+Q: I use a 'PEVEN' directive and MADMAC is not happy.
+
+A: Use 'PHRASE' instead.
+
+
+
+Q: I use a 'ABS' instruction and MADMAC is not happy.
+
+A: Use 'OFFSET' instead.
+
+
+
+Q: Under RDBJAG, I have a small garbage following most of the ends of line.
+
+A: Those are ANSI escape sequences. You need to load the ANSI.SYS driver.
+   This is done by including a line such as that shown below in your CONFIG.SYS file.
+
+   device=c:\dos\ansi.sys
+
+
+
+Q: When I type in RDBJAG "load myprog.db", I have a "Not enough memory"
+   error message, but I do have enough memory.
+
+A: You're using an old version of FILEFIX.
+
+
+
+Q: When I start RDBJAG, it prints "No bidirectional parallel port found!" and
+   quits.
+
+A:Try again. If it keeps giving this error message, then:
+
+  1) Turn on the Jaguar :=).
+
+  2) Check your parallel cable and connections.
+
+  3) Check if your parallel board is really bidirectionnal with parallel.exe.
+
+  4) If nothing works, contact us.
+
+
+
+Q:Parallel.exe says that my parallel port is monodirectionnal, but the board's
+  documentation pretends it to be bidirectional.
+
+A: Try the following:
+
+   1) Check the board configuration (switches, jumpers, etc...).
+  
+   2) Try the board on a different mother-board.
+   
+   3) Use another board.
+
+
+
+Q: Parallel.exe says that my parallel port is bidirectionnal, but RDBJAG still
+   doesn't see it.
+
+A: Try again. If it sticks to this error message, then use '-p# -d' in RDBJAG's
+   command line, where # is the desired port's number (1,2,3).
+
+
+
+Q: I have more than one bidirectionnal parallel port, and I don't want
+   RDBJAG to automatically use the first one.
+
+A: Use '-p#' in RDBJAG's command line, where # is the desired port's number
+   (1,2,3).
+
+
+
+Q: I have a Jaguar plugged into LPT2, and I can't print on LPT1 after having
+   started RDBJAG once.
+
+A: Use '-p2 -d' with RDBJAG.
+
+
+Q: I want to use the development kit on systems other than Atari or PC/MSDOS.
+
+A: Some tools are also available for the Linux operating system.  Contact
+   Atari for more information.
+
+
+
+Q: I use a Sylvester on PC and RDBJAG doesn't work.
+
+A: If you are using a Sylvester system, contact Atari immediately for an
+   exchange.  This system is very out of date.
+
+
+
+Q: I try to reset or stop the jaguar from inside the debugger, either by
+   typing "reset" or "stop" in the command line or with the menu options, but
+   it doesn't work.
+
+A: If you're on an Atari system, this doesn't work.  If you're on a PC, then
+   it's possible your Alpine board is correctly wired to support these commands.
+   Please contact Atari for assistance.
+
+
+-----------------------------------------------------------------------------
+
+For a quicker (and more precise) bug fix support, please send email to:
+
+for MADMAC:	raphael@brasil.frmug.fr.net
+for ALN:	alex@brasil.frmug.fr.net
+for RDBJAG:	laurent@brasil.frmug.fr.net
+
+or send mail to us on Compuserve at [76004,1616].  You can also fax us 
+at +33 1 44670811 (Paris, France).
+
+
+Please send a copy of any EMAIL or FAX to Atari, attention Mike Fulton:
+
+Compuserve: [75300,1141]
+Internet:75300.1141@compuserve.com
+Fax: (408) 745-2088

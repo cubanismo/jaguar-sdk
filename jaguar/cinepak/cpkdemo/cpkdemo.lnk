@@ -1,0 +1,2 @@
+startup.o player.o intserv.o utils.o clear.o tocread.o makelist.o scalvars.o
+gpustart.o grotate.o dspcode.o ..\\decomp\\gpucode.og ..\\decomp\\codec.o

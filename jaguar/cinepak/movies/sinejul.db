@@ -1,0 +1,7 @@
+#
+# Loads player for DRAM, Sync header, and a film file (SINEJUL.CRG)
+#
+aread player.abs
+read sync 3ffc0
+read sinejul.crg 40000
+g 4000

@@ -1,0 +1,393 @@
+=======================================================================
+Jaguar Developer Weekly     September 1, 1995              Vol.1, No.11
+=======================================================================
+
+New Version of MAKETRK CD Track File Creator Utility
+----------------------------------------------------
+In response to feedback received from Jaguar Developers regarding the
+initial release, there is a new version of the MAKETRK utility now
+available which features many improvements.
+
+MAKETRK is a new tool designed to quickly and easily create CD Track
+files ready for CD mastering or for using with the Jaguar CD Emulator.
+It takes a single file or a list of files and creates a new CD Track
+File with the proper Jaguar CD track header and tailer information.  It
+also allows you to specify the 4-byte code used to create the 64-byte
+partition marker used to distinguish the beginning of the data from each
+of your source files.
+
+The MAKETRK utility writes out a MADMAC source code file containing a
+data table with an entry for each of your original files.  Each entry
+specifies the track number, block offset, length, and partition marker
+for one of your source data files.  It also writes out both MADMAC and C
+include files with definitions that can be used in your programs to
+reference the entries in the table.
+
+The new version allows you to specify that the track file should be
+padded to a specified minimum length.  You can also specify that a dummy
+word should be added at the start of the file, to satisfy the
+requirements of some CD Writer / Mastering software combinations.  Also,
+the creation of the data source file and include files is now enabled by
+a command line option rather than being automatic, so that you can do
+minor changes without triggering a complete rebuild the next time you
+call MAKE to compile your program.  There are other changes as well.
+See the documentation file included with the program for more
+information.
+
+The MAKETRK utility can be obtained by downloading the CDROM.ZIP archive
+from the Atari Software Development BBS or the Jaguar Developer areas of
+the Atari Gaming Forum on Compuserve.
+
+Bitfield Definitions For MADMAC Assembler
+-----------------------------------------
+A new version of MADMAC features bitfield definitions.  Bitfield
+definitions make it possible to easily predefine values for things like
+bitmapped hardware registers, object processor object fields, and so on.
+To define a bitfield for a branch object structure for the object
+processor, you would do this:
+
+bfield branchobj.p
+	63:43,0	; UNUSED, default value 0
+	42:24,0	; LINK, default value 0
+	23:17,0	; UNUSED, default value 0
+	16:14,0	; CC, default value 0
+	13:3,50	; YPOS, default value 50
+	2:0,3	; TYPE, default value 3
+.endbf
+
+This would define a new bitfield type named "bitmapobj".  The ".d" at
+the end of the name indicates that it is a double phrase in length (128
+bits).  Each field is specified by a line of the format
+startbit:endbit,defaultvalue.  So in this example, the YPOS field is
+bits 3 to 13, with a default value of 50.  To use this definition to
+generate code, you would do something like this:
+
+my_branch:
+	branchobj ,,,1,80,
+
+Note that we do not have to supply a value for each field.  If none is
+specified, the default value from the definition is used instead.  Since
+we did not specify values, the default value would be used for the LINK
+and both UNUSED fields.  The CC field would get a value of 1, and the
+YPOS field would get a value of 80.  Finally, the TYPE field would
+receive the default value of 3 (which indicates a BRANCH object to the
+object processor).
+
+Note that when you declare a bitfield, you can not specify a symbol that
+won't be resolved until link time.  Only absolute values known at
+assembly time can be used.  Using link-relative symbols will generate an
+error.
+
+See Jaguar Tool Updates for further information.
+
+
+
+Windows 95 & Jaguar Developer Tools
+-----------------------------------
+Developers who upgrade their PC to Windows 95 may have questions
+regarding the operation of the various tools in the Jaguar Developer's
+Kit.  Atari's Jaguar Developer Support department was a Windows 95
+beta-test site.  While some tools did have problems at first, we are not
+aware of any problems with any of the current versions of the Jaguar
+development tools.  If you have problems, you may simply need to update
+to the current versions of the tools.  (Of course, now that it is
+available, you should also be using the release version of Windows 95,
+not a beta version.)
+
+Keep in mind that while the tools are known to work under Windows 95,
+they do not take advantage of new features such as long filenames.
+
+Should you have problems that you suspect are related to running under
+Windows 95, please make sure that you are using the most recent version
+of the Jaguar tools involved.  If the problem persists, then please
+contact Atari immediately.
+
+
+
+Using the Jaguar Developer Tools Under MS Windows
+-------------------------------------------------
+Random discussions with developers reveal an even split between those
+who use the Jaguar Development Tools under Microsoft Windows and those
+who do not.  Generally, if a developer uses Windows at all, they use the
+Jaguar tools in that environment.  Those developers who don't use
+Windows often have complaints about the performance, and some of them
+just have a basic dislike of Windows, MS-DOS, and Microsoft in general.
+
+In the Jaguar Developer Support department here at Atari, we've come to
+agree that the advantages of running under Windows outweigh the
+disadvantages.  If your main reason for not running Windows is that you
+just don't like Microsoft, then we probably cannot convince you to
+change your mind.  But if performance is your main concern, then you may
+wish to consider the following arguments:
+
+Multitasking — The ability to have multiple programs, or multiple
+instances of the same program, all running at the same time is probably
+the main advantage to running under Windows.  You can have a text editor
+with your source code in one window, another window running MAKE to
+build your program, and another window doing a batch conversion of
+graphics files.  You might have another window used just for file
+operations (copy, delete, rename, etc.), while still another window has
+the debugger loaded.  The ability to switch back and forth between
+different tasks may not seem like a big deal at first, but when you do
+it all the time it becomes second nature and you wonder how you got
+along without it.
+
+If you've been dissatisfied with the multitasking capabilities of
+Windows in the past, you might need to update your thinking.  Windows 95
+is significantly improved over Windows 3.1 in the area of multitasking.
+Windows 3.1 used a form of cooperative multitasking, which didn't work
+very well for DOS programs that didn't know anything about it.  A
+CPU-intensive DOS program could bring the entire system to a crawl quite
+easily.  But with Windows 95, multitasking is pre-emptive, meaning that
+when you run multiple DOS programs, they all share the CPU time equally,
+resulting in much smoother performance.  If you have a program build
+that is going to take a few minutes, you can minimize the window and
+forget about it while you do other things.
+
+Performance — Yes, your programs will run slower under Windows.  The big
+question is, how much slower?  Also, are you actually comparing the same
+program, or just categories of programs?  If you're comparing a
+text-based word processor like Wordstar that runs under DOS with
+something like Microsoft Word for Windows, then it's quite likely that
+you'll see a big difference in regards to speed.  On the other hand, if
+you're talking about running the same DOS-based program under both DOS
+and Windows, we haven't really seen a big difference.
+
+For something like a complete program build using MAKE, MADMAC, and ALN,
+running under Windows 3.1 was about 5% slower than running under just
+MS-DOS.  That's assuming you're not running some other task in another
+Window in the background that is taking away CPU time.  Of course, if
+you're multitasking then you should expect a bigger performance hit.
+But a 5% difference shouldn't be a major problem.
+
+Keep in mind that running under Windows doesn't necessarily mean running
+in a window.  Some DOS-based programs which do a lot of screen output
+will be noticeably slower if you run them in a window next to other
+programs.  That's because Windows has to do a fair amount of work to
+emulate a character-mode screen inside a window, and that does slow
+things down a bit.  If you have a program where this is a problem, then
+the solution is simply to run that particular program full-screen.  That
+will eliminate any speed loss due to screen updates, but you will still
+have all of the other advantages of running under Windows.
+
+Tuning Your System For Windows — The key to decent performance is having
+Windows setup in a reasonable way for your system.  One of the main
+things that affects performance is the amount of memory you have and the
+size of your Windows virtual memory swap file.  Windows likes having a
+lot of memory, and at a minimum, you should have 8mb of RAM if you want
+to do more than one thing at a time.  But regardless of the amount of
+memory you have, you should avoid having a large swap file.  Having a
+large swap file will trick your Windows applications into thinking there
+is more memory available, and to a certain degree will allow you to have
+more programs loaded at once.  However, a large swap file also means
+that your system will be constantly slowed down by Windows having to
+read and write it.  Also, having a large swap file really won't give you
+any advantage for DOS applications (such as the majority of the Jaguar
+Developer Tools).
+
+Windows normally suggests a swap file size that is based on free disk
+space, but for the best performance, it should be no larger than the
+amount of physical memory you have installed in your system.  This will
+keep the swap file access down to a minimum.
+
+
+CD Debugging Scripts
+--------------------
+There are a couple of scripts for the DB debugger now available that are
+designed to streamline the process of debugging and development of
+CD-based titles.
+
+The MAKETOC script automatically loads the CD BIOS into the Jaguar, and
+then runs a program to load the current table of contents information
+into memory from the current CD or emulator setup, finally, it writes
+the table of contents information to a data file for future use.
+
+The USETOC script automatically loads the CD BIOS into the Jaguar, and
+then loads the table of contents data file previously created by the
+MAKETOC script.  After using either MAKETOC or USETOC, the system is
+ready for you to start your own program.  This is available in the
+CDROM.ZIP archive available online..
+
+
+Use Atari's Standard Startup Code...
+------------------------------------
+Developers who are not already using Atari's standard startup code with
+their projects need to be aware that failure to do so may result in
+their software failing to work properly on the next-generation Jaguar
+machines currently in development.
+
+Atari's standard startup code initializes the Jaguar GPU & DSP,
+interrupt vectors, and other hardware in a way that is known to be safe
+on current and future machines.  It displays a simple opening graphic,
+and jumps to your main program code, which would display any additional
+title screens, play a introductory Cinepak film, or whatever else is
+appropriate for your program.
+
+Avoid making changes to the startup code.  In most cases, the only
+acceptable modification to the startup code is changing the startup
+picture.  If you think further modifications are required, please bring
+them to Atari's attention at the earliest possible stage of development
+so that either they can be approved or an alternate method found.
+
+Atari's startup code can be found in the SOURCE.ZIP archive available
+online.  After you've decompressed the archive contents, the source
+files will be in the \JAGUAR\SOURCE\STARTUP directory.
+
+
+
+And Use Our Current EEPROM Code Too!
+------------------------------------
+Atari supplies standard routines for accessing a Jaguar cartridge's
+EEPROM to store or retrieve high score information, user preferences,
+etc.  If you are not using Atari's most current version of these
+routines, then your program may not function correctly with new
+cartridge EEPROM hardware which will soon be used on Jaguar cartridges.
+
+The EEPROM routines are included in the SOURCE.ZIP archive, available
+for downloading online.  The latest revision is from March 14, 1995.
+This extracts to the directory \JAGUAR\SOURCE\EEPROM.
+
+
+
+Christmas is coming...
+----------------------
+Developers and publishers should keep in mind that all cartridge-based
+products must be fully-tested and released into production by October 5, and
+CD-based products by October 31, in order to insure that your product is
+shipping in time for the Thanksgiving sales weekend, the beginning of the
+Christmas selling season.  Remember to allow at least 4 weeks for final
+testing.
+
+
+
+New BBS Number
+--------------
+The new Atari Software Development BBS is now up and running as a two
+line system.  The new number to call for both lines is (408) 541-9164.
+The old phone number is no longer active.  The new line does not go
+through the rest of Atari's phone system, so it should be more reliable
+for those callers who have had noise-related connection problems in the
+past.
+
+
+When Signing Onto the BBS For the First Time
+--------------------------------------------
+The very first time you log onto the Atari Software Development BBS,
+you won't have access to the message bases or the file libraries with
+the updates to the Jaguar developer kit files.  This is because the
+Atari SDBBS is a closed system for developers only, and everybody who
+calls must individually be given clearance before they can access
+these areas.
+
+To get full access, it is imperative that you leave a detailed message
+to the sysop that includes your full name, your company, telephone
+number, and the name of the Jaguar project you are working on.
+
+Failure to provide the proper information will result in your access
+being delayed indefinitely.  So if you log on and leave a message that
+just says something like "Hi, I'm Joe and I need access to the Jaguar
+developer areas", you won't get it, because we will not have any means
+of verifying who you are.  On the other hand, if you do leave the
+proper information, full access should be granted within a day or two
+at most.
+
+
+Jaguar Tool Updates
+-------------------
+The Jaguar Developers Kit tools and related files listed below have been
+updated in the last month.  You can download the latest versions from
+the Atari Software Development BBS or from the Jaguar Developer library
+in the Atari Gaming forum on Compuserve.
+
+MADMAC Macro Assembler — September 1, 1995.  New version of MADMAC
+includes Bitfield definitions.  See article for details.  Download
+MACALN.ZIP for the MSDOS version, STTOOLS.ZIP for the Atari version, or
+LINUX.ZIP for the PC Linux version.
+
+DB Debugger — September 1, 1995.  New versions of WDB and RDBJAG fixes a
+problem reading COF files with very long symbol names.  Download
+DBPC.ZIP for the MSDOS version, STTOOLS.ZIP for the Atari version, or
+LINUX.ZIP for the PC Linux version.
+
+Jaguar CDROM Files — September 1, 1995.  This features the newest
+version of the MAKETRK utility (see article) as well as a new version of
+the CD BIOS (v4.5) as well as some changes to the included CDROM sample
+reader program, and changes to the CD Boot Emulator.  Download CDROM.ZIP
+
+FILEFIX Utility — September 1, 1995.  New version of FILEFIX changes no
+longer gives an error if program does not start at $802000.  Download
+UTILPC.ZIP for the MSDOS version, STTOOLS.ZIP for the Atari version.
+Dev Kit Roadmap
+
+LS Directory Lister — August 22, 1995.  The LS directory lister
+utility has been updated to work better with directories containing
+large numbers of files.  Download UTILPC.ZIP.
+
+Jaguar System Include Files — August 8, 1995.  See the article in this
+issue for information.  Download SOURCE.ZIP
+
+Jaguar Artwork Viewer — August 4, 1995.  This new version adds the
+ability to control your horizontal resolution, and has improved
+communications reliability.  Download ARTWORK.ZIP
+
+Flash ROM Utility — July 27, 1995.  You can now hit Control-C to abort a
+download and return to the DOS prompt.  Download UTILPC.ZIP.
+
+Jaguar Graphics Tool — July 24, 1995.  Several minor bugs reported by
+Jaguar Developers have been fixed.  Download ARTWORK.ZIP.
+
+Jaguar NVRAM Simulator — July 21, 1995.  The NVRAM simulator uses the
+Alpine board to emulate the Jaguar Memory Track cartridge, an add-on for
+the Jaguar CD that allows CD game titles to save their user options,
+high score lists, saved-games, and other information.  The archive has
+been updated with additional documentation.  Download JAGLIB.ZIP for the
+complete package.
+
+
+
+Dev Kit Roadmap
+---------------
+The tools, sample source code, libraries, and other components of the
+Jaguar Developers Kit are updated frequently.  To keep track of what's
+new, see the file ROADMAP.TXT that is posted online on the Atari
+Software Development BBS and in the Jaguar Developer library in the
+Atari Gaming forum on Compuserve.  This file is updated and reposted
+whenever any of the standard distribution archives from the Jaguar
+Developer's kit is updated.
+
+
+
+If you've missed previous issues...
+-----------------------------------
+Then it's possible that we may not have a current fax number for you.
+Just in case, please contact us with your current address, telephone and
+fax numbers.  Also, consider that the better solution would be to
+subscribe to the Jaguar Developer Weekly Via EMAIL.
+
+The preferred method for Atari to send out the Jaguar Developer Weekly
+is via EMAIL, but unfortunately, we don't have a database of everybody's
+EMAIL addresses.  If you have a current Internet or Compuserve EMAIL
+address, please send a message to mfulton@atari.com so that we can add
+you to the list of developers that receive the Jaguar Developer Weekly
+via EMAIL instead of fax.
+
+What you get each week will be the ASCII text of the issue, plus an
+online readable version.(if there are graphics to go along with any of
+the articles).
+
+
+
+Back Issues Available
+---------------------
+Back-issues of the Jaguar Developer Weekly are available online in the
+DEVNEWS.ZIP archive.  This archive file contains text-only versions of
+all of the issues since the first edition.  This archive will be updated
+with new issues as they come out.
+
+
+
+Note: The ASCII version of the Jaguar Developer Weekly is now formatted
+to 72 columns width since we got a few complaints that the wider lines
+on earlier versions did not come through very well.  If you have
+problems with this formatting, please let us know.
+

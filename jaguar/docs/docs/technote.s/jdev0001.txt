@@ -1,0 +1,229 @@
+Jaguar Developer Technical Notes
+--------------------------------
+Item: JDEV0001
+Date: February 6, 1995
+Re:   A Recurring Problem With Sound
+
+We have seen a particular problem repeat itself in several different
+programs.  The sound produced by the Jaguar Synth becomes distorted and
+pitch-altered when the the object processor is especially busy, such as when
+there are multiple bitmap objects, typically 16-bit or 24-bit with overscan,
+displayed on screen.  This can also happen with other sound generation and
+playback code besides Atari’s Jaguar Synth.
+
+The cause of the problem is that the DSP is getting hung up on the bus while
+trying to load information from external memory.  This happens because the
+Object Processor (OP) is grabbing the bus so that it can read the data for
+the big bitmap objects in the object list.  Because of the size and depth of
+the bitmaps, the bus is held by the OP for so long that the DSP cannot access
+external memory to read samples for sample-based voices.  The DSP gets hung
+up on LOAD instructions waiting for the bus to become available so that
+external memory can be accessed.  This holds up the DSP interrupt that feeds
+new data to the DACs, resulting in the sound becoming pitch-distorted.
+
+Note: In Atari's Jaguar Synth, this is only a problem when using sample-based
+voices.  If only synthesized voices are being used, then no sample rate
+external bus accesses are required.  Therefore the problem is avoided.  So
+the ideal solution to the problem is to avoid sample-based voices as much as
+possible.  Use wavetable or FM-synthesis voices instead.
+
+Assuming you must use sample-based voices, there are two possible ways around
+the problem.
+
+Solution #1
+------------
+
+The first method is to include one or more dummy objects in your object list
+that have the RELEASE bit set.  The idea is to force the OP to give up the
+bus at periodic intervals, giving the DSP the window of bus access
+opportunity it needs.  The best way is to break down your big bitmap objects
+into a series of smaller bitmaps, and include a dummy bitmap object between
+each pair.  These dummy objects should have the RELEASE bit set.  This causes
+the OP to release the bus between data fetches, which will give the DSP the
+window of opportunity it requires to grab its sample information.  Note that
+this solution reduces the overall bus efficiency because of increased bus
+arbitration time.
+
+In the illustrations below, the box on the left represents the screen with a
+single large bitmap object.  The box in the center represents the same screen
+with the bitmap object broken down into two pieces which are placed side by
+side.  The right side box shows the same screen with the bitmap in three
+pieces.  Note that you can have all these objects refer to a single large
+bitmap in memory simply by setting the object parameters correctly.  So all
+you change is the object structure(s), not the bitmap itself.
+
+
++---------------------+
+|                     |
+| +-----------------+ |
+| |                 | |
+| |                 | |
+| |                 | |
+| |                 | |
+| |                 | |
+| |                 | |
+| +-----------------+ |
+|                     |
++---------------------+
+
+Figure 1, Screen using 1 large bitmap object
+
+
+
++---------------------+
+|                     |
+| +-------+ +-------+ |
+| |       | |       | |
+| |       | |       | |
+| |       | |       | |
+| |       | |       | |
+| |       | |       | |
+| |       | |       | |
+| +-------+ +-------+ |
+|                     |
++---------------------+
+
+Figure 2, Screen using 2 smaller bitmap objects
+
+
+
++---------------------+
+|                     |
+| +----+ +----+ +---+ |
+| |    | |    | |   | |
+| |    | |    | |   | |
+| |    | |    | |   | |
+| |    | |    | |   | |
+| |    | |    | |   | |
+| |    | |    | |   | |
+| +----+ +----+ +---+ |
+|                     |
++---------------------+
+
+
+Figure 3, Screen using 3 smaller bitmap objects
+
+While you can see gaps between the objects in the examples above, the real
+screens would have the objects touching, so that they appeared as one large
+object instead of multiple smaller ones.  The table below details how the
+object list for each screen would be constructed:
+
+
+		Figure 1		Figure 2		Figure 3
+		Single large bitmap	Two smaller bitmaps	Three Smaller Bitmaps
+-------------------------------------------------------------------------------------
+Object #1	Branch			Branch			Branch
+-------------------------------------------------------------------------------------
+Object #2	Branch                  Branch                  Branch
+-------------------------------------------------------------------------------------
+Object #3	Bitmap			Bitmap			Bitmap
+		x: 7, y:20,		x: 7, y:20,		x: 7, y:20,
+		w:320, h: 200		w:160, h: 200		w:80, h: 200
+-------------------------------------------------------------------------------------
+Object #4	Stop			Bitmap (dummy obj)	Bitmap (dummy obj)
+					x: 1000, y:20,		x: 1000, y:20,
+					w:8, h: 200		w:8, h: 200
+					Depth: 8 bits		Depth: 8 bits
+					RELEASE bit set		RELEASE bit set
+-------------------------------------------------------------------------------------
+Object #5				Bitmap			Bitmap
+					x: 167, y:20,		x: 87, y:20,
+					w:160, h: 200		w:144, h: 200
+-------------------------------------------------------------------------------------
+Object #6				Stop			Bitmap (dummy obj)
+								x: 1000, y:20,
+								w:8, h: 200
+								Depth: 8 bits
+								RELEASE bit set
+-------------------------------------------------------------------------------------
+Object #7							Bitmap
+								x: 231, y:20,
+								w:96, h: 200
+-------------------------------------------------------------------------------------
+Object #8							Stop
+-------------------------------------------------------------------------------------
+
+Because objects #3 and #5 in figure 2 are displayed next to each other, they
+appear on screen as a single large object.  The same is true for objects #3,
+#5, and #7 in figure 3.  So there is no visible difference compared to the
+single large bitmap in figure 1 (object #3).
+
+The dummy objects are the same height as the main bitmap objects, but they
+are positioned past the right edge of the screen.  They are dummy objects
+only in the sense that we are using them primarily to release the bus briefly
+during object list processing, and don't really want them to be seen.  They
+are still regular bitmap objects in other respects and they do have to point
+at valid data in DRAM.  If you make them the right depth and width (such as 8
+bits per pixel, 8 pixels wide) the OP will never have to grab more than one
+small chunk of data per object per scanline (using the least possible bus
+time).
+
+Note that in the right-side example, the big bitmap is broken down into
+objects that are different widths.  This is done to keep the widths of the
+objects on a phrase boundary, and also allows you to control the time
+intervals at which the bus will be released by the dummy objects.
+
+In some cases you may want to break the big bitmap into 4 smaller bitmap
+objects, rather than 2 or 3, in order to give the DSP more frequent and more
+consistent bus access.  Just make sure you have a hidden, off-screen dummy
+object between each pair of objects being used to show a chunk of the big
+bitmap, as well as between the objects correponding to completely different
+bitmaps.
+
+You can also reduce the DSP’s DRAM access requirements by putting your patch
+information into DSP RAM instead of DRAM.  This way the DSP won’t have to
+access DRAM for the patch information, so it will require less time on the
+bus.
+
+Another factor which may contribute to the problem is having the DSP or
+Object Processor accessing information directly from the cartridge ROM
+instead of the console’s DRAM.  Remember that accessing the cartridge ROM can
+be as much as 10 times slower than accessing standard console DRAM.  The only
+situation in which your program should be accessing the ROM is when you are
+copying code or data to DRAM or GPU/DSP RAM before using it.  And it’s best
+if you store it in ROM in compressed format and decompress it into DRAM when
+you need it.
+
+
+
+Solution #2
+-----------
+
+Solution #1 has the disadvantage of increasing your overall object processor
+usage, which may not be a good idea in some cases.  Another idea is to change
+the sample rate of the synthesizer from 20,776 Hz to 15,390 Hz.  By lowering
+the system sample rate this way, the period between critical data accesses
+for the synthesizer is increased from from 50us to 64us (this is known as the
+critical data rate).
+
+Since the Horizontal sync frequency is 63.5us, increasing the critical data
+rate to a higher value greater allows the DSP to get on the bus when the
+Object Processor is most likely finished with the bus.  Also for the same
+reason, it is less likely that Audio interrupt will be held off for more than
+1 sample period.  So if the problem happens at all, it will probably not
+noticably affect the sound.  While this method will downgrade the audio
+quality somewhat, it has the added benefit of increasing your polyphony
+approximately 1.35 times (from 168 available time units to 227).
+
+What does this all mean?  It means if your game is heavily using the Object
+Processor and your music is suffering from noise and pitch problems, you can
+change the sample rate and try again.
+
+What do you need to do?  In order to make the Jaguar Synth & Music Driver
+generate notes of the proper pitch for the new sample rate, You need to get a
+new NOTES.CNF file.  This file specifies the frequencies used by the synth
+for each musical note.  The latest version of the SYNTH.ZIP archive available
+online contains a file named NOTES15.CNF which has the proper values for the
+15390 Hz sample rate.  Also included is a file named NOTES21.CNF containing
+the values for the original 20,776 sample rate.  The NOTES.CNF file included
+is set for 20,776 Hz.
+
+To use the new sample rate, simply delete your existing NOTES.CNF file in
+your JAGUAR\BIN directory or local project directory, and copy over the
+NOTES15.CNF file and rename it to NOTES.CNF.  In your SYNTH.CNF file, you
+will need to change the value for SCLKVALUE from 19 to 25.  Now you must
+create new versions of your sound samples that use a 15,390 Hz sampling rate,
+either by resampling (preferred) or converting the sample rate of your
+existing samples (works, but can introduce noise).  Finally, re-parse your
+MIDI files, re-compile your source code, and link.
+

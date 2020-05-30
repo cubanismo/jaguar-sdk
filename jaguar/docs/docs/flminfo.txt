@@ -1,0 +1,18 @@
+Cinepak Movie File Information Utility, Version: 1.6
+Written by Scott Sanders
+Copyright (c)1994,95 Atari Corp.
+
+The FLMINFO program reads a Cinepak film file and prints out information
+about the contents.
+
+Usage:
+
+   flminfo <filename> [-v[x]]
+
+
+Options:
+
+     -v0: Show only the most basic information about the film (default).
+     -v1: Show data for each chunk in film (chunky films only)
+     -v2: Show data for each chunk and each sample in film.
+      -v: Increase the level of verbosity by one (Ex: -v -v = -v2)

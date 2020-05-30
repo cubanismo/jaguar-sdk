@@ -1,0 +1,216 @@
+============================================================================
+Jaguar Developer Weekly           July 28, 1995                  Vol.1, No.6
+============================================================================
+
+
+New BBS Number
+--------------
+The new phone line for the Atari Software Development BBS will be active as
+of Monday, July 31.  The new number will be (408) 541-9164.  The old phone
+number for the BBS will no longer be active, so please make a note of the new
+number.  The new line won't go through the rest of Atari's phone system, so
+it should be more reliable for those callers who have had noise-related
+connection problems in the past.
+
+
+
+Undefined Symbols In Madmac Expressions
+---------------------------------------
+There are certain limitations on using undefined symbol names in expressions
+that do not generate warnings or error messages at assembly time, and which
+aren't clearly defined in older versions of the Madmac documentation.  The
+following text is a recent addition to the Expressions section:
+
+Externally defined symbol names cannot be used in mathematical expressions.
+If you do this, you will get unpredictable results.  This is true even if the
+symbol is declared as being external using the .GLOBL or .EXTERN directives.
+For example, if external_symbol is not defined within the same file, then
+example 1 below will work, but examples 2 and 3 will not:
+
+1) move.l	#external_symbol,a0
+2) move.l	#external_symbol-2000,a0
+3) move.l	#external_symbol-local_symbol,a0
+
+The reason this does not work is that these types of expressions would
+require a variety of different operations to be performed at link time in
+order for them to be properly resolved, and the relocation method used by
+MADMAC and the ALN linker does not currently support this.
+
+
+
+Christmas is coming...
+----------------------
+Developers and publishers should keep in mind that all cartridge-based
+products must be fully-tested and released into production by October 5, and
+CD-based products by October 31, in order to insure that your product is
+shipping in time for the Thanksgiving sales weekend, the beginning of the
+Christmas selling season.  Remember to allow at least 4 weeks for final
+testing.
+
+
+
+Minimum Jaguar CD Track Size
+----------------------------
+When creating a Jaguar CD master, be aware that there is a minimum track size
+of one megabyte imposed by the final encryption and re-mastering process done
+by Atari.  In most cases, this will not be a problem, but if you are very
+close to filling the disc completely, this may have an impact.  Remember to
+always use a minimum of one megabyte per track when calculating disc usage.
+Also remember that Atari will need space for a track containing encryption
+information and at least one short audio track.
+
+
+
+Jaguar CD Track Format
+-----------------------
+A quick reminder to developers working on CD titles: it's very important to
+follow the correct format for a Jaguar CD-ROM track and include the proper
+track header and tailer information.  Failure to do so will prevent you from
+creating a bootable CD.
+
+The proper format for a Jaguar CD-ROM track is described in the Jaguar
+Developer documentation in the section entitled The Jaguar CD-ROM:
+Programming, Procedures, and Guidelines in the Jaguar CD-ROM chapter.  Here
+are some of the highlights:
+
+Note: The text below contains some clarifications to last week's article:
+
+The start of each data track (i.e.  session #1 and above) must contain a
+specific Atari data header, and the end of each track must contain a
+corresponding data tailer.  No data may precede a track header or follow a
+track tailer.
+
+The header must consist of 16 repetitions of the string "ATRI" (64 bytes
+total) followed by the 32-byte string:
+
+"ATARI APPROVED DATA HEADER ATRIx"
+
+where the "x" at the end is ASCII 32 + the number of the track (starting from
+0, relative to the boot track at the beginning of session 1).  For example,
+the boot track would have an ASCII 32, the following track would have an
+ASCII 33, etc.
+
+The tailer must be long aligned (i.e.  your data must be a multiple of 4
+bytes in length) and consist of the 32-byte string:
+
+"ATARI APPROVED DATA TAILER ATRIx"
+
+The "x" should be the same value as in the track header.  This is followed by
+16 repetitions of the string "ATRI" (64 bytes total).
+
+The boot track of a Jaguar CD-ROM has two Motorola-format long words
+immediately following the track header.  The first specifies the target
+address of your boot code, which must be between $4000 and $FAFFF.  The
+second specifies the length of your boot code, which should be no longer than
+64K.  The boot track may be longer than this, but only 64K will be loaded
+automatically at boot time by the system.
+
+
+
+CD Error Handling
+-----------------
+When an error value appears in register A1 after a CD_ptr call, you should
+check that the address in A0 is equal to or greater than the buffer start
+address given in the last CD_read.  If not, a CD_ack should be issued prior
+to any other CD BIOS call.
+
+
+
+Memory Track NV-RAM Cartridge
+-----------------------------
+Memory Track is an Non Volatile RAM (NV-RAM) cartridge used by Jaguar CD
+titles to save game high scores, user options, and save-game information.  It
+is accessed via a set of BIOS routines which are organized and used much like
+a disk file system on a computer.
+
+The NV-RAM Simulator uses the Alpine board to simulate the Jaguar NV-RAM
+cartridge during the development process.  This is available in the
+JAGLIB.ZIP archive online.
+
+The NV-RAM BIOS allocates cartridge memory in 512 byte blocks.  To get the
+best performance, your program should read or write NV-RAM in multiples of
+512 bytes at once.  Doing reads or writes with smaller amounts of data will
+work, but is many times slower than reading or writing the same amount of
+data in one step.  The difference is easily noticable to people using your
+program.
+
+
+
+Important Note about Adobe Premiere 4.0
+---------------------------------------
+Several in-house and third party developers have had difficulty in creating
+Cinepak movies for Jaguar titles using Adobe Premiere 4.0.  These errors are
+consistent with internal rounding errors that cause video frames to
+occasionally be added or skipped.  In addition, these errors have induced
+'clicking' in audio samples that are resampled by Premiere.
+
+Adobe Tech Support has acknowledged these problems and is planning to correct
+them in some future update.  Until then, Adobe AfterEffects (formerly CoSa)
+is not known to suffer from these problems.  To correct Audio resampling
+problems, we have used Macromind SoundEdit 16 with success as it has the
+ability to edit the audio stream of a Quicktime movie atomically, without
+necessitating the recompression of video on resaving the file.
+
+
+
+Jaguar Tool Updates
+-------------------
+The Jaguar Developers Kit tools and related files listed below have been
+updated in the month.  You can download the latest versions from the Atari
+Software Development BBS or from the Jaguar Developer library in the Atari
+Gaming forum on Compuserve.
+
+Flash ROM Utility — July 27, 1995.  You can now hit Control-C to abort a
+download and return to the DOS prompt.  Download UTILPC.ZIP.
+
+Jaguar Graphics Tool — July 24, 1995.  Several minor bugs reported by Jaguar
+Developers have been fixed.  Download ARTWORK.ZIP.
+
+Jaguar NVRAM Simulator — July 21, 1995.  The NVRAM simulator uses the Alpine
+board to emulate the Jaguar Memory Track cartridge, an add-on for the Jaguar
+CD that allows CD game titles to save their user options, high score lists,
+saved-games, and other information.  The archive has been updated with
+additional documentation.  Download JAGLIB.ZIP for the complete package.
+
+Jaguar Cinepak Utility — July 7, 1995.  A couple of small cosmetic glitches
+have been fixed.  Also the program now gives an error if the QuickTime movie
+you are trying to convert does not use Cinepak for video compression.
+Download JAGMAC.SEA using MacBinary on the Macintosh, or download to your PC
+and use a MacBinary-intelligent utility to transfer the file to your
+Macintosh.  Once you get the file to the Mac, JAGMAC.SEA is a self-extracting
+archive.
+
+
+
+Developer Kit Archive Roadmap
+-----------------------------
+The tools, sample source code, libraries, and other components of the Jaguar
+Developers Kit are updated frequently.  To keep track of what's new, see the
+file ROADMAP.TXT that is posted online on the Atari Software Development BBS
+and in the Jaguar Developer library in the Atari Gaming forum on Compuserve.
+This file is updated and reposted whenever any of the standard distribution
+archives from the Jaguar Developer's kit is updated.
+
+
+
+If you've missed previous issues...
+-----------------------------------
+then it's possible that we may not have a current fax number for you.  Just
+in case, please contact us with your current address, telephone and fax
+numbers.  Also, consider that the better solution would be to subscribe to
+the..
+
+
+
+Jaguar Developer Weekly Via EMAIL
+---------------------------------
+The preferred method for Atari to send out the Jaguar Developer Weekly is via
+EMAIL, but unfortunately, we don't have a database of everybody's EMAIL
+addresses.  If you have a current Internet or Compuserve EMAIL address,
+please send a message to mfulton@atari.com so that we can add you to the list
+of developers that receive the Jaguar Developer Weekly via EMAIL instead of
+fax.
+
+What you get each week will be the ASCII text of the issue, plus an online
+readable version.
+

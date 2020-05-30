@@ -1,0 +1,473 @@
+global g0
+
+sl f0210c 00070007
+sl f1a10c 00070007
+
+procedure savegpc
+	set g0 lpeek(f02110)
+	sl 2180 g0
+.
+
+procedure savedpc
+	set g0 lpeek(f1a110)
+	sl 2180 g0
+.
+
+procedure showgpc
+	set g0 lpeek(f02110)
+	print -x08 g0+2
+.
+
+procedure showdpc
+	set g0 lpeek(f1a110)
+	print -x08 g0+2
+.
+
+procedure getgpc
+	set g0 lpeek(f02110)
+	set g0 g0+2
+.
+
+procedure getdpc
+	set g0 lpeek(f1a110)
+	set g0 g0+2
+.
+
+procedure setgpc gpc flag
+	stopgpu
+	sl f02110 `gpc
+.
+
+procedure setdpc dpc flag
+	stopdsp
+	sl f1a110 `dpc
+.
+
+procedure swap input
+	local temp1 temp2
+	set temp1 input<<@16
+	set temp2 input>>@16
+	set g0 temp1+temp2
+.
+
+alias gogpu 'sl f02114 00000011'
+alias godsp 'sl f1a114 00000011'
+
+alias stopgpu 'sl f02114 00000008'
+alias stopdsp 'sl f1a114 00000008'
+
+procedure resetgpc
+	local temp
+	set temp lpeek(2180)
+	set g0 g0+2
+	setgpc g0 
+.
+
+procedure resetdpc
+	local temp
+	set temp lpeek(2180)
+	set g0 g0+2
+	setdpc g0 
+.
+
+procedure lold addr range
+	x discpu $ff
+	if (`argc==2) l addr[range]
+	if (`argc==1) l addr
+	if (`argc==0) l
+	x discpu 0
+.
+
+procedure lg addr range
+	x discpu $fe
+	if (`argc==2) l addr[range]
+	if (`argc==1) l addr
+	if (`argc==0) l
+	x discpu 0
+.
+
+procedure ld addr range
+	x discpu $fd
+	if (`argc==2) l addr[range]
+	if (`argc==1) l addr
+	if (`argc==0) l
+	x discpu 0
+.
+
+procedure gpustuf
+	read /root/jaguar/bin/regdump.bin 2000
+.
+
+gag ; gpustuf ; gag off ; defer gag
+
+
+procedure gob break count
+	local addr opcode0 opcode1 temp
+	if (`argc==1) goto gobgo
+	if (`argc==2) goto gobgc
+	print Usage: gob BreakAddr [Count]
+	print  (v0.1)
+	goto gobend
+#:gobgo
+	set count 1
+#:gobgc
+	sl 1C D7E0E400
+	set addr break&fffffffc
+	set opcode0 lpeek(addr)
+	set opcode1 lpeek(addr+4)
+	set g0 8F9FD3E0
+	set temp opcode1&0000ffff
+	set temp temp+E4000000
+	if ((break&2)==0) goto hiok
+	set g0 opcode0&ffff0000
+	set g0 g0+00008F9F
+	set temp D3E0E400
+#:hiok
+	sl addr g0
+	set addr addr+4
+	sl addr temp
+	set addr addr-4
+#	print -x08 addr -x08 lpeek(addr) -x08 lpeek(addr+4)
+#	goto gobend
+#	goto gobend
+	gogpu
+	print -d count
+#:gobwait	
+	set temp lpeek(f02114)
+	if ((temp&1)==1) goto chk100
+	set count 1
+	print GPU self-terminated
+	goto exitw
+#:chk100  
+	set temp lpeek(f02110)
+	if (temp>100) goto gobwait
+	stopgpu
+#:exitw
+	sl addr opcode0
+	set addr addr+4
+	sl addr opcode1
+	sl f02110 break
+	set count count-1
+	if (count==0) goto gobover
+#:traceov
+	gag on
+	tg
+	gag off
+	set temp lpeek(f02110)
+	set temp temp+2
+	if (temp<break) goto gobgc
+	set temp temp-5
+	if (temp>break) goto gobgc
+	goto traceov
+#:gobover
+#	xg
+	lg break 1
+#:gobend
+.
+
+
+procedure dog break count
+	local addr opcode0 opcode1 temp
+	if (`argc==1) goto doggo
+	if (`argc==2) goto doggc
+	print Usage: dog BreakAddr [Count]
+	print  (v0.1)
+	goto dogend
+#:doggo
+	set count 1
+#:doggc
+	sl 1C D7E0E400
+	set addr break&fffffffc
+	set opcode0 lpeek(addr)
+	set opcode1 lpeek(addr+4)
+	set g0 8F9FD3E0
+	set temp opcode1&0000ffff
+	set temp temp+E4000000
+	if ((break&2)==0) goto hidok
+	set g0 opcode0&ffff0000
+	set g0 g0+00008F9F
+	set temp D3E0E400
+#:hidok
+	sl addr g0
+	set addr addr+4
+	sl addr temp
+	set addr addr-4
+#	print -x08 addr -x08 lpeek(addr) -x08 lpeek(addr+4)
+#	goto gobend
+#	goto gobend
+	godsp
+	print -d count
+#:dogwait	
+	set temp lpeek(f1A114)
+	if ((temp&1)==1) goto chkd100
+	set count 1
+	print DSP self-terminated
+	goto exitdw
+#:chkd100  
+	set temp lpeek(f1A110)
+	if (temp>100) goto dogwait
+	stopdsp
+#:exitdw
+	sl addr opcode0
+	set addr addr+4
+	sl addr opcode1
+	sl f1A110 break
+	set count count-1
+	if (count==0) goto dogover
+#:tracedov
+	gag on
+	td
+	gag off
+	set temp lpeek(f1A110)
+	set temp temp+2
+	if (temp<break) goto doggc
+	set temp temp-5
+	if (temp>break) goto doggc
+	goto tracedov
+#:dogover
+#	xg
+	ld break 1
+#:dogend
+.
+
+
+procedure xgr regno regdata
+	local temp temp1
+	if (`argc==2) goto xgrok
+#:xgruse
+	print Usage: xgr Register# NewRegisterData
+	print  where Register# is 0-29 decimal and NewRegisterData is 32-bit hex
+	goto xgrend
+#:xgrng
+	print Register# out of range
+	goto xgruse
+#:xgrok
+	set temp (regno>>4)
+	set temp temp*A
+	set temp1 regno&F
+	set temp temp1+temp
+	if (temp1>9) goto xgrng
+	if (temp>1d) goto xgrng
+	
+	sl 20A0 981F20BC
+	set temp1 0000BFE0|temp
+	sl 20A4 temp1
+	set temp1 089FA7E0|temp
+	sl 20A8 temp1
+	sl 20AC 981F2114
+	sl 20B0 00F08C1E
+	sl 20B4 BFFED7C0
+	sl 20B8 E400E400
+	sl 20c0 regdata
+	set temp1 lpeek(f02110)
+	sl f02110 20a0
+	gogpu
+	set temp1 temp1+2
+	print -n R
+	print -d02 temp was: -x08 lpeek(20BC) is now: -x08 regdata
+	sl f02110 temp1
+#:xgrend
+.
+
+procedure tg start end
+	if (argc>0) setgpc start 1
+#:glop
+	sl f02114 00000019
+	set g0 lpeek(f02110)
+	set g0 g0+2
+	if ((`g0!=end)&(argc==2)) goto glop
+	lg g0 1
+#	xg
+.
+
+procedure td start end
+	if (argc>0) setgpc start 1
+#:glop
+	sl f1a114 00000019
+	set g0 lpeek(f1a110)
+	set g0 g0+2
+#print -x g0
+	if ((`g0!=end)&(argc==2)) goto glop
+	ld g0 1
+.
+
+procedure xg
+	local temp1 temp2 count gflags
+
+	set gflags lpeek(f02100)
+
+	savegpc
+	setgpc 2008
+	sl 2100[@32*4] 0
+	sl 217c ffffffff
+	sl 2178 0
+	set count 0
+
+	set temp1 lpeek(f02100)
+	set temp2 temp2
+
+	if ((temp1&1)==0) print -n ZC
+	if ((temp1&1)!=0) print -n ZS
+
+	if ((temp1&2)==0) print -n CC
+	if ((temp1&2)!=0) print -n CS
+
+	if ((temp1&4)==0) print -n NC
+	if ((temp1&4)!=0) print -n NS
+
+	set temp1 temp1&00004000
+	set temp1 temp1>>@14
+	print Register Bank -x temp1
+
+	sl 208c 981f2114
+	sl 2090 00f0981e
+
+	gogpu
+#:lop
+	if (count>10) goto abort
+	set temp1 lpeek(2178)
+	set temp2 lpeek(217c)
+	set count count+1
+	if (temp1!=temp2) goto lop
+	goto exit
+
+#:abort
+	print Did the GPU die?
+	goto exit
+
+#:exit
+	print -n R00 -x08 lpeek(2100)
+	print -n -x08 lpeek(2104)
+	print -n -x08 lpeek(2108)
+	print -n -x08 lpeek(210c) ""
+	print -n -x08 lpeek(2110)
+	print -n -x08 lpeek(2114)
+	print -n -x08 lpeek(2118)
+	print -x08 lpeek(211c)
+	print -n R08 -x08 lpeek(2120)
+	print -n -x08 lpeek(2124)
+	print -n -x08 lpeek(2128)
+	print -n -x08 lpeek(212c) ""
+	print -n -x08 lpeek(2130)
+	print -n -x08 lpeek(2134)
+	print -n -x08 lpeek(2138)
+	print -x08 lpeek(213c)
+	print -n R16 -x08 lpeek(2140)
+	print -n -x08 lpeek(2144)
+	print -n -x08 lpeek(2148)
+	print -n -x08 lpeek(214c) ""
+	print -n -x08 lpeek(2150)
+	print -n -x08 lpeek(2154)
+	print -n -x08 lpeek(2158)
+	print -x08 lpeek(215c)
+	print -n R24 -x08 lpeek(2160) 
+	print -n -x08 lpeek(2164)
+	print -n -x08 lpeek(2168)
+	print -n -x08 lpeek(216c) ""
+	print -n -x08 lpeek(2170)
+	print -n -x08 lpeek(2174)
+	print -n "TRASHED!"
+	print "TRASHED!"
+
+ 	resetgpc
+
+	sl f02100 `gflags
+
+	getgpc
+	lg g0 1
+.
+
+procedure xd
+	local temp1 temp2 count gflags
+
+	set gflags lpeek(f1a100)
+
+	savedpc
+	setdpc 2008
+	sl 2100[@32*4] 0
+	sl 217c ffffffff
+	sl 2178 0
+	set count 0
+
+	set temp1 lpeek(f1a100)
+	set temp2 temp2
+
+	if ((temp1&1)==0) print -n ZC
+	if ((temp1&1)!=0) print -n ZS
+
+	if ((temp1&2)==0) print -n CC
+	if ((temp1&2)!=0) print -n CS
+
+	if ((temp1&4)==0) print -n NC
+	if ((temp1&4)!=0) print -n NS
+
+	set temp1 temp1&00004000
+	set temp1 temp1>>@14
+	print Register Bank -x temp1
+
+	sl 208c 981fa114
+	sl 2090 00f1981e
+
+	godsp
+#:lop
+	if (count>10) goto abort
+	set temp1 lpeek(2178)
+	set temp2 lpeek(217c)
+	set count count+1
+	if (temp1!=temp2) goto lop
+	goto exit
+
+#:abort
+	print Did the DSP die?
+	goto exit
+
+#:exit
+	print -n R00 -x08 lpeek(2100)
+	print -n -x08 lpeek(2104)
+	print -n -x08 lpeek(2108)
+	print -n -x08 lpeek(210c) ""
+	print -n -x08 lpeek(2110)
+	print -n -x08 lpeek(2114)
+	print -n -x08 lpeek(2118)
+	print -x08 lpeek(211c)
+	print -n R08 -x08 lpeek(2120)
+	print -n -x08 lpeek(2124)
+	print -n -x08 lpeek(2128)
+	print -n -x08 lpeek(212c) ""
+	print -n -x08 lpeek(2130)
+	print -n -x08 lpeek(2134)
+	print -n -x08 lpeek(2138)
+	print -x08 lpeek(213c)
+	print -n R16 -x08 lpeek(2140)
+	print -n -x08 lpeek(2144)
+	print -n -x08 lpeek(2148)
+	print -n -x08 lpeek(214c) ""
+	print -n -x08 lpeek(2150)
+	print -n -x08 lpeek(2154)
+	print -n -x08 lpeek(2158)
+	print -x08 lpeek(215c)
+	print -n R24 -x08 lpeek(2160) 
+	print -n -x08 lpeek(2164)
+	print -n -x08 lpeek(2168)
+	print -n -x08 lpeek(216c) ""
+	print -n -x08 lpeek(2170)
+	print -n -x08 lpeek(2174)
+	print -n "TRASHED!"
+	print "TRASHED!"
+
+ 	resetdpc
+
+	sl f1a100 `gflags
+
+	getdpc
+	ld g0 1
+.
+
+alias d_set0 'set g0 lpeek(f1a100) ; set g0 (g0&(~00004000)); sl f1a100 g0'
+alias d_set1 'set g0 lpeek(f1a100) ; set g0 (g0|00004000); sl f1a100 g0'
+
+alias g_set0 'set g0 lpeek(f02100) ; set g0 (g0&(~00004000)); sl f02100 g0'
+alias g_set1 'set g0 lpeek(f02100) ; set g0 (g0|00004000); sl f02100 g0'
+
+
+

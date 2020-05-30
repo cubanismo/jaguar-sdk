@@ -1,0 +1,21 @@
+Jaguar Developer Technical Notes
+--------------------------------
+Item: JDEV0004
+Date: May 5, 1995
+Re:   New EEPROM sources
+
+
+
+Please be aware that there were some recent changes to the EEPROM sources. 
+
+Several routines in EEPROM.S had a bug where the return value was accidentally
+being trashed by a register save/restore.  This has been fixed.
+
+The fixed sources are in the latest version of SOURCE.ZIP which was posted
+online in early/mid April.  Please make sure you download it if you haven't
+already.
+
+Remember that the online file ROADMAP.TXT serves as a guide to what is contained
+in the Jaguar Developer Kit archive files distributed online on Compuserve and
+the Atari Software Development BBS.  If you want to know what's new and improved,
+take a look at ROADMAP.TXT.

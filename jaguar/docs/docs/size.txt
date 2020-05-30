@@ -1,0 +1,53 @@
+SIZE
+----
+
+SIZE is a utility that examines an executable program file or linkable object
+module file and prints out information about the TEXT, DATA, and BSS segments
+of the file (size, starting address, etc.)
+
+Please note that some information is not appropriate for some files.  For
+example, segments within a linkable object module do not have a start
+address until they are linked together into a program file.
+
+Usage: size [-s] [-sd] <filename>
+
+       -s  =  Show symbols in file.  The symbols will be sorted alphabetically.
+              The information shown is the symbol value, symbol name, and symbol
+              type.  Symbols with the same name will be skipped (usually these are
+              local labels which are used in different routines, or else special
+              source-level debugging information symbols used by the debugger).
+
+      -sd  =  Same as the -s flag, except that duplicate symbol names will
+              not be skipped.
+
+<filename> =  Name of file to be analyzed.  SIZE will first look for the
+              filename and extension exactly as specified.  If no extension
+	      is found, it will then try extensions of .COF and .ABS (in that
+	      order).
+
+
+
+Changes
+-------
+
+July 27, 1994
+-------------
+This is a completely new version of SIZE.  It now understands the following
+file formats:
+
+	DRI format executables (*.ABS)
+	COFF encapsulated format executables (*.COF)
+	DRI or BSD format object module files (*.O, *.OJ, *.OT)
+
+This new version of SIZE replaces both the older version of SIZE and also
+the NAME utility, because you can now also optionally display a list of
+all the symbols defined within the file by using the "-s" switch on the
+commandline.
+
+
+
+May 13, 1994
+------------
+
+The SIZE utility now understands the BSD/COFF file format.  (Please note:
+the Atari/TOS version of this tool was previously named SIZE68.)

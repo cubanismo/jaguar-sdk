@@ -1,0 +1,5 @@
+load /root/jaguar/bin/cdbios45.db
+aread /root/jaguar/maketoc.cof
+g
+write toc.dat 2c00[100]
+ 

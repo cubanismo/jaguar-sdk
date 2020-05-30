@@ -1,0 +1,259 @@
+=======================================================================
+Jaguar Developer Weekly     September 15, 1995             Vol.1, No.13
+=======================================================================
+
+Path Specifications & The Jaguar Development Tools
+--------------------------------------------------
+Many of the tools in the Jaguar Developer's Kit for the MS-DOS platform
+have been compiled with the GNU GCC C/C++ compiler.  Although there are
+versions of GCC for most computer platforms in use today, the native
+platform for GCC is UNIX, and this is reflected by the behavior of the
+GCC standard C libraries.  UNIX uses a forward slash ("/") as a
+directory path separator character, rather than the backslash ("\") used
+by MS-DOS.  As a result, many of the Jaguar tools accept either style of
+slash as valid path separator characters.
+
+In most cases, you simply use standard MS-DOS backslashes in your
+environment variables or MAKEFILEs, but there are some cases where using
+a forward slash is required or preferred.  Specifically, it is
+recommended that you use forward slashes for the environment variables
+MACPATH and GCC_EXEC_PREFIX, as well as with the "-I" command line
+switch for MADMAC.  In general, remember that both types of slashes are
+used, and if you experience problems, you may be using the wrong type.
+
+
+
+Updated Jaguar Synth & Music Driver Samples
+-------------------------------------------
+The three sample programs that demonstrate the use of the Jaguar Synth &
+Music Driver have been updated to run more reliably and be easier to
+understand.
+
+First, the samples now use the standard Jaguar Startup Code.  Previous
+versions did not contain proper startup code, which resulted in
+inconsistent operation in many cases.
+
+Second, the synthesizer patch info for each sample program was stored in
+subdirectories of the main project file, but the exact layout was
+different for each sample.  Now each sample's project directory contains
+a single PATCHES directory which contains all of the various synthesizer
+patch files required for the project.
+
+Third, the filenames and file extensions used for the patch information
+were not consistent from one sample program to the next, or even from
+one patch to the next.  This has been reorganized so that the filenames
+and file extensions are now consistent with each other and from program
+to program.
+
+Download the JAGSYN.ZIP archive file to get the new versions of the
+sample programs.  Note also that the MUSIC.TXT file in the MUSICP.ZIP
+archive has been updated to reflect the changes to the sample programs.
+
+
+XMAS Season Deadlines for Jaguar Software Titles
+------------------------------------------------
+The production deadlines for the Christmas selling season are
+approaching quickly.  Developers and publishers should keep in mind that
+all cartridge-based products must be fully-tested and released into
+production by October 5, and CD-based products by October 31, in order
+to insure that your product is shipping in time for the Thanksgiving
+sales weekend, the beginning of the Christmas selling season.  Remember
+to allow at least 4 weeks for final testing.
+
+
+Update To MAKETRK CD Track File Creator Utility
+-----------------------------------------------
+MAKETRK is designed to quickly and easily create CD Track files ready
+for CD mastering or for using with the Jaguar CD Emulator.  It takes a
+single file or a list of files and creates a new CD Track File with the
+proper Jaguar CD track header and tailer information.  It also allows
+you to specify the 4-byte code used to create the 64-byte partition
+marker used to distinguish the beginning of the data from each of your
+source files.
+
+The MAKETRK utility writes out a MADMAC source code file containing a
+data table with an entry for each of your original files.  Each entry
+specifies the track number, block offset, length, and partition marker
+for one of your source data files.  It also writes out both MADMAC and C
+include files with definitions that can be used in your programs to
+reference the entries in the table.
+
+You can specify the minimum length for the track file or insert a dummy
+word at the start of the file (to satisfy the requirements of some CD
+Writer / Mastering software combinations).  There are many other options
+as well.  See the JAGUAR\DOCS\MAKETRK.TXT file for details.
+
+The MAKETRK utility can be obtained by downloading the
+CDROM.ZIP archive available online.
+
+
+Use Atari's Standard Startup Code...
+------------------------------------
+Developers who are not already using Atari's standard startup code with
+their projects need to be aware that failure to do so may result in
+their software failing to work properly on the next-generation Jaguar
+machines currently in development.
+
+Atari's standard startup code initializes the Jaguar GPU & DSP,
+interrupt vectors, and other hardware in a way that is known to be safe
+on current and future machines.  It displays a simple opening graphic,
+and jumps to your main program code, which would display any additional
+title screens, play a introductory Cinepak film, or whatever else is
+appropriate for your program.
+
+Avoid making changes to the startup code.  In most cases, the only
+acceptable modification is changing the startup picture.  If you think
+further modifications are required, please bring them to Atari's
+attention at the earliest possible stage of development so that either
+they can be approved or an alternate method found.
+
+Atari's startup code can be found in the SOURCE.ZIP archive available
+online.  After you've decompressed the archive contents, the source
+files will be in the \JAGUAR\SOURCE\STARTUP directory.
+
+
+And Use Our Current EEPROM Code Too!
+------------------------------------
+Atari supplies standard routines for accessing a Jaguar cartridge's
+EEPROM to store or retrieve high score info, user preferences, etc.  If
+you are not using Atari's most current version of these routines, then
+your program may not function correctly with new cartridge EEPROM
+hardware which will soon be used on Jaguar cartridges.
+
+The EEPROM routines are found in the SOURCE.ZIP archive, available for
+downloading online.  The latest revision is from March 14, 1995.  This
+extracts to the directory \JAGUAR\SOURCE\EEPROM.
+
+
+CD Debugging Scripts
+--------------------
+There are a couple of scripts for the DB debugger now available that are
+designed to streamline the process of debugging and development of
+CD-based titles.
+
+The MAKETOC script automatically loads the CD BIOS into the Jaguar, and
+then runs a program to load the current table of contents information
+into memory from the current CD or emulator setup, finally, it writes
+the table of contents information to a data file for future use.
+
+The USETOC script automatically loads the CD BIOS into the Jaguar, and
+then loads the table of contents data file previously created by the
+MAKETOC script.
+
+After using either MAKETOC or USETOC, the system is ready for you to
+start your own program.  This is available in the CDROM.ZIP archive
+available online..
+
+
+New BBS Number
+--------------
+The Atari Software Development BBS is now running as a two line system.
+The new number for both lines is (408) 541- 9164.
+
+
+When Signing Onto the BBS For the First Time
+--------------------------------------------
+The very first time you log onto the Atari Software Development BBS, you
+won't have access to the message bases or the file libraries with the
+updates to the Jaguar developer kit files.  This is because the Atari
+SDBBS is a closed system for developers only, and everybody who calls
+must individually be given clearance before they can access these areas.
+
+To get full access, it is imperative that you leave a detailed message
+to the sysop that includes your full name, your company, telephone
+number, and the name of the Jaguar project you are working on.
+
+Failure to provide the proper information will result in your access
+being delayed indefinitely.  So if you log on and leave a message that
+just says something like "Hi, I'm Joe and I need access to the Jaguar
+developer areas", you won't get it, because we will not have any means
+of verifying who you are.  On the other hand, if you do leave the proper
+information, full access should be granted within a day or two at most.
+
+
+Jaguar Tool Updates
+-------------------
+The Jaguar Developers Kit tools and related files listed below have been
+updated recently.  You can download them from the Atari Software
+Development BBS or from the Jaguar Developer library in the Atari Gaming
+forum on Compuserve.
+
+Jaguar CDROM Files — September 15, 1995.  This features the newest
+version of the Cinepak FILMINFO utility, the latest MAKETRK utility
+(Sept.  8) as well as a new version of the CD BIOS (v4.5) as well as
+some changes to the included CDROM sample reader program, and changes to
+the CD Boot Emulator.  Download CDROM.ZIP
+
+Jaguar Synth & Music Driver — September 15, 1995.  This has a few minor
+corrections from the Sept.  8 version.  Download JAGSYN.ZIP.
+
+Jaguar Library Archive — September 8, 1995.  The JAGLIB.ZIP archive has
+been updated to remove the older version of the 3D Graphics Library.  If
+you haven't switched to the new library yet, give it a look.  The new 3D
+library and sample code are in the JAGUAR\3D directory contained in
+JAGLIB.ZIP
+
+MADMAC Macro Assembler — September 1, 1995.  New version of MADMAC
+includes Bitfield definitions.  See article for details.  Download
+MACALN.ZIP for the MS-DOS version, STTOOLS.ZIP for the Atari version, or
+LINUX.ZIP for the PC Linux version.
+
+DB Debugger — September 1, 1995.  New versions of WDB and RDBJAG fixes a
+problem reading COF files with very long symbol names.  Download
+DBPC.ZIP for the MS-DOS version, STTOOLS.ZIP for the Atari version, or
+LINUX.ZIP for the PC Linux version.
+
+FILEFIX Utility — September 1, 1995.  New version of FILEFIX changes no
+longer gives an error if program does not start at $802000.  Download
+UTILPC.ZIP for the MS-DOS version, STTOOLS.ZIP for the Atari version.
+
+
+Dev Kit Roadmap
+---------------
+To keep track of recent updates to the Jaguar Developer's Kit tools,
+libraries, and other components, Atari maintains the file ROADMAP.TXT.
+This file is posted online and is updated at the same time any of the
+standard distribution archives from the Jaguar Developer's kit are
+updated.
+
+
+If you've missed previous issues...
+-----------------------------------
+then it's possible that we may not have a current fax number for you.
+Just in case, please contact us with your current address, telephone and
+fax numbers.  Also, consider that the better solution would be to
+subscribe to the Jaguar Developer Weekly Via EMAIL.
+
+The preferred method for Atari to send out the Jaguar
+Developer Weekly is via EMAIL, but unfortunately, we don't
+have a database of everybody's EMAIL addresses.  If you have
+a current Internet or Compuserve EMAIL address, please send
+a message to mfulton@atari.com so that we can add you to the
+list of developers that receive the Jaguar Developer Weekly
+via EMAIL instead of fax.  What you get each week will be
+the ASCII text of the issue, plus an online readable version
+(if there are graphics to go along with any of the
+articles).
+
+
+Back Issues Available
+---------------------
+Back-issues of the Jaguar Developer Weekly are available online in the
+DEVNEWS.ZIP archive.  This archive file contains text-only versions of
+all of the issues since the first edition.  This archive will be updated
+with new issues as they come out.
+
+
+
+
+
++----------------------------------------------------------------------+
+| If you have comments, questions, or suggestions regarding the Jaguar |
+| Developer Weekly, please call Mike Fulton at Atari Corporation at    |
+| (408) 745-8821, send a fax to (408) 745-2088, or send EMAIL to       |
+| "mfulton@atari.com".  To request that future issues be sent via      |
+| Internet mail, please send EMAIL with the text "subscribe Jaguar     |
+| Developer Weekly" along with your full name and company name to      |
+| "mfulton@atari.com".                                                 |
++----------------------------------------------------------------------+
+

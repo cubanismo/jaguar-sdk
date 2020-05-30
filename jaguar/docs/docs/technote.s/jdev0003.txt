@@ -1,0 +1,44 @@
+Jaguar Developer Technical Notes
+--------------------------------
+Item: JDEV0003
+Date: March 31, 1995
+Re:   IMPORTANT INFORMATION FOR CDROM DEVELOPERS
+
+
+The following is an addendum to the Jaguar CDROM Emulator Setup documentation
+regarding connecting a Jaguar CD board Rev 3.4 to a Jaguar CDROM Emulation
+System
+
+The Rev 3.4 board has the Butch CD Controller Chip built in.  Furthermore,
+the connector for the CDROM Emulation interface FALC2JAG is easily accessible
+from the top side of the PCB.  The changes require all connected to be
+switched off.  No additional cable connection between Jaguar base unit is
+required (old Jaguar CDROM Emulator Setup document gets changed.  Leave out
+step 4 and use the Jumper location information given in a) and b) for step 5)
+
+a) Remove the nine Jumpers that enable the CDROM mechanism from jumper field
+located next to the white rim of the CDROM mechanism (it is the only Jumper
+field).  Don't lose the Jumpers.
+
+b) connect the cable of the CDROM Emulation System Interface Adapter the
+following way:
+
+-----------------\
+		  \	 --------- the FALC2JAG interface cable
+		  !     /	   gets connected on the two longer
+		  !    / Pin 1     rows of pins, marked with x.
+		  ! x x o	   The coloured side of the cable 	
+		  ! x x o	   needs to be connected to the
+		  ! x x o	   connector side indicated as Pin 1
+		  ! x x o 	   in this figure.
+		  ! x x o
+Drive 		  ! x x o
+Mechanism	  ! x x o
+		  ! x x o
+(Top View)	  ! x x o
+		  ! x x
+		  !
+
+To re-enable the CDROM drive mechanism switch all systems off, unplug the
+FALC2JAG cable and replug the nine jumpers to their former locations (short
+each x-o connection).

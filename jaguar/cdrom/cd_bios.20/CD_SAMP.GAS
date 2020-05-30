@@ -1,0 +1,136 @@
+
+	ORG	$f03000
+
+	include		"jaguar.inc"
+
+	XDEF		SETUP
+	XDEF		CDREADER
+
+CPU_VEC:
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+
+DSP_VEC:
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+
+PIT_VEC:
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+
+OBJ_VEC:
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+
+BLIT_VEC:
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+
+SETUP:
+	movei	#$1000,r0
+
+	movei	#$1001,r1
+
+	movei	#$1002,r2
+
+	movei	#$1003,r3
+
+	movei	#$1004,r4
+
+	movei	#$1005,r5
+
+	movei	#$1006,r6
+
+	movei	#$1007,r7
+
+	movei	#$1008,r8
+
+	movei	#$1009,r9
+
+	movei	#$1010,r10
+
+	movei	#$1011,r11
+
+	movei	#$1012,r12
+
+	movei	#$1013,r13
+
+	movei	#$1014,r14
+
+	movei	#$1015,r15
+
+	movei	#$1016,r16
+
+	movei	#$1017,r17
+
+	movei	#$1018,r18
+
+	movei	#$1019,r19
+
+	movei	#$1020,r20
+
+	movei	#$1021,r21
+
+	movei	#$1022,r22
+
+	movei	#$1023,r23
+
+	movei	#$1024,r24
+
+	movei	#$1025,r25
+
+	movei	#$1026,r26
+
+	movei	#$1027,r27
+
+	movei	#$1028,r28
+
+	movei	#$1029,r29
+
+	movei	#$1030,r30
+
+	movei	#STACK,r31
+
+loploc:
+	nop
+	jr	loploc
+	nop
+
+	ALIGN LONG
+
+stackbot:
+	ds.l	10
+STACK:
+
+CDREADER:
+	ds.b	224

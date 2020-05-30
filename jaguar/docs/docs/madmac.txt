@@ -1,0 +1,1615 @@
+*******************************************************************************
+*     PLEASE: If you have any bug reports, suggestions, or comments regarding *
+*     the MADMAC assembler, please send them to:                              *
+*                                                                             *
+*     Atari Jaguar Developer Support:                                         *
+*                                                                             *
+*        Mike Fulton, Tel: +1 (408)745-8821                                   *
+*        EMAIL: Compuserve: 75300,1141                                        *
+*               INTERNET:   75300.1141@compuserve.com                         *
+*        Normen B. Kowalewski, Tel: +1 (408)745-2127                          *
+*        EMAIL: Compuserve: 75300,3444                                        *
+*               INTERNET:   75300.3444@compuserve.com                         *
+*        Scott Sanders, Tel: +1 (408)745-2143                                 *
+*        EMAIL: Compuserve: 70007,1135                                        *
+*               INTERNET:   70007.1135@compuserve.com                         *
+*        Fax:   +1 (408)745-2088                                              *
+*        BBS:   +1 (408)745-2157                                              *
+*                                                                             *
+*     Brainstorm:                                                             *
+*                                                                             *
+*        Fax:   +33-1-44670811 (France)                                       *
+*        BBS:   +33-1-44670844 (France)                                       *
+*        Email: Internet: raphael@brasil.frmug.fr.net                         *
+*               or Compuserve: 76004,1616                                     *
+*******************************************************************************
+Please note that the file ADDENDUM.MAC has been merged into MADMAC.TXT so
+there is now just a single file.
+*******************************************************************************
+
+
+MADMAC Feature Additions/Changes
+--------------------------------
+
+29-jan-1994 --- Raphael Lemoine - Brainstorm
+
+The MadMac assembler given with the Jaguar development kit differs from the
+original MadMac.  Here is the list of all current changes.  It's divided in
+three parts( new functions, changes, and GPU/DSP syntax):
+
+*****************
+* NEW FUNCTIONS *
+*****************
+
+- '.GPU' and '.DSP' directives added, for switching to GPU/DSP assembly
+  mode.  These directives MUST be used when the current section is 'TEXT' or
+  'DATA'.  To return to 68000 assembly, use the directive '.68000'.
+
+
+- '.JPAD' and '.NOJPAD' directives added, for turning on/off NOP padding
+  after every JUMP/JR instructions, in GPU/DSP mode.  Each time you declare a
+  GPU/DSP section, padding is reset to its default condition (off).
+
+
+- '.CLEAR' and '.NOCLEAR' directives added, which allow/forbid the use of
+  the 'CLR.L memory' instructions (this doesn't work on the Jaguar).  Default
+  state is '.CLEAR' (CLR.L memory allowed).  By 'memory', I mean: (An), (An)+,
+  -(An), d16(An), d8(An,Nx), abs.w, abs.l.
+
+
+- '.LONG', '.PHRASE' and '.DPHRASE' directives added, which align the
+  CURRENT section to 32, 64 and 128 bits boundary.  Note that GPU/DSP
+  instructions have no specific section, they are just stored in the current
+  section (TEXT or DATA).  If you want to align GPU/DSP code, align the
+  current section BEFORE and AFTER the GPU/DSP code.
+
+
+- '.EQUR' directive added, which allow you to name a register.  It is only
+  implemented in GPU/DSP sections, declaring/using a named register is
+  forbidden in 68000/6502 sections.  ie:
+
+	ClipW .EQUR r18
+	ClipH .EQUR r19
+
+
+- '.EQURUNDEF' directive added, which undefine one/several previously
+  declared '.EQUR'.  ie:
+
+	.EQURUNDEF ClipW,ClipH
+
+
+- '.CCDEF' directive added, for naming GPU/DSP JUMP/JR condition codes.  ie:
+
+	Always  .CCDEF  0
+		jump    Always,(r3)
+
+
+- '.CCUNDEF' directive added, which undefine one/several previously declared
+  '.CCDEF'.  ie:
+
+	.CCUNDEF        Always
+
+
+- '.INCBIN' directive added, which include a binary file in your source.
+  The syntax is the same as the '.INCLUDE' directive, except that if the
+  filename has no suffix, MadMac will add automatically a '.BIN' instead of a
+  '.S'.
+
+- '.DC' takes a new size: .DC.I generates a long word-swapped (as in MOVEI
+  instruction).
+
+- All GPU/DSP instructions are assembled, when in GPU/DSP mode (see above).
+
+- MadMac takes several new flags in the command line:
+
+  * In addition to -fa (generate DRI object file) and -fm (MWC object file),
+    -fb generates BSD object files.  Those are symbols length unlimited.  In
+    addition to -fb, one can add the -g option which generates source-level
+    information for use under RDBJAG.  (Please note that you must also set the
+    -e -g flags in ALN command line if you want to have the source-level).
+    The standard BSD object file format has also been extended to support the
+    MOVEI relocation, but not the DRI.  So,
+
+	       PLEASE USE -fb WHEN DEVELOPPING FOR JAGUAR
+
+  * The -a <text> <data> <bss> option has been also added.  This follows the
+    same syntax as in ALN, except that the 'r' switch is not supported.  This
+    will generate a DRI .ABS file.  In this case, you have no possibility to
+    get source-level info nor symbols length greater than 8 caracters.  But
+    you will be able to directly load it under RDBJAG (without the ALN step).
+    This allows quick assembly for test purposes only.  Use -as to have
+    symbols (same as -ps).
+
+  * The -c<dsp/gpu> flag acts like the '-cdsp' and '-cgpu' flags in GASM.
+    You can mix it with '-fb' for BSD output and '-g' for source level.
+
+  * The -r<size> flag, which force 2/4/8/16/32 bytes alignment on the TEXT/
+    DATA and BSS sections:
+
+    -rw for word alignment (2 bytes, default alignment)
+    -rl for long alignment (4 bytes)
+    -rp for phrase alignment (8 bytes)
+    -rd for double phrase alignment (16 bytes)
+    -rq for quad phrase alignment (32 bytes)
+
+
+***********
+* CHANGES *
+***********
+
+- You cannot use R0->R15 register names in 68000 mode anymore.  Use instead
+  D0->D7, A0->A7, and SP register names.
+
+
+- '.UNDEFMAC' directive name changed to '.MACUNDEF'.
+
+
+- '.INIT', '.CARGS', '.TEXT', '.DATA' and '.BSS' directives are forbidden in
+  GPU/DSP mode.
+
+- '.ABS' directive name changed to '.OFFSET', to avoid conflicts with the
+  'ABS' GPU/DSP instruction.
+
+- '.NLIST' directive name changed to '.NOLIST', for compatibility with most
+  assemblers.
+
+
+******************
+* GPU/DSP SYNTAX *
+******************
+
+- The following condition codes are built-in:
+
+	CC (%00100)     CS (%01000)     EQ (%00010)     MI (%11000)
+	NE (%00001)     PL (%10100)     HI (%00101)     T (%00000).
+
+  ie:
+	jump    CS,(r3)
+
+
+- Use the '#' character before any constant/expression.  ie:
+
+	bset    #2,r5
+	cmpq    #3,r2
+
+
+- MadMac tests all GPU/DSP restrictions, and correct them whenever possible
+  (inserting a NOP).
+
+
+- The '(Rx+N)' addressing mode is optimized to (Rx), if N=0 (a warning is
+  displayed).
+
+- Backpatch is performed only in all instructions.
+
+
+
+
+Changes to MADMAC
+-----------------
+
+11-dec-1993
+-----------
+
+- First successful compilation of the original MadMac (on Falcon030).
+
+- directive '.gpu' added
+
+- All GPU instructions added according to the Software Reference Manual (27
+  July, 1993, Version 2.1).  Only the opcodes are recognized.
+
+- directives 'org', 'even', 'bss', 'data', 'text', 'abs', 'comm', 'init',
+  'cargs', 'goto', 'dc', 'ds', 'undefmac', 'dcb', 'dump', 'load', 'disable',
+  'enable', 'globl', 'extern', 'assert', 'include', 'end', 'list', 'nlist',
+  'title', 'subttl', 'eject', 'error', 'warn' removed.  The main reason was a
+  possible conflict between the directive 'abs' and the GPU/DSP instruction
+  'abs'.  Note that the MadMac manual specifies 'The leading periods are
+  optional, though they are shown here and their use is encouraged.'.  You
+  MUST now use them (i.e.  '.org', '.even', '.bss')...
+
+
+
+12-dec-1993
+-----------
+
+- Tokens R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14,
+  R15 removed from MC68000 assembling mode, in order to avoid conflicts
+  between MC68000/GPU/DSP registers.  You MUST now use D0->D7 A0->A7/SP in
+  .68000 mode.
+
+- '#' character MUST be used before any constant value or expression, in
+  GPU/DSP adressing modes.  This is mainly for maintaining coherency between
+  MC6800/GPU/DSP modes.  ie:
+
+	bclr    #0,r0
+	bset    #1,r1
+	movei   #$deadbeef,r2
+
+- Current error messages from the GPU assembler:
+
+	Missing Register R0...R31.
+	Register R0...R31 expected.
+	Missing Register PC | R0...R31.
+	Register PC | R0...R31 expected.
+	Comma expected.
+	Parenthesis Expected.
+
+- Current warning messages from the GPU assembler:
+
+	Extra comma ignored.
+	Opcode size ignored.
+
+- 8 of the 12 GPU adressing mode written (no EQUR recognition).
+
+- '.init', '.cargs', '.text', '.data', '.bss' directives forbidden in '.gpu'
+  section.
+
+
+13-dec-1993
+-----------
+
+- Expressions are now handled in adressing modes. ie:
+
+    lf      .equ    $a
+	    bset    #(lf+2),r1
+
+- '.jpad' and '.nojpad' directives added and handled.  Each time you declare
+  a '.gpu' section, padding is reset to its default state (.nojpad).
+  '.jpad' means: add a nop after every jump/jr.
+
+- 'JR+MOVIE', 'JUMP+MOVIE', 'JR+JR', 'JR+JUMP', 'JUMP+JR', 'JUMP+JUMP',
+  'JR+MOVE PC', 'JUMP+ MOVE PC' GPU restrictions tested: A warning is
+  displayed, and a NOP instruction is inserted.  Note that this cannot append
+  when padding mode is ON (.jpad).  i.e.:
+
+	.jpad
+	jr      EZ,(r4)
+	movei   #$12345678,r2
+
+  is converted to:
+
+	jr      EZ,(r4)
+	nop
+	movei   #$12345678,r2
+
+
+
+	.jnopad
+	jr      EZ,(r4)
+	movei   #$12345678,r2
+
+  is converted to:
+
+	jr      EZ,(r4)
+	nop                      ; *** WARNING DISPLAYED ***
+	movei   #$12345678,r2
+
+
+
+	.jpad
+	jr      EZ,(r4)
+	abs     r6
+
+  is converted to:
+
+    .jpad
+	jr     EZ,(r4)
+	nop
+	abs    r6
+
+
+	.jnopad
+	jr      EZ,(r4)
+	abs     r6
+
+  remains unchanged.
+
+
+
+14-dec-1993
+-----------
+
+- A macro can't be given a GPU mnemonic name (in GPU section).
+
+- '.leven' and '.peven' directives added (in 68000 and gpu sections).
+  '.leven' is "long align (4 bytes)", '.peven' is "phrase align (8 bytes)".
+
+- Default JUMP cc/JR cc conditions are: cc, cs, eq, mi, ne, pl, hi.  You can
+  use an expression too (equates will be replaced by ccdef later...).  i.e.:
+
+	    jump    eq,(r2)
+
+    equal   .equ    2
+	    jump    equal,(r2)
+
+- The last GPU/DSP restrictions are now tested:
+
+    IMULTN must be followed by a IMACN (Error displayed)
+    IMACN must be followed by a IMACN or RESMAC (Error displayed)
+    RESMAC must be preceed by a IMACN (Error displayed)
+    a NOP is inserted between LOAD+MMULT and STORE+MMULT (Warning displayed).
+    I don't know if LOADB+MMULT, LOADW+MMULT, LOADP+MMULT, ... are valid or
+    not. Currently, it's not tested...
+
+- Here are the current warning/error messages displayed by the GPU
+  assembler:
+
+    missing register R0...R31.
+    register R0...R31 expected.
+    missing register PC | R0...R31.
+    register PC | R0...R31 expected.
+    extra comma ignored.
+    opcode size ignored.
+    comma expected.
+    parenthesis expected.
+    diesis expected.
+    constant expected.
+    constant overflow/underflow.
+    constant unresolved.
+    invalid expression.
+    NOP inserted before MOVIE instruction.
+    NOP inserted before MOVE PC instruction.
+    NOP inserted before JR/JUMP instruction.
+    invalid JR/JUMP condition mask.
+    IMACN instruction expected.
+    IMULTN/IMACN instruction must precede IMACN instruction.
+    IMACN instruction must precede RESMAC instruction.
+    NOP inserted before MMULT instruction.
+
+
+
+15-dec-1993
+-----------
+
+- The '.equr' directive has just been added.  It's not handled everywhere...
+
+- The 'procln.c' and 'token.c' files have been 'cleaned'.
+
+
+
+16-dec-1993
+-----------
+
+- '.equr' directive handled in all currently done GPU adressing modes.
+
+- I don't know if the 6502 assembler is still working, since I had to patch
+  MadMac in a lot of critical routines, and I don't have time/sources for
+  testing it.
+
+- GPU code is now encapsulated in the current 68000 section.  So, you must
+  define GPU code '.gpu directive' when you're in TEXT or DATA section.
+  Otherwise, a fatal error occurs (BSS section cannot contains initialised
+  datas).
+
+- There is currently a BIG BUG in the macro management: The macros are
+  simply ignored!
+
+
+
+17-dec-1993
+-----------
+
+- the macro bug is fixed (ouf!).
+
+
+
+18-dec-1993
+-----------
+
+- The .gpu section is not a REAL section anymore, since the gpu code is
+  encapsulated in the current (TEXT/DATA) section.  This whould have caused
+  some problems in the backpatching, probably.
+
+  - The .68000 directive now just set the assembler to 68000 mode, without
+  section reinitialisation.  i.e.:
+
+
+	; start of source (default section is TEXT, 68000 assembling)
+
+	    nop                 ; some 68000 instructions...
+
+	    .data               ; Now, we're in the data section
+	    .dc.l   $12345678   ; some 68000 datas...
+
+	    .gpu                ; now, switch to GPU mode
+	    nop                 ; some gpu datas/instructions...
+
+	    .68000              ; return in the 68000 mode, IN DATA SECTION!
+	    .dc.l   $87654321   ; some 68000 datas...
+
+	    .text               ; return to text section
+	    nop                 ; some 68000 instructions...
+
+	    .end                ; end of source
+
+- T flag added in cc (JUMP/JR) default conditions: T stands for TRUE, so
+  it's branch always (it can be useful, sometimes :-).
+
+- A big look at the backpatching routines, all night (Ah, what a wonderful
+  saturday night, hem hem...).
+
+
+
+19-dec-1993
+-----------
+
+- All adressing mode written.
+
+- 32 bits absolute backpatch done (MOVIE instruction).
+
+- Bug fix in the JR cc,n instruction.
+
+- Bug fix in 32 bits e.a.: The 32 bits are now stored in the order 'low
+  word|high word'.  THIS IS NOT SPECIFIED IN THE DOCS!!!
+
+- ABOUT THE BUG FIX DESCRIBED ABOVE, THE GPU DOCS AND THE GASM DOCS ARE VERY
+  AMBIGUOUS.  IT COULD BE A VERY GOOD THING TO HAVE THE OFFICIAL VERSION OF
+  HIGH/LOW WORD ORDERING.  i.e.:
+
+    'movie #$12345678,r0' is encoded  like this:    xxxx 5678 1234 (xxxx=opcode)
+
+    '.dc.l $12345678' is encoded like this:         1234 5678
+
+  (I follow the word ordering produced by GASM).
+
+- All backpatch is finally done!  JAGMAND is running, assembled with MadMac!
+  (I really have to rewrite this horribly slow Mandelbrot code...).
+
+
+
+20-dec-1993
+-----------
+
+- '.dsp' directive added.  SINCE THE ONLY GPU/DSP SOURCE I HAVE IS
+  'JAGMAND', I ABSOLUTELY CANNOT GUARANTEE THAT ALL GPU/DSP INSTRUCTIONS ARE
+  ENCODED PROPERLY.  WE ASKED FOR GPU/DSP SOURCES LAST WEEK, BUT HAVE RECEIVED
+  NOTHING YET...
+
+- DSP specific instructions added.
+
+- Job done!!! PC/DOS port, and GPU/DSP code generator in MadMac, all this
+  before the 21th of december!!!
+
+
+
+21-dec-1993
+-----------
+
+- '.ccdef directive' added.  You must now use them, in jr/jump conditions
+  ('.equ' are now refused).
+
+- Clarification about '.leven' and '.peven': These directives align the
+  current section size to a 4/8 bytes multiple.  Since the GPU and DSP
+  sections are not real sections (at least for MadMac), the alignment is
+  relative to the TEXT/ DATA section containing the DSP/GPU code.  i.e.:
+
+	    .text
+	    nop
+	    .gpu
+	    nop
+	    .leven
+	    .end
+
+  generates:
+	    4e71            ; 68000 NOP (68000 section = 2 bytes)
+	    e400            ; GPU NOP (GPU section = 2 bytes)
+
+    The GPU section contains only 2 bytes, even with a '.leven' directive.
+
+	    .text
+	    nop
+	    .leven
+	    .gpu
+	    nop
+	    .leven
+	    .end
+
+  generates:
+	    4e71            ; 68000 NOP
+	    0000            ; First '.leven' padding (68000 section = 4 bytes)
+	    e400            ; GPU NOP
+	    0000            ; Second '.leven' padding (GPU section = 4 bytes)
+
+
+- Clarification about GPU/DSP symbols reference by the 68000 code.  When a
+  68000 instruction uses a symbol defined in a GPU/DSP section, THE VALUE OF
+  THE SYMBOL IS THE ORG'ed VALUE.  i.e.:
+
+	    .68000
+	    move.l  #LocCode,a0         ; Code location address
+	    move.l  #ExecCode,a1        ; Code execution address ($f03000)
+
+    ; both lines below have the same meaning...
+	    moveq   #((EndExecCode-ExecCode)/4)-1,d0 ; Code Size -1
+	    moveq   #((EndLocCode-LocCode)/4)-1,d0 ; Code Size -1
+    .Loop:
+	    move.l  (a0)+,(a1)+
+	    dbf     d0,.Loop
+
+	    .gpu
+
+	    .leven                      ; Align Start of GPU code
+
+    LocCode:                            ; Symbol defined before '.ORG'
+	    .org    $f03000
+    ExecCode:                           ; Symbol defined after '.ORG'
+	    abs     r0
+	    nop
+	    add     r2,r15
+	    .leven                      ; GPU code size is now a multiple of 4
+    EndExecCode:
+	    .68000                      ; Return to 68000 mode.
+    EndLocCode:
+	    nop
+	    nop
+	    nop
+
+
+
+22-dec-1993
+-----------
+
+- Message 'Writing object' removed. It was a debug message...
+
+- '.leven' directive replaced by '.long' (wish from Atari Corp.).
+
+- '.peven' directive replaced by '.phrase' (wish from Atari Corp.).
+
+- Macro bug fixed (thanks, Normen! I think I'm going to pay you a couple of
+  beers, at the next CeBIT:-).
+
+
+
+24-dec-1993
+-----------
+
+
+- GPU/DSP code is automatically even aligned.  i.e.:
+
+		nop
+		.dc.b    $27
+		nop
+
+  is assembled as:
+
+		e400
+		2700                      ; <- 1 Byte (00) inserted
+		e400
+
+- Some debug messages removed (in .endif management):
+
+    /* WARNING KLUDGE LT HACK */
+    printf("In d_endif\n");
+    /* WARNING KLUDGE LT HACK */
+    printf("Leaving d_endif\n");
+
+  They were always displayed, whatever were the compilation options.
+
+
+- '.ccundef' directive added, which remove a previously defined .ccdef.
+  .i.e:
+
+    A   .ccdef  0
+    B   .ccdef  1
+    C   .ccdef  2
+
+	.ccundef   A,B,C
+
+- '.equrundef' directive added, which remove a previously defined .equr.
+
+- '.undefmac' directive name changed to '.macundef' (mainly for coherency
+  with the two above new functions).
+
+- Bug in 'MOVEFA' and 'MOVETA' fixed (tested with TURTLE demo).
+
+
+
+25-dec-1993
+-----------
+
+- Bug in 'STORE', 'STOREB', 'STOREW', 'STOREP' fixed (tested with TURTLE demo).
+
+- Bug in 'dc.l Address' fixed, in GPU/DSP section (tested with TURTLE demo).
+
+- The TURTLE demo is now running perfectly (all sources assembled by MadMac).
+  The assembled files 'TURTDEMO.TXT' and 'TURTDEMO.DTA' are identical to
+  those assembled by the old MadMac and Gasm. The 'TURTDEMO.SYM' file is bigger,
+  since the GPU symbols are now generated.
+
+- Some compiler warning removed in 'DIRECT.C', 'TOKEN.C', 'SYMBOL.C',
+  'LISTING.C' and 'MACRO.C' sources.
+
+- All night cleaning all sources (cleaning everything should take about one
+  week)...
+
+
+
+26-dec-1993
+-----------
+
+- All functions prototyped (file 'PROTO.H', done with MKPTYPES.TTP program
+  from Eric Smith).
+
+- '-Wall' added in compiler options (all warnings on).
+
+- All warnings/errors removed in 'PROCLN.C', 'AMAC.C', 'AMODE.C', 'SECT.C',
+  and 'DIRECT.C' ('PROTO.H' included in these files).
+
+
+
+27-dec-1993
+-----------
+
+- All warnings/errors removed in 'TOKEN.C', '6502.C', LISTING.C', 'ERROR.C',
+  'TIME.C', 'FEXT.C', 'KWMATCH.C', 'MISC.C' ('PROTO.H' included in these
+  files).
+
+
+
+3-jan-1994
+----------
+
+- Well, well, I'm back... :-(
+
+- All warnings/errors removed in 'AMEM.C', 'DEBUG.C', 'PARMODE.C',
+  'EAGEN.C', 'EAGEN0.C', 'MARK.C', 'OBJECT.C', 'SYMBOL.C' ('PROTO.H' included
+  in these files).
+
+
+
+4-jan-1994
+----------
+
+- All warnings/errors removed in 'MACH.C', 'MWOBJ.C' 'MACRO.C', 'EXPR.C'
+  ('PROTO.H' included in these files). Everything now compiles WITHOUT ONE
+  WARNING! Here is the make redirection:-)
+
+  gcc -DSYSV -DATARI -g -Wall -c amac.c
+  gcc -DSYSV -DATARI -g -Wall -c gpu.c
+  gcc -DSYSV -DATARI -g -Wall -c procln.c
+  gcc -DSYSV -DATARI -g -Wall -c amode.c
+  gcc -DSYSV -DATARI -g -Wall -c expr.c
+  gcc -DSYSV -DATARI -g -Wall -c sect.c
+  gcc -DSYSV -DATARI -g -Wall -c direct.c
+  gcc -DSYSV -DATARI -g -Wall -c mach.c
+  gcc -DSYSV -DATARI -g -Wall -c macro.c
+  gcc -DSYSV -DATARI -g -Wall -c eagen.c
+  gcc -DSYSV -DATARI -g -Wall -c token.c
+  gcc -DSYSV -DATARI -g -Wall -c symbol.c
+  gcc -DSYSV -DATARI -g -Wall -c mark.c
+  gcc -DSYSV -DATARI -g -Wall -c amem.c
+  gcc -DSYSV -DATARI -g -Wall -c error.c
+  gcc -DSYSV -DATARI -g -Wall -c debug.c
+  gcc -DSYSV -DATARI -g -Wall -c object.c
+  gcc -DSYSV -DATARI -g -Wall -c mwobj.c
+  gcc -DSYSV -DATARI -g -Wall -c listing.c
+  gcc -DSYSV -DATARI -g -Wall -c fext.c
+  gcc -DSYSV -DATARI -g -Wall -c 6502.c
+  gcc -DSYSV -DATARI -g -Wall -c kwmatch.c
+  gcc -DSYSV -DATARI -g -Wall -c time.c
+  gcc -DSYSV -DATARI -g -Wall -c misc.c
+  gcc -DSYSV -DATARI -g -Wall -o mac.ttp amac.o gpu.o procln.o amode.o expr.o sect.o direct.o mach.o macro.o eagen.o token.o symbol.o mark.o amem.o error.o debug.o object.o mwobj.o listing.o fext.o 6502.o kwmatch.o time.o misc.o
+
+
+
+5-jan-1994
+----------
+
+- Received Telegames bug report.  The 'STOREW bug' was fixed last year:-).
+  The 'internal error 6' bug is already here:-(.
+
+- Listing generator bug fixed (internal error 6).  Many thanks to David
+  Mahaffey @ Telegames, for the bug report!  The bug reason was not 'big
+  source file', it was 'file with ORG'ed GPU code'.
+
+- Macro bug tested.  It seems to be the bug I removed last year:-).  This
+  small source is assembled with no problem:
+
+    .macro  _move   src,dst             ; macro with 2 arguments
+    move    \src,\dst
+    .endm
+
+    _move   d0,24(a0)                   ; no problem...
+
+- Some patches performed for source level generation (in macros 'D_Word',
+  and 'D_OpWord').  Source level will be implemented only in 68000, GPU and
+  DSP sections (not in 6502).
+
+
+6-jan-1994
+-----------
+
+- Received bug report from Scott Le Grand.  The reported bug seems to have
+  been fixed last year:-)
+
+- The listing lines now end with 'CR/LF' instead of 'LF' (wish from David
+  Mahaffey @ Telegames).
+
+- '.dphrase' directive added.  It remember seeing a fax where somebody was
+  complaining about the lack of a 'double phrase' alignment directive, for the
+  object processor...  ('.dphrase' perform alignment to a 16 bytes boundary).
+  It's now done.
+
+- The section code is automatically even aligned when entering to/exiting
+  from a GPU/DSP section (a 0 byte is inserted, if needed).  i.e.:
+
+	.68000
+	.dc.b   $12
+	.gpu
+	.dc.b   $34
+	.68000
+	.dc.b   $56
+	...
+
+  is assembled as:
+	$12,$00,$34,$00,$56
+
+7-jan-1994
+----------
+
++ Now outputs ".ABS" directly.  This is done with the -a option, which
+  follows the same syntax as in ALN with one add:
+
+  -a ...  will output a .ABS file without symbols (unless there are unresolved
+  references, see below).
+
+  -as ...  will output a .ABS file with symbols (as in -ps).  and one lack: it
+  doesn't handle today 'mixed' abs definitions (the 'r' option) since it is
+  not necessary for Jaguar.
+
+  NB: Since it is allowed to have unresolved external references in a .ABS
+  file , you will get a warning if so (due to Jaguar's point of view).
+  Anyway, RDB will refuse to 'aread' such a file.  While doing that job, I
+  noted that PC-relatives references across sections are forbidden.  So it
+  cannot be output in .ABS files :=(.
+
+11-jan-1994
+-----------
+
++ Now outputs BSD object files.  Tested with ALN and turtdemo.  Seems ok.
+  Use it with <-fb> in command line.  (COFF object output will be -fc ...).
+  Same comment as above for PC-rel references across sections.
+
+13-jan-1994
+-----------
+
++ Changed error messages to suit PC/DOS most frequent syntax.
+
+    Old style:  "test.s",line 4: error message
+
+    New style:  test.s[4]:Error:error message.
+
+    (Same for warnings and fatals).
+
+    Thanks to Frederic Marcus and Stephane Bellanger @ Ubi Soft.
+    They also have given the macros for use under the Brief editor.
+
+
+16-jan-1994
+-----------
+
++ Source level is done.  Use the -g option to get it.  It works only with
+  BSD object files, so you must use the '-fb' option also.  Otherwise you will
+  have a DRI object file without any source level.  (ALN and RDB don't handle
+  it yet).
+
+17-jan-1994
+-----------
+
++ Changed the above error message (Jan. 13) to:
+
+    test.s(4): Error: error message.
+    (due to CCITT T4 ;=(). Thanks again to Frederic Markus.
+
+
+
+18-jan-1994
+-----------
+
+- Raphael is back!
+
+- External symbols are now allowed in GPU/DSP sections (only in .dc.l, since
+  MOVEI address encoding use 'LWord/HWord' ordering, which isn't currently a
+  known ALN patch format).
+
+- '.clear' and '.noclear' directives added, which allow/forbid the use of
+  the 'clr.l memory' instruction.  Default is '.clear' ('clr.l memory'
+  allowed).  'memory' is: (An), (An)+, -(An), d16(An), d8(An,Nx), abs.w,
+  abs.l.  So, 'clr.l Dn' and 'clr.l An' (converted by the assembler to 'suba.l
+  An,An') are always allowed.
+
+- 'load (Rx+0),Ry' converted to 'load (Rx),Ry' (Rx=R14 or R15).  Warning
+  'NULL offset removed' displayed.
+
+- 'store Rx,(Ry+0)' converted to 'store Rx,(Ry)' (Ry=R14 or R15). Warning
+  'NULL offset removed' displayed.
+
+- '.abs' directive name changed to '.offset', in order to avoid conflict
+  with the 'abs' GPU/DSP instruction.
+
+- '.nlist' directive changed to '.nolist', for compatibility with most
+  assemblers, including GASM.
+
+- directives 'org', 'even', 'bss', 'data', 'text', 'offset', 'comm', 'init',
+  'cargs', 'goto', 'dc', 'ds', 'macundef', 'dcb', 'globl', 'assert',
+  'include', 'end', 'list', 'nolist', 'title', 'subttl', 'eject', 'gpu',
+  'jpad', 'nojpad', 'long', 'phrase', 'dsp', 'ccundef', 'equrundef',
+  'dphrase', 'clear', 'noclear', 'if', 'else', 'endif', 'iif', 'macro',
+  'endm', 'rept', 'endr', 'exitm', 'equ', 'set', 'reg', 'equr', 'ccdef' added!
+  Yes, the dot is now optional!  A miracle, it's a miracle!!!  The only
+  directives that need a dot are now only '.68000' and '.6502'.
+
+
+
+19-jan-1994
+-----------
+
+- Received bug report from Normen, about the problem Rebellion software
+  found: invalid symbols management when declaring a GPU/DSP section in DATA
+  section.  The bug is fixed.
+
+19-jan-1994
+-----------
+
+- Fixed a bug in source level: the source name was always the last one.
+  (ALN seems ok now with source level, RDB is at work).
+
+    + Source name is stored in absolute.
+
+    + Added O_TRUNC flag to open (...) for object files.
+
+
+
+20-jan-1994
+-----------
+
+- 'incbin' directive added, which include a binary file in your source.  The
+  syntax is the same as the 'include' directive, except that, if no suffixe is
+  specified in the filename, Madmac will add a '.bin' instead of '.s' (wish
+  from Frederic Markus @ Ubisoft).
+
+
+
+21-jan-1994
+-----------
+
+- Received the message from John Carmack @ ID Software.  The 'EQUR' bug is
+  fixed.  Thanks for the bug report!!!
+
+- Fixed A VERY BIG BUG in GPU/DSP memory management, which was probably
+  appearing with big GPU/DSP sections (more than 2048 bytes of code).
+
+
+
+24-jan-1994
+-----------
+
+- Received the 'equr wish' from John Carmack @ ID Software.  You can now
+  define an 'equr' with another 'equr'.  i.e.:
+
+    newvar  equr    oldvar
+
+
+25-jan-1994
+-----------
+
+- Received the (big) bug report from John Mitchell:
+
+  1: '.list' doesn't work.
+
+  No, it does (at least in my tests).  The thing that probably confused you is
+  that '.list/.nolist' are active only if you specify the '-l' option in
+  MadMac command line.  For more details, please read the MadMac manual.
+
+  3: Offsets are required to constants outside of GPU area (linker)?
+
+  Sorry, but I don't understand what you mean exactly.  Could you be more
+  precise?  (a small sample source should be perfect).
+
+
+  4: This does not work:
+
+  reg14     .equr       r14
+	    load        r0,(reg14+2)
+
+  It was fixed on 21-jan-1994 (previous bug report from John Carmack).
+
+
+  7: GPU accepts:
+	    moveq       #0,(r0)
+	and
+	    move        r0,(r1)
+	which are common mistakes for
+	    store       #0,(r0)
+	    store       r0,(r1)
+
+  ???  If you mean that MadMac currently accepts the two first lines in
+  GPU/DSP section, the answer is NO.  If it's a thing you want us to
+  implement, no problem if Normen or Bill are OK (it will change the standard
+  GPU/DSP instructions defined in the Jaguar specs).  Note that only 'move
+  Rx,(Ry)' can be converted to 'store Rx,(Ry)'.  'store #xx,(Ry)' doesn't
+  exist, at least in my Jaguar:-) The other problems are related to RDBJAG.
+  So, look at the RDBJAG.TXT file.
+
+- Small bug fixed in source level generation (line numbers-1).
+
+
+
+21-feb-1994
+-----------
+
+- 'regequ' and '.regequ' directives added, for GASM backward compatibility
+  (wish from Normen Kowalewski).
+
+- 'nlist' and '.nlist' directives added, for MadMac backward compatibility
+  (wish from Normen Kowalewski).
+
+- 'qphrase' and '.qphrase' directives added, for quad phrase (32 bytes)
+  alignment (wish from Normen Kowalewski).
+
+- 'UNPACK' encoding bug fixed (bug report from Rebellion Software).
+
+- Using 'equrundef' and 'ccundef' on an undefined 'equr/ccdef' was crashing.
+  This is fixed (bug report from Rebellion Software).
+
+- short branch (68000) encoding bug fixed: It was ALWAYS assembled as a word
+  branch.
+
+- Added the following 'INTEL like' built-in condition codes: 'A', 'NBE',
+  'AE', 'NB', 'B', 'NAE', 'E', 'NE', 'NZ', 'NS', 'S'.  They are the same as
+  GASM JR/JUMP condition codes, for backward compatibility (wish from Normen
+  Kowalewski).
+
+- Bug fixed, in the 68000<->GPU/DSP references, when the 68000 declaration
+  was in DATA/BSS section, and the reference in a GPU/DSP section (-fb in
+  MadMac command line, of course!) (bug report from Rebellion Software and
+  Virtual Xperience).
+
+
+
+25-feb-1994
+-----------
+
+- All 5 bits forward references are now backpatched.  You can write:
+
+	    addq    #toto,r0        ; 'toto' not already defined...
+    toto    equ     8               ; 'toto' definition
+
+  Note that you can't use external definition/reference, only forward
+  references (wish from Rebellion Software).
+
+
+
+28-feb-1994
+-----------
+
+- Added '-?' command line flag (wish from Rebellion Software).
+
+
+
+01-mar-1994
+-----------
+
+- Added '-r' flag in MadMac command line, for padding all sections (TEXT,
+  DATA and BSS) to a 2, 4, 8, 16, 32 bytes boundary.  Syntax is:
+
+  -rw for word alignment (2 bytes, default alignment)
+  -rl for long alignment (4 bytes)
+  -rp for phrase alignment (8 bytes)
+  -rd for double phrase alignment (16 bytes)
+  -rq for quad phrase alignment (32 bytes)
+  (wish from Rebellion Software).
+
+- Byte and word-sized relocation in BSD format done.
+
+
+
+04-mar-1994
+-----------
+
+- Bug fixed in padding mnemonics phrase and dphrase (Bug report from
+  Loriciel).
+
+
+
+11-mar-1994
+-----------
+
+- Warning added when assembling GPU/DSP code outside an absolute section
+  (GPU/DSP code without '.org') (wish from Mike Fulton).
+
+
+
+14-mar-1994
+-----------
+
+- Bug fixed in GASM compatibility: 'regequ' was recognized, but not
+  '.regequ'.
+
+- 'regundef' and '.regundef' directives added, for GASM backward
+  compatibility.
+
+- 'CDSP' and 'CGPU' flags added, in MadMac command line, for 'BIN/SYM'
+  output.  When using these flags in MadMac command line, the source file
+  cannot contain the '.TEXT', '.DATA', '.BSS', '.68000', '.GPU', '.DSP'
+  directives, and external variables cannot be used, since BIN files contains
+  only binary code, with a 2 longs header (execution address+code size).  Note
+  that you can mix these 2 flags with 'fb' and 'g', for BSD with source level
+  output, in the 'SYM' file.
+
+
+
+21-mar-1994
+-----------
+
+- Added N_ASLINE source-level symbol.  You must now use ALN compiled at or
+  after 21-mar-1994.  ORG'ed code source-level now has ORG'ed behaviour.
+
+
+
+				22-mar-1994
+
+
+
+- MadMac now outputs 'EQURs' as 'EQU', in the symbol table (the value is
+  0x80000080L+RegNumber). This is the way RDBJAG handles register equates.
+
+
+
+				24-mar-1994
+
+
+
+- You can now use '.GPU' and '.DSP' directives even if you set the '-C' flag in
+  MadMac command line (wish from Normen Kowalewski).
+
+- Bug fix in the source level management! It's the bug who caused some garbage
+  in the object files, sometimes ...(bug reported by John Carmack @
+  ID Software, Robert Dibley @ Rebellion Software, and maybe some others).
+
+
+
+29-mar-1994
+-----------
+
+- Bug fix in the 'incbin' function, (PC/DOS version only), when reading a
+  file located in the 'MACPATH' (bug report by Nick Thompson @ Microprose UK).
+
+
+
+30-mar-1994
+-----------
+
+- Bug fix in stored path for source-level of included files located in the
+  'MACPATH'.
+
+- Bug fix in outputing source level info for 1st line of included source
+  (bug reported by Robert Dibley @ Rebellion Software).
+
+
+
+31-mar-1994
+-----------
+
+- Added 'qphrase' directive (only '.qphrase' was handled).
+
+- Added 'print' and '.print' directives, for printing user messages.
+
+  examples:
+    .print "toto"
+    .print "toto ","titi ","tata"
+    .print "illegal var. value: ",var," (should be 0>x>255)"
+
+  You can type any string or valid expression.  If an expression is undefined,
+  MadMac will output '<???>' instead of its value.  Currently, expression are
+  displayed as signed longs (decimal).  If the expression is TEXT/DATA/BSS
+  relative, it will be displayed as 'TEXT+x/DATA+x/BSS+x'.  Format flags may
+  be added in the future, for decimal/hexa/binary, signed/unsigned, and
+  byte/word/long (wish from Rebellion Software).
+
+
+
+01-apr-1994
+-----------
+
+- Format flags added in the '.print' directive (wish from Rebellion
+  Software):
+
+   /x (hexadecimal)
+   /d (signed decimal, default)
+   /u (unsigned decimal)
+   /w (word, default)
+   /l (long)
+
+  eg:
+  MASK  .equ    $fff8
+  VALUE .equ    -100000
+	.print  "Mask: $",/x/w MASK," Value: ",/d/l VALUE
+
+
+02-apr-1994
+-----------
+
+- Added 'autoeven/.autoeven' and 'noautoeven/.noautoeven' directives, which
+  enable/disable automatic word alignment between directives/instructions.
+  Default assembler mode is of course 'autoeven'.  ex:
+
+    dc.b $12
+    dc.l $345678ab
+  is generated as:
+    $12,$00,$345678ab
+  in '.autoeven' mode
+
+    dc.b $12
+    dc.l $345678ab
+  is generated as:
+    $12,$345678ab
+  in '.noautoeven' mode
+
+  Note that, even if you are in '.noautoeven' mode, alignment directives are
+  legals and correctly handled (.even, .long, .phrase, .dphrase, .qphrase
+  directives always force the alignement, whatever is the 'autoeven' mode).
+  Note too that object file sections are always aligned to 16 bits, or to the
+  alignment specified with the '-r' command line flag, whatever is the
+  'autoeven' mode (strange:-) wish from Nick Thompson @ Microprose UK).
+
+
+
+03-apr-1994
+-----------
+
+- 'jump (Rx)' is now accepted (means 'jump T,(Rx)').  However, now, you
+  cannot use an expression for using a condition code.  ex:
+
+    jump EQ,(r3)                is accepted
+    jump EQ+1,(r3)              is refused
+    jump (EQ),(r3)              is refused
+
+- 'jr symbol' is now accepted (means 'jr T,symbol').  However, now, you
+  cannot use an expression for using a condition code.  ex:
+
+    jr EQ,symbol                is accepted
+    jr EQ+1,symbol              is refused
+    jr (EQ),symbol              is refused
+
+
+18-apr-1994
+-----------
+
+
+- Bug in JR <ccdef>,symbol. (Thanks to Robert @ Rebellion Software!).
+    jr myccdef,symbol           is allowed again
+- Same bug in JUMP <ccdef>,(Rn). (Thanks to Robert @ Rebellion Software!).
+    jump myccdef,(Rn)           is allowed again
+
+
+
+22-apr-1994
+-----------
+
+- Bug in macro-expanding GPU tokens:
+
+  "r0","r1","r2","r3","r4","r5","r6","r7",
+  "r8","r9","r10","r11","r12","r13","r14","r15",
+  "r16","r17","r18","r19","r20","r21","r22","r23",
+  "r24","r25","r26","r27","r28","r29","r30","r31",
+  "cc","ae","nb","cs","b","nae","eq","e",
+  "mi","s","ne","nz","pl","ns","hi","a", "nbe","t"
+
+  are now correctly expanded. (Thanks to Virtual Xperience).
+
+
+
+28-apr-1994
+-----------
+
+- Fixed a bug in the '.print' command: Each time an undefined symbol was
+  used, '<???>' was displayed, but the symbol was stored in the object file as
+  an external symbol.  Now, undefined symbols are forbidden in the '.print'
+  command (bug report from Rebellion Software).
+
+
+
+02-may-1994
+-----------
+
+- Bug fix in TEXT symbols.  There were always written in the object file as
+  global symbols (bug report from Rebellion Software).
+
+- Bug fix in the macro expansion of the ccdefs, in GPU/DSP code (bug report
+  by Virtual Xperience).
+
+
+
+06-may-1994
+-----------
+
+- Bug fix in fixing unresolved problem in .print directive.  This crashed
+  with <symbol>+offset statements (Thanks to Virtual Xperience).
+
+
+
+07-may-1994
+-----------
+
+
+- Unresolved problem in .print directive fixed.  (Thanks to Robert Dibley @
+  Rebellion Software).
+
+
+
+08-may-1994:
+-----------
+
++ Added "dc.i" which stores a long in swapped format (as in MOVEI).  Was
+  requested at least by Glenn Williams @ Williams Brothers.
+
+
+
+11-may-1994:
+-----------
+
+= Changed "diesis expected" to "sharp (#) expected".  Well, in French, it's
+  dièse!  (Thanks to Rob Nicholson @ HMS Ltd).
+
+
+
+27-may-1994:
+-----------
+
+- Modified ^^time and ^^date for Atari/TOS.  Now works (Thanks to Robert
+  Dibley @ Rebellion Software).
+
+
+17-jun-1994
+-----------
+
+- Changed the way '^^symbols' are handled.  There should be no conflict
+  between these symbols and user symbols, now.
+
+
+20-aug-1994
+-----------
+
+- Bug in cargs, after which global labels were not seen any more.  Thanks to
+  Scott Corley @ High Voltage.
+
+
+
+30-aug-1994
+-----------
+
+- Bug fix in 'dc.b' and 'dcb.b' management in org'ed section (bug report by
+  Mark W.  Easter @ ZCT Systems Group).
+
+12-sep-1994
+-----------
+
+- Changed 2 error messages:
+
+  ".equr must be defined in .gpu/.dsp section" to ".equr/.regequ must be
+  defined in .gpu/.dsp section"
+
+  "invalid GPU/DSP .equr definition" to "invalid GPU/DSP .equr/.regequ
+  definition"
+
+- Allowed .w size specification for the link mnemonic.
+
+- Added 3 directives: .stabs,.stabd,.stabn needed for GCC back end.  They
+  cannot and are not intended to be used manually.
+
+
+21-sep-1994
+-----------
+
+- Changed "ABS" to "OFFSET" in .INIT error message.
+
+- Added source-level info generation for .DC, .DCB and .INIT
+
+
+2-oct-1994
+------------
+
+- Fixed a bug in outputing COMM variables in BSD object format.  MADMAC stores
+  in internal its COMM labels as BSS!  So their values were added TEXT and
+  DATA section sizes.  Bug report by Brian Rice.
+
+
+11-oct-1994
+-----------
+
+- directives '.equr/.regequ' have been modified: You can now specify the
+  bank of the register:
+
+  toto    .equr    r3,1
+
+  means that toto is equivalent to r3 (as before), AND that it should be used
+  only in bank 1.  You can specify the current bank with the 2 new directives
+  '.regbank0' and '.regbank1'.
+
+	    .gpu
+	    .org    $f03000
+	_common     .equr   r20           ; can be used in any bank
+	_reg0      .equr   r21,0          ; should be used in bank 0 only
+	_reg1      .equr   r22,1          ; should be used in bank 1 only
+
+	;
+	; No current bank has been specified (with .regbank0/.regbank1), so
+	; no warning is generated...
+	;
+		abs     _common
+		abs     _reg0
+		abs     _reg1
+
+	;
+	; Now, tell MadMac that we are in bank 0...
+	;
+		.regbank0
+	
+		abs     _common            ; no warning (_common has no bank specified)
+		abs     _reg0              ; no warning (_reg0 can be used in bank 0)
+		abs     _reg1              ; warning (_reg1 shouldn't be used in bank 0)
+	
+		movei   #$f02100,r1
+		load    (r1),r0
+		bset    #$e,r0
+		store   r0,(r1)           ; Switch the GPU to bank 1
+	;
+	; Switch MadMac to bank 1...
+	;
+		.regbank1
+	
+		abs     _common            ; no warning (_common has no bank specified)
+		abs     _reg0              ; warning (_reg0 shouldn't be used in bank 1)
+		abs     _reg1              ; no warning (_reg1 can be used in bank 1)
+
+		.end
+
+  The 'MOVEFA/MOVETA' instructions handle correctly this new feature, too...
+
+  Each time you declare a new GPU/DSP section, MadMac internal status is
+  resetted to 'no default bank'.  The way this has been implemented allow you
+  to assemble your old code without any new warning.  I hope this new function
+  will help programmers in tracking GPU/DSP bugs:-) (I think this feature was
+  required by Rebellion Software a long time ago).
+
+
+
+13-oct-1994
+-----------
+
+- '*' and '$' expressions are now correctly handled in absolute (GPU/DSP)
+  code.  ex:
+
+    .GPU
+    .ORG $f03000
+    .dc.l $,$,*,$
+
+    is assembled as:
+
+    .dc.l $f03000,$f03004,$f03000,$f0300c
+
+  This way, you can allocate buffers in the GPU/DSP RAM, without using any
+  extra memory (as in the BSS section).  ex:
+
+  ;
+  ; Lot of GPU code
+  ;
+  Buffer1    .equ    *           ; Buffer1 size is $20 bytes
+  Buffer2    .equ    *+$20       ; Buffer2 size is $50 bytes
+  Buffer3    .equ    *+$70
+
+  is equivalent to:
+
+  Buffer1:  .dcb.l  ($20/4),0
+  Buffer2:  .dcb.l  ($50/4),0
+  Buffer3:  ...
+
+
+
+14-oct-1994
+-----------
+
+- Added the '.fail/fail' mnemonic, which abort MadMac.  ex:
+
+  .IF !(CRY15|CRY16|RGB15|RGB16|RGB32)
+    .PRINT "No Output Format Specified."
+    .FAIL
+  .ENDIF
+
+  If none of the five EQUates is non-zero, a message is displayed (.PRINT),
+  and the assembling is stopped (.FAIL).  The message displayed when using
+  '.FAIL' is:
+
+  'Fatal: User abort.'
+
+  This mnemonic is needed for GCC back-end.
+
+
+
+19-oct-1994
+-----------
+
+- '.comm' directive is now forbidden in org'ed GPU/DSP section.
+
+- Added '-cgcc' command line flag.  This is intended only for GCC back-end,
+  and so is not displayed in the program usage.  Don't try to use it by hand!
+
+
+09-nov-1994
+-----------
+
+- MadMac now tests the 'xx(a0)' <ea>, and display a warning 'Null offset in
+  indirect addressing mode' if xx==0.  This works for forward and backward
+  expressions.  The warning is displayed only if you set the '-s' command line
+  flag, which was previously used for 'short branch warning' only.  It's now
+  means 'possible optimizations warning' (Wish from Adisak L.  Pochanayon @
+  High Voltage).
+
+
+
+10-nov-1994
+-----------
+
+- Bug fix in the MC68000 assembler: overflow in 16 bits signed forward
+  references was not correctly tested.  ex:
+
+		lea farLabel(pc),a0
+		rts
+
+		dcb.b $8000,0
+	farLabel:
+		dc.l    0
+
+  (Bug report by Ian Romanek @ High Voltage).
+
+
+14-nov-1994
+-----------
+
+- MadMac now display the overflow distance (in bytes), in case of GPU/DSP
+  relative jump overflow (Wish of Chris Oke @ Ringler Studios).
+
+
+27-nov-1994
+-----------
+
++ Added command-line option `-nl', which tells Madmac not to output
+  non-global symbols.
+
++ Support for GCC back-end is now complete.
+
+
+23-dec-1994
+-----------
+
+- Side-effect fixed when using dc.l <addr> or dc.i <addr> in orged code with
+  <addr> in backward, was not marking it for reloc (Reported by Frederic Houde
+  @ Ubi Soft).
+
+
+13-jan-1995
+-----------
+
+- Madmac is now compiled with GCC 2.6.3.
+
+- .lcomm directive added, for GCC back-end support.  Same restrictions as
+  .comm (not allowed in GPU/DSP org'ed sections).
+
+- .lcomm, instead of being the same as .comm, is now like:
+
+	  symbol:       ds.b    size
+
+
+19-jan-1995
+-----------
+
+- Madmac must not invert movem registers #mask if GCC back-end.  Bug report
+  from Dan @ Rebellion Software.
+
+
+30-jan-1995
+-----------
+
+- Madmac must believe GCC when it says "filename" and so must not append a
+  .s if it has no extension.  This could only happen under PC/DOS.  Bug report
+  by Ingram Leedy @ IThink.
+
+
+16-feb-1995
+-----------
+
+- .lcomm'ed symbol must be defined!
+
+22-feb-1995
+-----------
+
+- Added 'padvalue/.padvalue' directive.  Its syntax is:
+
+	.padvalue       expression
+
+  , where expression is a long value, which must be already defined.  This
+  constant is then used as the padding value for all alignments, such as
+  'even', 'long', 'phrase', ...  If the alignment needs less than 4 bytes
+  (even, long), the bottom bytes of the constant are used.      ex:
+
+	.padvalue       $12345678
+	.dc.b   $55
+	.even
+	.dc.w   0
+
+	is assembled as: $55, $78, $00, $00
+	(requested by Dan @ Rebellion)
+
+20-mar-1995
+-----------
+
+- The 19-jan-1995 patch was sometimes not working when used with REGs.  Bug
+  report by Robert Dibley @ Rebellion.
+
+
+31-mar-1995
+-----------
+
+- DOS: GO32 release 1.12m3 is now used as DOS extender.  Was crashing under
+  Windows NT and probably Windows 95.  Reported and fixed by Brian McGroarty @
+  High Voltage Software.
+	
+03-may-1995
+-----------
+
+- DOS: removed '-m486' compile option for 386 users.
+
+
+24-aug-1995
+--------------
+- Added bitfield capabilities into MadMac.
+
+	Syntax:
+
+	.bfield.size	name
+	x:y [, default field value]
+	x:y [, default field value]
+	x:y [, default field value]
+	...
+	.endbf
+
+ 	size can be one of the following: .b/.w/.l/.p/.d/.q
+	(for byte, word, long, phrase, dphrase, qphrase)
+
+	x:y defines the left and right bits number:
+	7:4	for the high nibble of the lowest byte.
+
+	you can define a single bit too (ex: 31:31)
+
+	Following the 2 bits number, you can set the default value of the field.
+	For example:
+
+		7:4 , $c
+
+	use of the bitfield:
+
+		name	val1, val2, val3 ...
+
+	you can omit parameters.  For example:
+
+		name	val1, , val3
+
+	will set only the fields val1 and val3. val2  will contain its default
+	value (set in the definition), or 0 if there is no default value.
+
+	Now, a 'real' example:
+
+		; definition of a pixel, in RGB16 format
+
+		.bfield.w	RGB16
+		15:11			; RED
+		5:0			; GREEN
+		10:6			; BLUE
+		.endbf
+
+
+		RGB16	3, 4, 2		; RED, GREEN, BLUE
+
+	Warning: A single field cannot contain more than 32 bits.
+

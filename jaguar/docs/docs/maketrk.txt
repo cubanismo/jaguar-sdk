@@ -1,0 +1,347 @@
+┌────────────────────────────────────┐
+│MAKETRK - Jaguar CD Track File Maker│
+└────────────────────────────────────┘
+
+The MAKETRK utility is designed to take a single file or a number of files
+and create a Jaguar CD Track File, complete with the required track header
+and tailer information, and sync markers preceeding each file.
+
+In addition to the track file, three other files will be created, a MADMAC
+assembly source file containing a table of data that specifies information
+about each file used to create the track file, plus both MADMAC and C
+language include files with definitions for using the table.
+
+Note that this utility is required only for Jaguar-specific code and data
+tracks.  Red-Book audio tracks in session #0 of your CD do not require and
+must not be processed by MAKETRK or similar utilities.
+
+We'll presume that you are already familiar with the basics of the Jaguar CD
+and things such as tracks, partition markers, and so on.  If this is not
+true, please familiarize yourself with the "Jaguar CD-ROM" section of the
+Jaguar Developer documentation.
+
+
+
+┌─────┐
+│Usage│
+└─────┘
+
+maketrk [options] [filename | -l{tracklist} ]
+
+If you do not include any options or other command line arguments, or if
+you specify an option that is not recognized, then a list of available
+options will be printed.
+
+
+┌───────┐
+│Options│
+└───────┘
+
+-b{addr} =	Specify that the track file being created is the boot track,
+		and that 'addr' is the desired load address.  The {addr}
+		parameter should be desired load address in hexadecimal, with
+		no leading characters (i.e.  use "4000" instead of "0x4000"
+		or "$4000" or "&4000H").  Must be used with the '-s' option.
+
+
+-s{size} =	Specifies the amount of code and/or data to be loaded from
+		the boot track by the Jaguar CD when the power is turned on.
+		The {size} parameter should be the amount specified in
+		hexadecimal, with no leading characters (i.e.  use "4000"
+		instead of "0x4000" or "$4000" or "&4000H").  The value must
+		be less than $10000.  Must be used together with the '-b'
+		option.
+
+		If {size} is not specified, then the size defaults to the
+		length of the first file specified for the track.
+
+
+-t{track} =	Specify the track number that will be used for the track
+		header and tailer information.  The numbering starts with
+		zero for the boot track (the first track on session #1 of
+		your CD).  The {track} parameter should be a number from 0 to
+		99.
+
+		This option is required.  You must specify the track number.
+
+
+-p{size} =	Specify padding at end of file.  The {size} parameter is
+		optional.  If specified, it is a HEX value for the desired
+		minimum file size.  The default size is 1 megabyte.
+
+		This option is used to satisfy the requirements of certain
+		combinations of CD Writer and CD Mastering Software, which
+		may not work reliably with very short track lengths.  Note
+		that the exact minimum size may vary.
+
+
+-i =            Write out MADMAC source code containing a data table that
+		specifies the position and length of each file in the track.
+
+		Also write out MADMAC and C include files with equates that
+		reference the entries in the data table.
+
+
+-z =            Specify that a dummy word (with a value of zero) should be
+		inserted at the start of the file.  (Used to force
+		long-alignment of data with some CD-writer / CD mastering
+		software combinations that insert their own dummy word at the
+		start of the track.  Note that these 2 bytes are not included
+		when the file position information is placed into the data
+		table.)
+
+
+-m{code} =	Specify an ASCII string up to 4 bytes long that will be used
+		as the partition marker for the file used to create the
+		track.  Strings less than 4 bytes long will be padded with
+		spaces.  The default marker for a track file created from a
+		single source file is "TRxx" where "xx" is replaced by the
+		track number.  This option is ignored when using the "-l"
+		option.
+
+
+filename =	The name of the source file for the track.  The file will
+		have the Atari approved data header and a 64-byte sync
+		pattern added to the beginning of the file, and the
+		Atari-approved data tailer added to the end of the file.
+
+
+-l{tracklist} =	Instead of specifying a single filename on the command line,
+		you can specify the name of a track list file.  This is an
+		ASCII text file containing the names of the files that you
+		want to use for the track, along with the unique 4-byte code
+		that is used to generate a 64-byte partition marker for the
+		file.  This file might look something like this:
+
+			   ┌─────────────────────┐
+			   │getopt.c        gopt │
+			   │maketrk.c       mtrk │
+			   │testbat.lst     BTCH │
+			   └─────────────────────┘
+
+		The filename and marker code may be separated by spaces or
+		tabs.  Each line must end with a CR/LF.
+
+		When the track file is created, a 64-byte partition marker is
+		created by repeating the specified 4-byte code 16 times.  The
+		marker is followed by the actual file data.  (Note that when
+		you've specified track #00, the first file does not get a
+		marker, because this is the boot code that will be loaded for
+		you automatically.)
+
+		If you specify a marker with fewer than 4 characters, it will
+		be padded with spaces.
+
+		If you don't specify a marker for a file, then a marker of
+		the form 'xxxx' will be used, where 'xxxx' is the number of
+		the file within the track, formatted with leading zeroes.
+		For example, the fourth file in the track would get a marker
+		of '0004'.
+
+		It is not possible to include a file without a marker being
+		placed into the output file.  If you wish to include several
+		files without individual markers, then you should
+		pre-concatenate them together using the DOS "copy /b"
+		command, and then use the resulting file to build your CD
+		track file.
+
+
+┌────────────┐
+│Output Files│
+└────────────┘
+
+The output files created will be named as follows.  The 'xx' portion of the
+filename will be replaced by a number from 00 to 99 representing the track
+number (relative to the boot track):
+
+TRACKxx.Txx ---- Raw binary data file containing complete track data.
+or               If you specify a track list file, then an output filename
+inputname.Txx    of the form 'TRACKxx.Txx' will be used, where 'xx' is the
+                 track number.  If you don't use a track list file, then
+		 the output filename will be '<inputfile>.Txx" where 'xx'
+		 is the track number and '<inputfile>' is the first part
+		 of the source filename.
+
+TRACKxx.S ------ MADMAC source code with data table defining files in track.
+
+TRACKxx.H ------ C language header file with definitions to access data
+	         defined in TRACKxx.S.
+
+TRACKxx.INC --- MADMAC assembly version of TRACKxx.H.
+
+
+
+┌──────────────────────────────┐
+│TRACKxx.Txx -- The Output File│
+│    or                        │
+│inputfile.Txx                 │
+└──────────────────────────────┘
+
+This is the main output file created by reading all of the source files
+specified on the command line or within your track file list.  The layout of
+this file is:
+
+0) Word of dummy data (if "-z" option option used in command line.)
+
+1) Atari approved data header
+
+2) Boot Code Address & Size Fields (track 00 only)
+
+3) 64 Byte partition marker for file (except first file of track #00).
+
+4) Raw binary data from file.
+
+5) If you specified a track list file, then items #3 and #4 are repeated as
+   often as necessary for the complete list of files specified.
+
+6) Atari approved data tailer.
+
+7) Zero bytes to pad file to minimum size specified by "-p" option.  (Only
+   when "-p" option used.)
+
+
+┌────────────────────────────┐
+│TRACKxx.S -- The Source File│
+└────────────────────────────┘
+
+The source file created has a definition for an array of data structures that
+define each file used to create the track file.  Each entry has 14 bytes,
+used as follows:
+
+track: 2 bytes
+starting block number: 4 bytes
+length in bytes: 4 bytes
+partition marker: 4 bytes
+
+Below is a sample file for a track that is created from three files (as
+specified by the sample batch file described earlier:
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; │
+│ ; Information for file positions & lengths within Jaguar CD track file  │
+│ ; TRACK00.T00.                                                          │
+│ ; Created by MAKETRK.EXE, written by Mike Fulton, ATARI CORPORATION     │
+│ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; │
+│                                                                         │
+│ track00_dir::                                                           │
+│ _track00_dir::                                                          │
+│       dc.w    0       ; File 0                                          │
+│       dc.l    0                                                         │
+│       dc.l    2572                                                      │
+│       dc.b    "gopt"                                                    │
+│                                                                         │
+│       dc.w    0       ; File 1                                          │
+│       dc.l    1                                                         │
+│       dc.l    18156                                                     │
+│       dc.b    "mtrk"                                                    │
+│                                                                         │
+│       dc.w    0       ; File 2                                          │
+│       dc.l    9                                                         │
+│       dc.l    52                                                        │
+│       dc.b    "BTCH"                                                    │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Note that the table is assigned both a typical MADMAC label named
+"track00_dir" and a C language version named "_track00_dir".  Both labels are
+global so that they may be accessed externally.
+
+
+
+┌──────────────────────────────────┐
+│TRACKxx.INC -- Madmac Include File│
+└──────────────────────────────────┘
+
+This is a MADMAC include file that has definitions that specify a particular
+entry in the data table in TRACKxx.S.  See the example below:
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; │
+│ ; Information for file positions & lengths within Jaguar CD track file  │
+│ ; TRACK00.T00.                                                          │
+│ ; Created by MAKETRK.EXE, written by Mike Fulton, ATARI CORPORATION     │
+│ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; │
+│                                                                         │
+│       .extern track00_dir                                               │
+│       .extern _track00_dir                                              │
+│                                                                         │
+│ FILE_GETOPT   .equ    0       ; gopt ($676f7074) GETOPT.C               │
+│ FILE_MAKETRK  .equ    1       ; mtrk ($6d74726b) MAKETRK.C              │
+│ FILE_TESTBAT  .equ    2       ; BTCH ($42544348) TESTBAT.LST            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+
+┌────────────────────────────────────┐
+│TRACKxx.H -- C Language Include File│
+└────────────────────────────────────┘
+
+This file is essentially the same thing as TRACKxx.INC, except in C
+langauage format.  See the example below:
+
+┌──────────────────────────────────────────────────────────────────┐
+│ #ifndef __FILEINFO_                                              │
+│ #define __FILEINFO_ (1)                                          │
+│ typedef struct                                                   │
+│ {                                                                │
+│       short   track;                                             │
+│       long    block;                                             │
+│       long    size;                                              │
+│       long    sync;                                              │
+│ } FILEINFO;                                                      │
+│ #endif /* __FILEINFO_ */                                         │
+│                                                                  │
+│ extern FILEINFO track00_dir[];                                   │
+│                                                                  │
+│ #define FILE_GETOPT   (0)     /* gopt ($676f7074) GETOPT.C */    │
+│ #define FILE_MAKETRK  (1)     /* mtrk ($6d74726b) MAKETRK.C */   │
+│ #define FILE_TESTBAT  (2)     /* BTCH ($42544348) TESTBAT.LST */ │
+└──────────────────────────────────────────────────────────────────┘
+
+
+
+┌─────┐
+│Notes│
+└─────┘
+
+If you use one source file to build the track, and do not specify a partition
+marker using the "-m" option, then the program will automatically use a
+4-byte code like "TR00" where the last two digits are the track number.
+
+If you use a track list file, but do not specify a marker for a particular
+file, then it will use something like "0004" where the actual number used
+will be the number of that file within the track. (i.e. "0004" for the 4th
+file, "0007" for the 7th file, and so on.)
+
+If you specify track #0, and do not specify the '-b' and '-s' options, you
+will get an error (because this is ALWAYS the boot track).
+
+If you specify the '-b' and '-s' options and specify a different track number
+besides 0, you will get an error.
+
+
+
+┌───────┐
+│Changes│
+└───────┘
+
+September 6, 1995 -- Minor changes were made to the usage() text output.
+
+September 5, 1995 -- If you used the "-z" option to write out a dummy word
+at the start of the file, and the track number was zero, and you did not
+specify the length of the boot code, then MAKETRK would not work properly.
+It would try to write out the size of the first file as the boot code length
+in the track header, but it did not account for the extra dummy word and
+would write the length two bytes earlier in the file than it should.  This is
+now fixed.
+
+September 1, 1994 -- Numerous changes made in response to feedback from Chris
+Howard at Genus Microprogramming.  Some command line options have been
+changed and many new ones added.
+
+August 22, 1995 -- First external release.  The output files created are now
+provided in a different format that is compatible with the upcoming tool that
+will run under Microsoft Windows (est. avail. Sept. 1995)
+
+August 11, 1995 -- First internal release.

@@ -1,0 +1,31 @@
+# This is an example of how to open a user defined window.
+# rdb.rc should call the 'wlg' procedure, then the user can
+# use it by entering 'lg2' under the shell window.
+
+# NOTE: dsize contains the number of bytes that were used by the last
+# disassembly call. 'lg2' uses it to update its next display, but it
+# leads to a scrolling disassembly while resizing the user window. No
+# idea about how to fix it today. (Brainstorm 04/04/94)
+
+global gpuaddr
+set gpuaddr lpeek(f02110)
+
+procedure lg2 addr
+	x discpu $fe
+	if (`argc==1) x gpuaddr addr
+	if (`argc==1) l addr
+	if (`argc==0) l gpuaddr
+	x gpuaddr gpuaddr+dsize
+	x discpu 0
+.
+
+procedure wlg
+	local	x y w h
+
+	set	w	screenw/2
+	set	h	$c
+	set	x	screenw-w
+	set	y	screenh-h
+	windopen "GPU disassembly" x y w h lg2
+
+.

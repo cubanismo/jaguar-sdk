@@ -1,0 +1,186 @@
+#
+# od.db - Jaguar object list displayer for rdb
+# Copyright (c)1994 Atari Corporation
+# """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# This rdb script will display an "English" listing of your object list.
+# all you have to do is give is a pointer for the object list you want
+# to see.
+#
+# Last Modified: 9/23/94 - SDS
+
+procedure od addr
+	local laddr type temp temp2 lptr
+
+	print
+	set laddr addr
+#:start
+	set type (peek( laddr+7 ) & $7 )
+	if type==0 goto bitmap
+	if type==1 goto scaled
+	if type==2 goto gpu
+	if type==3 goto branch
+	if type==4 goto stop
+	print -i "Unknown object type"
+	print -i "Listing aborted"
+	goto end
+
+#:bitmap
+	print -i " BITMAP:" -r "" -x laddr
+	set temp ((laddr) & $f)
+	if (temp!=0) print -i "WARNING! Bitmap Object not found on double phrase boundary!"
+	print -n " Ypos:" -d ((wpeek(laddr+6)>>3) & $7ff)
+	print -n " Height:" -d ((lpeek(laddr+4)>>@13) & $3ff)
+
+	set temp ((lpeek(laddr+4)&$ff000000)>>@24)
+	set temp2 (wpeek(laddr+2) & $07ff )
+	set temp ((temp2<<8)|temp)
+
+	set lptr temp<<3
+	print -n " Link:" -x lptr
+	
+	set temp lpeek(laddr)
+	set temp ((temp>>@11) & $001fffff)
+	print " Data:" -x temp<<3
+
+# end of line one.
+
+	set laddr laddr+@8
+	set temp wpeek( laddr+6 )
+	print -n " Xpos:" -d (temp & $0fff)
+	
+	set temp ((temp & 7000)>>@12)
+	set temp2 (1<<temp)
+	print -n " Pixel Depth:" -t -d temp2 "-bit (" -d temp ") " 
+	
+	set temp lpeek(laddr+4)
+	print -n " Pitch:" -d ((temp & $00038000)>>@15)
+	print " Dwidth:" -d ((temp & $0ffc0000)>>@18)
+
+# end of line two
+
+	set temp2 temp>>@28
+	set temp wpeek(laddr+2)
+
+	print -n " Iwidth:" -d (((temp & $3f) << 4)|temp2)
+	print -n " Index:" -d ((temp>>6) & $007f)
+	print -n " RMW:" -d ((temp>>@14) & 1 )
+	print " Reflect:" -d ((temp>>@13) & 1 )
+	print -n " Transparent:" -d ((temp>>@15) & 1 )
+	set temp wpeek( laddr )
+	print -n " Release:" -d ( temp & $1 )
+	print " Firstpix:" -d ((temp>>1) & 3f )
+	set laddr lptr 
+	goto start
+
+#:scaled
+	print -i " SCALED BITMAP:" -r "" -x laddr
+	set temp ((laddr)&$1f)
+	if (temp!=0) print -i "WARNING! Scaled Bitmap Object not found on quad-phrase boundary."
+	print -n " Ypos:" -d ((wpeek(laddr+6)>>3) & $7ff)
+	print -n " Height:" -d ((lpeek(laddr+4)>>@13) & $3ff)
+
+	set temp ((lpeek(laddr+4)&$ff000000)>>@24)
+	set temp2 (wpeek(laddr+2) & $07ff )
+	set temp ((temp2<<8)|temp)
+	set lptr temp<<3
+	print -n " Link:" -x lptr
+	
+	set temp lpeek(laddr)
+	set temp ((temp>>@11) & $001fffff)
+	print " Data:" -x temp<<3
+	
+# start of line 2
+
+	set laddr laddr+@8
+	set temp wpeek( laddr+6 )
+	print -n " Xpos:" -d (temp & $0fff)
+	
+	set temp ((temp & $7000)>>@12)
+	set temp2 (1<<temp)
+	print -n " Pixel Depth:" -t -d temp2 "-bit (" -d temp ") " 
+	
+	set temp lpeek(laddr+4)
+	print " Pitch:" -d ((temp & $00038000)>>@15)
+	print -n " Dwidth:" -d ((temp & $0ffc0000)>>@18)
+
+	set temp2 temp>>@28
+	set temp wpeek(laddr+2)
+	print -n " Iwidth:" -d (((temp & $3f) << 4)|temp2)
+	print " Index:" -d ((temp>>6) & $007f)
+	print -n " RMW:" -d ((temp>>@14) & 1 )
+	print -n " Reflect:" -d ((temp>>@13) & 1 )
+	print -n " Transparent:" -d ((temp>>@15) & 1 )
+	set temp wpeek( laddr )
+	print -n " Release:" -d ( temp & $1 )
+	print " Firstpix:" -d ((temp>>1) & 3f )
+
+	set laddr laddr+@8
+
+	set temp wpeek( laddr+6 )
+	print -n " Hscale:" -d (((temp & $00ff)&$e0)>>5) -t -d ((temp&$00ff)&$1f) "/32"
+	print -n " Vscale:" -d ((((temp & $ff00)>>8)&$e0)>>5) -t -d (((temp&$ff00)>>8)&$1f) "/32"
+	set temp wpeek( laddr+4 )
+	print " Remainder:" -d (temp & $00ff)
+	set laddr lptr
+	goto start
+
+#:gpu
+	print -i " GPU:" -r "" -x laddr
+	print " Data:" -x -n -t (lpeek( laddr ))
+	print -t -x ( lpeek( laddr+4 ) & fffffff8 )
+	set laddr (laddr+8)
+	goto start
+
+#:branch
+	print -i " BRANCH:" -r "" -x laddr
+	print -n " Ypos:" -d ((wpeek(laddr+6)>>3) & $7ff)
+	print -n " CC:"
+#new
+	set temp ((lpeek(laddr+4)>>@14) & $7)
+	if temp==0 goto breq
+	if temp==1 goto brgt
+	if temp==2 goto brlt
+	if temp==3 goto brop
+	if temp==4 goto brhalf
+
+	print -n -t "Unknown (" -d temp ") "
+	goto dolink
+#:breq
+	print -n -t "If YPOS == VC or YPOS == $7FF (" -d temp ") "
+	goto dolink
+#:brgt
+	print -n -t "If YPOS > VC (" -d temp ") "
+	goto dolink
+#:brlt
+	print -n -t "If YPOS < VC (" -d temp ") "
+	goto dolink
+#:brop
+	print -n -t "If OBF is set (" -d temp ") "
+	goto dolink
+#:brop
+	print -n -t "If HC10 = 1 (" -d temp ") "
+#:dolink
+	set temp ((lpeek(laddr+4)&$ff000000)>>@24)
+	set temp2 (wpeek(laddr+2) & $0fff )
+	set temp ((temp2<<8)|temp)
+	set lptr temp<<3
+	print "then goto Link:" -x lptr
+
+# The following causes ALL BRANCHES TAKEN
+#	set laddr lptr
+
+# The following line causes NO BRANCHES TAKEN
+	set laddr laddr+8
+
+	goto start
+
+#:stop
+	print -i " STOP:" -r "" -x laddr
+
+#:end
+	print
+	print
+	print "-- end of list --"
+	print
+.
+

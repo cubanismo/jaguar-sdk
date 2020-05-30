@@ -1,0 +1,32 @@
+CDBOOT.TXT 95-Aug-10 / CDBIOS Version 4.05 of 95-Aug-8
+------------------------------------------------------
+
+CDBOOT.ROM is a Jaguar program that loads into the Alpine board and 
+emulates the boot process of the Jaguar CD, loading the boot code from 
+the CD (or emulator) and executing it in the same fashion as if you 
+were booting a bootable disc.
+
+Essentially, from within the debugger, you load the enclosed file CDBOOT.ROM
+to address $802000, then you execute the CDGO.DB script.  This script runs
+the required boot sequences and under the control of the debugger runs
+through the appropriate steps of a normal CD BOOT seqeunce.
+
+The boot process then stops at the point after the CDBIOS was properly
+installed at $3000, the TOC was read and the PC points at the first
+instruction of the boot code that was loaded from the CD.
+
+Please note that booting with this code DOES work from the Falcon-based CD
+Emulator.  The Jaguar CD's built-in VLM program is NOT supported by the
+Falcon Emulation because of the way VLM data is handled.  Data rate and error
+handling restrictions of the emulator do, of course, still apply.  However,
+this should nevertheless be a huge help for your debugging efforts.
+
+If you apply FILEFIX on your bootcode and then load the symbols for your boot
+code after the boot process reaches its breakpoint, you can have all your
+symbols available and debug the code that was actually loaded from the CD.
+
+
+
+Normen B. Kowalewski
+Manager, Jaguar Developer Support
+Atari Corporation

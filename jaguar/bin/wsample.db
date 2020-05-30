@@ -1,0 +1,75 @@
+#This is a now obsolete script file but still interesting as an example of
+#how to write a user window management.
+#It opens and handles a GPU disassembly window
+
+load winc.db			;#load defines
+
+#GPU defines
+define	GCPU	$fe
+define	GPC	$f02110
+
+global	lgaddr	lgsize lgoldaddr lgoldheight
+set	lgaddr	lpeek(GPC)
+
+procedure lg addr
+	local	oldcpu
+
+	if	(`windmsg==WMSG_SIZE)	goto	prnt
+	if	(`windmsg==WMSG_LNLT)	goto	lnup
+	if	(`windmsg==WMSG_LNRT)	goto	lndn
+	if	(`windmsg==WMSG_LNUP)	goto	lnup
+	if	(`windmsg==WMSG_LNDN)	goto	lndn
+	if	(`windmsg==WMSG_PGUP)	goto	pgup
+	if	(`windmsg==WMSG_PGDN)	goto	pgdn
+	if	(`windmsg==WMSG_HOME)	goto	home
+	if	(`windmsg==WMSG_MEMM)	goto	doprnt
+	if	(`windmsg==WMSG_MEMR)	goto	doprnt
+	if	(`windmsg==WMSG_SYMR)	goto	doprnt
+	if	(`windmsg==WMSG_SYMM)	goto	doprnt
+	if	(`windmsg==WMSG_BRKM)	goto	doprnt
+	if	(`windmsg==WMSG_CTXT)	goto	doprnt
+	if	(`windmsg>WMSG_CTXT)	goto	end
+	if	(`argc==1)	goto list
+	set	lgaddr	lgaddr+lgsize
+	goto	doprnt
+#:lnup
+	set	lgaddr	lgaddr-2
+	goto	prnt
+#:lndn
+	set	lgaddr	lgaddr+2
+	goto	prnt
+#:pgup
+	set	lgaddr	lgaddr-2*(`windh)
+	goto	prnt
+#:pgdn
+	set	lgaddr	lgaddr+lgsize
+	goto	prnt
+#:home
+	set	lgaddr	lpeek(GPC)
+	goto	prnt
+#:prnt
+	if	(lgoldaddr!=lgaddr)	goto doprnt
+	if	(lgoldheight!=`windh)	goto doprnt
+	goto	end
+#:list
+	set	lgaddr	addr
+#:doprnt
+	set	oldcpu	discpu
+	set	discpu	GCPU
+	l	lgaddr
+	set	lgsize	dissize
+	set	discpu	oldcpu
+	set	lgoldaddr	lgaddr
+	set	lgoldheight	`windh
+#:end
+.
+
+procedure wlg
+	local	x y w h
+
+	set	w	screenw/2
+	set	h	$c
+	set	x	screenw-w
+	set	y	screenh-h
+	windopen "Disassembly (GPU)" x y w h lg
+.

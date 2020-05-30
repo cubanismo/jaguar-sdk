@@ -1,0 +1,188 @@
+#please use the defines below, since their values may change ...
+define	WMSG_NONE	0	;# nothing to do
+define	WMSG_INIT	1	;# init window
+define	WMSG_EXIT	2	;# exit window
+define	WMSG_PRNT	3	;# print
+define	WMSG_KBRD	4	;# keyboard
+define	WMSG_MOUS	5	;# mouse
+define	WMSG_SIZE	6	;# resize
+define	WMSG_LNLT	7	;# left arrow
+define	WMSG_LNRT	8	;# right arrow
+define	WMSG_LNUP	9	;# up arrow
+define	WMSG_LNDN	@10	;# down arrow
+define	WMSG_PGLT	@11
+define	WMSG_PGRT	@12
+define	WMSG_PGUP	@13	;# page up
+define	WMSG_PGDN	@14	;# page down
+define	WMSG_HOME	@15	;# home key
+define	WMSG_END	@16	;# end key
+define	WMSG_INS	@17	;# ins key
+define	WMSG_DEL	@18	;# del key
+define	WMSG_2TOP	@19
+define	WMSG_2BOT	@20
+define	WMSG_LOCK	@21	;# (re)locked
+define	WMSG_ADDG	@22	;# address get
+define	WMSG_ADDS	@23	;# address set
+define	WMSG_MEMM	@24	;# memory modify
+define	WMSG_MEMR	@25	;# memory refresh
+define	WMSG_SYMR	@26	;# symbols reset
+define	WMSG_SYMM	@27	;# symbol modify
+define	WMSG_BRKM	@28	;# breakpoint modify
+define	WMSG_CHKM	@29	;# checkpoint modify
+define	WMSG_MODR	@30	;# modules reset
+define	WMSG_MODM	@31	;# module modify
+define	WMSG_CPUM	@32	;# CPU modify
+define	WMSG_M68K_CTXT	@33	;# M68K context change
+define	WMSG_AGPU_CTXT	@34	;# AGPU context change
+define	WMSG_ADSP_CTXT	@35	;# ADSP context change
+
+#GPU defines
+define	GCPU	$fe
+define	GPC	$f02110
+
+global	lgaddr	lgsize lgoldaddr lgoldheight
+set	lgaddr	lpeek(GPC)
+
+procedure lg addr
+	local	oldcpu
+
+	if	(`windmsg==WMSG_SIZE)	goto	prnt
+	if	(`windmsg==WMSG_LNLT)	goto	lnup
+	if	(`windmsg==WMSG_LNRT)	goto	lndn
+	if	(`windmsg==WMSG_LNUP)	goto	lnup
+	if	(`windmsg==WMSG_LNDN)	goto	lndn
+	if	(`windmsg==WMSG_PGUP)	goto	pgup
+	if	(`windmsg==WMSG_PGDN)	goto	pgdn
+	if	(`windmsg==WMSG_HOME)	goto	home
+	if	(`windmsg==WMSG_MEMM)	goto	doprnt
+	if	(`windmsg==WMSG_MEMR)	goto	doprnt
+	if	(`windmsg==WMSG_SYMR)	goto	doprnt
+	if	(`windmsg==WMSG_SYMM)	goto	doprnt
+	if	(`windmsg==WMSG_BRKM)	goto	doprnt
+	if	(`windmsg==WMSG_AGPU_CTXT)	goto	doprnt
+	if	(`windmsg>WMSG_M68K_CTXT)	goto	end
+	if	(`argc==1)	goto list
+	set	lgaddr	lgaddr+lgsize
+	goto	doprnt
+#:lnup
+	set	lgaddr	lgaddr-2
+	goto	prnt
+#:lndn
+	set	lgaddr	lgaddr+2
+	goto	prnt
+#:pgup
+	set	lgaddr	lgaddr-2*(`windh)
+	goto	prnt
+#:pgdn
+	set	lgaddr	lgaddr+lgsize
+	goto	prnt
+#:home
+	set	lgaddr	lpeek(GPC)
+	goto	prnt
+#:prnt
+	if	(lgoldaddr!=lgaddr)	goto doprnt
+	if	(lgoldheight!=`windh)	goto doprnt
+	goto	end
+#:list
+	set	lgaddr	addr
+#:doprnt
+	set	oldcpu	discpu
+	set	discpu	GCPU
+	l	lgaddr
+	set	lgsize	dissize
+	set	discpu	oldcpu
+	set	lgoldaddr	lgaddr
+	set	lgoldheight	`windh
+#:end
+.
+
+procedure wlg
+	local	x y w h
+
+	set	w	screenw/2
+	set	h	$c
+	set	x	screenw-w
+	set	y	screenh-h
+	windopen "Disassembly (GPU)" x y w h lg
+.
+
+#DSP defines
+define	DCPU	$fd
+define	DPC	$f1a110
+
+global	ldaddr	ldsize ldoldaddr ldoldheight
+set	ldaddr	lpeek(DPC)
+
+procedure ld addr
+	local	oldcpu
+
+	if	(`windmsg==WMSG_SIZE)	goto	prnt
+	if	(`windmsg==WMSG_LNLT)	goto	lnup
+	if	(`windmsg==WMSG_LNRT)	goto	lndn
+	if	(`windmsg==WMSG_LNUP)	goto	lnup
+	if	(`windmsg==WMSG_LNDN)	goto	lndn
+	if	(`windmsg==WMSG_PGUP)	goto	pgup
+	if	(`windmsg==WMSG_PGDN)	goto	pgdn
+	if	(`windmsg==WMSG_HOME)	goto	home
+	if	(`windmsg==WMSG_MEMM)	goto	doprnt
+	if	(`windmsg==WMSG_MEMR)	goto	doprnt
+	if	(`windmsg==WMSG_SYMR)	goto	doprnt
+	if	(`windmsg==WMSG_SYMM)	goto	doprnt
+	if	(`windmsg==WMSG_BRKM)	goto	doprnt
+	if	(`windmsg==WMSG_AGPU_CTXT)	goto	doprnt
+	if	(`windmsg!=WMSG_NONE)	goto	end
+	if	(`argc==1)	goto list
+	set	ldaddr	ldaddr+ldsize
+	goto	doprnt
+#:lnup
+	set	ldaddr	ldaddr-2
+	goto	prnt
+#:lndn
+	set	ldaddr	ldaddr+2
+	goto	prnt
+#:pgup
+	set	ldaddr	ldaddr-2*(`windh)
+	goto	prnt
+#:pgdn
+	set	ldaddr	ldaddr+ldsize
+	goto	prnt
+#:home
+	set	ldaddr	lpeek(DPC)
+	goto	prnt
+#:prnt
+	if	(ldoldaddr!=ldaddr)	goto doprnt
+	if	(ldoldheight!=`windh)	goto doprnt
+	goto	end
+#:list
+	set	ldaddr	addr
+#:doprnt
+	set	oldcpu	discpu
+	set	discpu	DCPU
+	l	ldaddr
+	set	ldsize	dissize
+	set	discpu	oldcpu
+	set	ldoldaddr	ldaddr
+	set	ldoldheight	`windh
+#:end
+.
+
+procedure wld
+	local	x y w h
+
+	set	w	screenw/2
+	set	h	$c
+	set	x	screenw-w
+	set	y	screenh-h
+	windopen "Disassembly (DSP)" x y w h ld
+.
+
+alias	wr	windopen 1	;# Registers (68k) window
+alias	wd	windopen 2	;# Disassembly (68k) window
+alias	wm	windopen 3	;# Memory dump window
+alias	ws	windopen 4	;# Source level window
+alias	wy	windopen 5	;# sYmbols window
+alias	wb	windopen 6	;# Breakpoints window
+alias	wc	windopen 7	;# Checkpoints window
+alias	wm	windopen 8	;# Modules window
+alias	wdir	windopen 9	;# Directory window
+alias	wcpu	windopen $a	;# CPUs window

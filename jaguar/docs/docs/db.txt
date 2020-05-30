@@ -1,0 +1,2056 @@
+*******************************************************************************
+*     PLEASE: If you have any bug reports, suggestions, or comments regarding *
+*     the DB DEBUGGER, please send them to:                                   *
+*                                                                             *
+*     Atari Jaguar Developer Support:                                         *
+*                                                                             *
+*        Mike Fulton, Tel: +1 (408)745-8821,  Compuserve: 75300,1141          *
+*        Normen B. Kowalewski, Tel: +1 (408)745-2127,  Compuserve: 75300,3444 *
+*        Scott Sanders, Tel: +1 (408)745-2143,  Compuserve: 70007,1135        *
+*        Fax:   +1-408 745-2088                                               *
+*        BBS:   +1 408 745-2157                                               *
+*                                                                             *
+*     Brainstorm:                                                             *
+*                                                                             *
+*        Fax:   +331-44670811 (France)                                        *
+*        BBS:   +331-44670844 (France)                                        *
+*        Email: Internet: laurent@brasil.frmug.fr.net                         *
+*               or Compuserve: 76004,1616                                     *
+*******************************************************************************
+Please note that the files ADDENDUM.RDB, RDBJAG.TXT, ADDENDUM.WDB, and
+WRDBJAG.TXT have been merged into RDB.TXT.  There is now just a single file
+for both WDB and RDBJAG.
+*******************************************************************************
+
+Please note that this file refers to both RDBJAG and WDB.  RDBJAG is the
+TTY-based interface version of DB.  WDB is the windows, menus, & mouse
+version of DB.  References to "DB" apply equally to both RDBJAG and WDB.
+Where only one or the other is specified, the text applies only to that
+specific version.
+
+
+
+Notes on DB:
+-------------
+  DB expects a bidirectionnal parallel port on LPT1, LPT2 or LPT3.  If you
+  have other monodirectionnal parallel port(s), it will automatically
+  recognize the right one.  If you have more than one bidirectionnal port and
+  the Jaguar is not on the first one, you can tell DB which port to use.  The
+  switch is -p (-p1 -p2 or -p3).
+
+
+DB Feature Additions/Changes
+----------------------------
+  This contains all the new options for DB (PC/DOS, PC/Linux & Atari/TOS
+  versions) made since the PC version was released:
+
+
+New command line options:
+-------------------------
+${DB} refers to either WDB or RDBJAG.
+
+
+${DB} [-...] <filename>
+
+	where filename is the name of a .COF file will perform an "aread"
+	operation on <filename>.  The .COF extension may be omitted.
+
+${DB} [-...] <filename>
+
+	where filename is the name of a .ABS file will perform an "aread"
+	operation on <filename>. The .ABS extension may be omitted.
+
+${DB} [-...] <filename>.DB
+
+	will perform an "load" operation on <filename>.DB.
+	Note that the .DB extension must be entered.
+
+${DB} [-...] <filename>.ROM
+
+	will perform an "fread" operation on <filename>.ROM to $802000.
+	Note that the .ROM extension must be entered.
+
+${DB} -g
+
+	will perform an automatic "go" command after processing commandline.
+	This is usually used with a program/script name, like:
+	rdbjag -g <myprog>
+
+${DB} -q
+
+	will perform auto quit.  This is usually used with -g, like:
+	rdbjag -g -q <myprog>
+
+${DB} -o
+
+	will perform auto gag on.  This is usually used with -g and -q, like:
+	rdbjag -o -g -q <myprog>.
+
+${DB} -p[n] [-d]
+
+	Specifies that a specific parallel port should be used, and that DB
+	should not try using other ports: "-p1" specifies LPT1, "-p2"
+	specifies LPT2, and "-p3" specifies LPT3.
+
+	By default, DB will test all your parallel ports.  It assumes the
+	first 8-bit bidirectional port found is the Jaguar one.  Note that
+	this test may trash the configuration of other parallel boards and
+	could lead the printer to malfunction.  (This should not happen, but
+	who knows..).
+
+	The "-d" switch, used with the "-p" switch, tells DB to not test the
+	parallel port at all and just assume that it is really bidirectional.
+	Use it to avoid problems with other printer ports or if your parallel
+	board is not recognized correctly.  (For instance I use 'rdbjag -p1
+	-d turtdemo.abs' to force DB to use LPT1.)
+
+
+Line editing and Prompt:
+------------------------
+  New line editing with arrows, delete, scrolling and history.  A prompt now
+  appears on each line .  'Db:' for standard input, 'Proc:' for procedure
+  input and 'Set:' for setting values input.  There is no history for the two
+  last modes.  The history size is 100 lines for standard input.  Use up and
+  down arrow keys to get history.  Line editing uses right and left arrow
+  keys, DEL, BS, Home and End under PC, Shift-Left and Shift-Right under TOS.
+
+  In RDBJAG or the console window of WDB, the TAB key now completes the
+  expression in input from the cursor position.  If there is no space before
+  the cursor position, it will try to complete from the commands table, if
+  there is a command before the cursor position, it will complete the word
+  under the cursor from whatever the command is about (i.e: 'aread turt<TAB>'
+  will expand in 'aread turtdemo.abs', and 'help are<TAB>' will expand in
+  'help aread').  Pressing the TAB key twice in succession will show all
+  possible matches if more than one is possible ('a la' gdb).
+
+  The expansion feature of the TAB key will work on command names,
+  procedure names, alias names, symbol names, module names and file names
+  depending on the command firstly typed (or none).
+
+  The `bind' feature is no longer allowed for the Backspace, Control + @,
+  TAB, ESC, Home, and End keystrokes as these keys are now used for line
+  editing purposes.
+
+
+New `aread' function:
+-------------------
+  To avoid the absolute necessity of the FILEFIX step after linking is done,
+  the `aread' function is provided. It loads a .ABS or .COF file directly
+  from the command line. The syntax is only 'aread filename'. Note that the
+  file extension may be omitted. This function can also be called directly
+  from the DOS (TOS) command line simply by entering the filename of the
+  .ABS or .COF file after <rdbjag>. Recognized files are DRI absolute file
+  format or COFF file format.
+
+
+New `z' function:
+---------------
+  This will skip the next CPU instruction.
+
+  `z' <count> will skip the next <count> instructions.
+
+
+New `reset' and `halt' functions:
+-----------------------------
+  If your Alpine board supports it, this will either RESET or HALT the
+  Jaguar M68K (as you can do with corresponding buttons). Only works on
+  PC/DOS and PC/Linux.
+
+
+New `fread' function.
+-------------------
+  Same as `read', but can be fast with 'pprot'>=0.
+
+
+New `suspend' function under Atari/TOS and PC/Linux:
+--------------------------------------------------
+  This will suspend DB. Restart with `fg'.
+
+
+New `listsym' function:
+---------------------
+  It prints on one line all the symbols that are at the given address, or at
+  the current cpu PC.
+
+
+New `objlist' function:
+---------------------
+  Displays the object list starting from its argument.  WDB also now has a
+  new Object List display window that displays the contents of an object
+  list and allows the user to change values.
+
+
+New source-level handling:
+--------------------------
+  Some new functions have been added for source-level handling:
+
+  - `ls' is the same function as `l', but lists the source code instead of
+  disassembly.  Usage is:
+
+		ls <addr> prints the source corresponding to <addr>
+		ls :<#>    prints the current source file from line <#>
+		ls <fname>:<#> same as above for source file <fname>
+		ls <fname>: prints source file <fname> from current line #.
+
+  - `mlist' prints a list of all source files loaded in memory
+
+  - `mpurge' unloads source file(s) for small memory configurations.  Usage is:
+
+	  `mpurge' <fname> will purge source file <fname> from memory.
+	  `mpurge' * will purge all source files from memory.
+
+  - `n' will step in until the next source line.
+
+  The 5 commands below may be only used after having 'aread' in a COF file
+  containing at least one C source compiled by GCC with '-g' and linked by
+  ALN with '-g2'. Please note that you should also use ALN dated 08-may-1995
+  or newer, otherwise you will have wrong values for statics.
+
+  - `ceval' [/radix] <expr> evaluates a C expression.
+	The C evaluator is ANSI C compliant with the following changes:
+	- doesn't allow function calls
+	- allow characters constant up to one long (e.g 'a' up to 'abcd')
+	- allow pointer setting with no casting (e.g "ptr=0x4000")
+
+  - `cvars' [/radix] [var [var] ...] displays all C variables currently in scope
+	or the given argument[s].
+
+  - `cgvars' [/radix] [var [var] ...] displays all global C variables
+	or the given argument[s].
+
+  - `cfvars' [/radix] [var [var] ...] displays all file C variables
+	or the given argument[s].
+
+  - `clvars' [/radix] [var [var] ...] displays all local C variables
+	or the given argument[s].
+
+  The optional radix modifier may be one of:
+  s (signed decimal)
+  u (unsigned decimal)
+  h or x (hexadecimal)
+  c (character)
+  d (default)
+
+  E.g: cvars /c MyString /h MyArray
+  will display MyString using character display and MyArray using hex display.
+
+  Everywhere an address can be entered in DB, you now can also use debug
+  symbols.  For example one can enter 'ls main' to list the source code from
+  the 'main' label, or 'l main' to disassemble from the 'main' label. It is
+  also better to enter 'ls main' or 'l main' even if you mean '_main'.
+
+  When DB finds source-level informations in a .ABS file, some functions
+  will add source informations to their outputs:
+
+	- after registers display (eg: 'x' but also 't', 'g' etc...).
+
+	- the 'b' command recognizes the same syntax as 'ls'.
+
+	- in breakpoints list.
+
+  The "tabstop" variable has been added.  One can change it with "set tabstop
+  #" (# is the new tab value).  This is used in source level and disassembly
+  displays (at least).  Default value: 8.
+
+  The "disaddr" variable has been added.  It contains the current disassembly
+  address ('l' and 'l disaddr' do the same).
+
+  The "dissize" variable has been added.  It contains the current disassembly
+  size.  (Useful mainly in scripts).
+
+  The "dislab" variable has been added.  0 means old fashion labels
+  disassembly.  (See below: Changes from old rdbjag).  Default: 1.
+
+  The "dislnb" variable has been added.  It contains the disassembly and
+  source level lines number.  Default: 10.
+
+  The "srclevel" variable has been added.  It forbids source level management
+  if set to 0.  Default: 1.  (Wish from Robert Dibley @ Rebellion Software).
+
+  The "frameptr" variable has been added.  It contains the C stack pointer
+  register number (default: @14=A6). If you're using -fomit-frame-pointer,
+  then you must set 'frameptr' to @15 (A7). This variable is used when
+  displaying a C stacked local or parameter variable.
+
+
+New miscellaneous variables:
+----------------------------
+  The "pprot" variable has been added.  It handles the time loop for the new
+  parallel protocol.  May vary from -1 to 5.  Default: 3.
+
+  -1 means "old" protocol (slow).
+   0 means new fast protocol handshaked version.
+   1 means new fast protocol half/handshaked version with delay 1.
+   2 to 5 means new fast protocol half/handshaked version with delay 2 to 5.
+
+  The "gpurtmp" variable contains the temporary register to use for GPU
+  context.
+
+  The "dsprtmp" variable contains the temporary register to use for DSP
+  context.
+
+  The "gpubase" variable contains -1 if not GPU/DSP context is wanted, 0 if
+  it is wanted or an address to use for storing the GPU stub code.
+
+
+Various changes from the old DB
+-------------------------------
+
+- Breakpoints and checkpoints are now deleted from the Stub each time
+  DB is launched.
+
+- A pager has been added when more than one page is to be displayed.
+  Hitting 'Q' or 'Ctrl-C' will abort the command output.
+
+- A '>' has been added in disassembly mode.  It shows the actual 68K PC
+  value.  (It is also present in source level mode).  It is switched to '^'
+  or 'v' before a branch instruction if it will branch.
+
+- A '@' has been added in disassembly mode.  It means that there is a
+  breakpoint at this address.  (It is also present in source level mode).
+
+- Labels may be now integrated into the disassembly.  I.e:
+
+	move.l	$12345678,$87654321	LAB1, LAB2	;old fashion
+	move.l	LAB1,LAB2				;new fashion
+
+  Set the variable 'dislab' to 1 if you want new fashion.
+
+  - Maybe some more, I forgot.  Find them and win a pack of beer :-)
+
+
+New multi-processor handling:
+-----------------------------
+  The variable `ctxtcpu' holds the current CPU number used in `t', `g', `z'
+  etc... (see script file "ngpu.db").
+
+  The GPU registers are `gr0' ... `gr31', `ga0' ... `ga31', `gpc', `gccr',
+  `gsr.
+
+  The DSP registers are `dr0' ... `dr31', `da0' ... `da31', `dpc', `dccr',
+  `dsr'.
+
+
+
+WDB User-Interface Features
+---------------------------
+WDB features a completely new character-based user interface that allows
+multiple overlapping windows, pull-down menus, and the use of the mouse.
+
+Menu Bar
+--------
+
+  The menu bar is available by right-clicking the mouse on the very top line
+  of the screen, or by pressing the <alt> key.  Keyboard shortcuts for menu
+  items are <alt><letter>, where <letter> is shown in the menu in red upper
+  case.
+  Under PC/Linux, the <alt> alone key feature is replaced by <alt> Space.
+
+	The menus are:
+
+File:		Aread *.COF
+		Aread *.ABS
+		Load *.DB
+		Read *.DAT
+		Reload
+		Load WDB.RC
+		Save WDB.RC
+		Quit
+
+Context:	Trace
+		Overtrace
+		Verbose trace
+		Verbose overtrace
+		Next
+		Skip
+		Go
+		Go Until
+		Continue
+		Wait
+		Stop
+		Reset
+
+Open:		Registers	->	M68K,GPU,DSP
+		Disassembly	->	M68K,GPU,DSP
+		Memory dump
+		Source level	->	M68K,GPU,DSP
+		Symbols
+		Breakpoints	->	M68K,GPU,DSP
+		Checkpoints
+		Modules
+		Directory
+		Cpus
+		Objects list
+		C variables	->	Watches,Local,File,Global symbols
+
+Window:		Close
+		Full
+		Iconify
+		Duplicate
+		Lock
+		Cycle
+		Close all
+		Iconify all
+		-----------
+		<List of first 10 opened windows. Choose one to activate.>
+
+Activate:	<List of opened windows if more than 10. Choose one to activate.>
+	
+Top:		Menu choices are specific to the currently topped window.
+
+  Hierarchical submenus are also available from certain menu items.  These
+  are typically used to select between M68K, GPU, or DSP related displays
+  for things like the Registers window.
+
+  In the rest of the documentation, we will refer to a specific menu item in
+  a specific menu like this: "Open->Registers".  This refers to the
+  "Registers" menu item in the "Open" menu.  "Open->Registers->GPU" would
+  refer to the "GPU" submenu item of the "Open->Registers" menu item.
+
+  The commands represented by most menu items often correspond to the same
+  commands you can use in RDBJAG or in WDB's console window.
+
+
+
+Windows
+-------
+
+  Overview
+  --------
+  The number of windows is constrained by you hard disk size :=).  Windows
+  are not bound to screen (except screen top).
+
+  Window Appearance
+  -----------------
+  A window is built as:
+
+  - an upper border containing the title bar:
+
+	[close] <window number>:<title> [<lock>] ... [duplicate][iconify][full]
+
+  - a left border where you can click to resize the window horizontally.
+
+  - a right border where you can click to resize the window horizontally.
+
+  - a bottom border where you can click to resize the window vertically.
+
+  - at the bottom right corner or top left corner, you can click the mouse to
+  resize the window both horizontally and vertically.
+
+  [close]		closes the window.
+
+  <window number>	the window's number starting from 0 (which is always
+			the console window).
+
+  <title>		the window's title.
+
+  [<lock>]		an optional lock expression.
+
+  [duplicate]		duplicates the window.
+
+  [iconify]		toggles icon/normal mode.
+
+  [full]		toggles full/normal mode.
+
+  No resizing is allowed when iconified.
+
+
+
+Windows management
+------------------
+
+  1) Mouse: The mouse operates about like you would expect if you have any
+  significant experience in using a mouse.  You left click on window gadgets
+  to activate their function.  If the window is not topped, this will
+  automtically top it, unless you also held down the right button.
+
+  Double-clicking on a window's title/move bar has the same effect as
+  clicking on its fuller gadget.
+
+  Double-clicking on an iconified window uniconifies it.
+
+  An "autofocus" mouse behaviour is obtained by setting the `autofocus'
+  internal variable to something != 0.
+
+
+  2) Keyboard: Inside the console window, most keystrokes work the same way
+  as they do in RDBJAG.  In other windows, however, some keystrokes are used
+  for window management.  Pressing [Esc] while in console window will lead
+  you to "Windows Keyboard Control" mode.  In this mode, some keys are
+  active:
+
+  [Tab]			goto next window.
+
+  [*],[/],[+],[-]	resize window.
+
+  [1] ~ [9] - [5]	move window.
+
+  [0]			full/unfull window.
+
+  [.]			icon/unicon window.
+
+  [5]			duplicate window.
+
+  [Esc]			quit Windows Keyboard Control mode and return to
+		        console window.
+
+  [Alt][1]~[9]		goto window 1~9.
+
+
+  When a window other than the Console window is topped, then pressing the
+  shortcut key for items shown in the "Top" menu will result in
+  that command being executed immediately, even if the menu is not shown.
+  You do not need to press {Return}. For example, pressing "t" while the
+  Disassembly window is topped will result in a single instruction being
+  <T>race'ed. Shortcuts for hierarchical submenus are not following that
+  behaviour if they don't have their own default action, of course.
+  Also, the Directory window will move to the first file beginning with the
+  keystroke.
+
+Default windows:
+----------------
+
+  0:Console window:
+  -----------------
+  The console window emulates RDBJAG's behaviour in most respects.  One major
+  difference is that when a context switch is detected (i.e.  the stop button
+  is pressed or a breakpoint is reached), the register values, program
+  counter, and other such information are not printed in the console window.
+  Instead, this information is updated in the other windows on screen as
+  appropriate, such as refreshing the register window with the current
+  values.  (The actual printing can be controled via the 'xenable' variable.)
+
+
+  1:Registers (xxx) window: Shows the register values for a given processor.
+  --------------------------------------------------------------------------
+  The register window can display the values of either the M68K, GPU, or DSP
+  processors.  In M68K mode, A7 means SSP.
+
+  Left-Clicking on a register value allows you to change the value.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<M>68k registers		Display M68K registers
+	<G>pu registers			Display GPU registers
+	<D>sp registers			Display DSP registers
+
+  Pressing the shortcut key for a menu item while the menu is not shown
+  will result in that command being executed immediately.  You do not need
+  to press {Return}.
+
+
+  2:Disassembly (xxx) window: Contains a disassembly listing.
+  -----------------------------------------------------------
+  The disassembly window shows an assembly language disassembly of the
+  program code starting at a specific address.
+
+  Left-Clicking in the address field at the left of the window allows you
+  to set the start address.
+
+  Left-Clicking in the column to the right of the address field allows you to
+  set or remove (toggle) a breakpoint (M68K only).
+
+  The "Top" menu items shown when this window is topped are:
+
+	<A>ddress start			Set start address
+	<B>reakpoint toggle		Toggle breakpoint (M68K only)
+	-----------------------
+	<T>race	into			Step into
+	<O>ver trace			Step over (M68K only)
+	<S>kip next instruction
+	<G>o
+	Go <U>ntil address		(M68K only)
+	<H>alt execution
+	-----------------------
+	<J>ump to top of window
+	<W>atch branch address
+	-----------------------
+	<C>hange to			->	M68K,GPU,DSP
+
+
+  3:Memory dump window: Contains a memory dump
+  --------------------------------------------
+  This window shows the contents of memory in either byte, word, or long word
+  format, starting from a specified address.
+
+  Left-Clicking in the address field allows you to set the start address for
+  the display.  Left-clicking in the hex field or ASCII fields allows you to
+  to enter editing mode mode where you can change the contents of the
+  specified memory locations.  In the hex field you can type in new hex
+  values.  In the ASCII field you can type new characters.  The <Tab> key
+  will allow you to go back and forth between the Hex and ASCII fields.  To
+  leave Edit mode, press <Esc>.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<A>ddress start		Set start address
+	---------------
+	<F>ind value		Find a value
+	<N>ext value		Find next occurence
+	---------------
+	<B>yte format		Set display type to byte.
+	<W>ord format		Set display type to word.
+	<L>ong format		Set display type to long.
+	---------------
+	<E>dit memory		Enter edit mode
+
+
+
+  4:Source level window
+  ---------------------
+  This window shows the contents of the program's source code.  Normally, the
+  source code for the instruction at the current program counter is shown,
+  but you can press <a> or left-click in the top line of the window to change
+  address/filename/line number.  If you press <B> or left-click in the column
+  to the right of the line numbers field, you can toggle a breakpoint.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<A>ddress start			Set start address
+	---------------
+	<N>ext				Step until next line
+	<G>o
+	<U>ntil address			Go until address (M68K only)
+	<H>alt execution		Halt execution
+	----------------
+	<C>hange to			-> M68K,GPU,DSP
+
+
+  5:Symbols window
+  ----------------
+  This window lists the program's debugging symbols.  You can left-click or
+  use the cursor keys to move the display.
+
+  Double-clicking or pressing <Enter> while the cursor is on a symbol name
+  will open a new memory dump window to display the contents of memory at the
+  address specified by the symbol value.
+
+  To sort the symbol list, left-click on one of the list titles at the top
+  of the window. Left-click on an already selected list title to show the
+  symbols without any sorting.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<D>isassembly		Open a new disassembly window starting from
+				the highlighted symbol's value.
+	<M>emory dump		Open a new memory dump window starting from
+				the highlighted symbol's value.
+	<S>ource level		Open a new source level window starting from
+				the highlighted symbol's value.
+
+
+  6:Breakpoints window
+  --------------------
+  This window displays a list of the current breakpoints.  Left-click or use
+  the cursor keys to move the cursor.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<A>dd breakpoint		Add a new breakpoint.
+	<R>emove breakpoint		Remove a breakpoint.
+	<D>elete all breakpoints	Delete all breakpoints.
+	------------------------
+	<C>hange to			->	M68K,GPU,DSP
+
+
+
+  7:Checkpoints window
+  --------------------
+  This window displays a list of the current memory checkpoints.  Left-click
+  or use arrow keys to move the cursor.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<A>dd checkpoint	  	Add a new checkpoint.
+	<R>emove checkpoint		Remove a checkpoint.
+	<D>elete all checkpoints	Delete all checkpoints.
+
+
+  8:Modules window
+  ----------------
+  This window lists the program's source code modules.  Left-click or use
+  arrow keys to move the cursor.  Double-click or press enter to open a
+  corresponding source level window.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<O>pen module		Open the highlighted module.
+	<P>urge module		Purge the highlighted module.
+	<A>ll purge			Purge all modules.
+
+
+  9:Directory window
+  ------------------
+  This window allows you to browse files in a directory. Directories and
+  drive letters are shown in upper case.  Left-click or use arrow keys
+  to move the cursor.  Double-click or press enter on a file to "aread" it,
+  "load" it, or "read" it (the action depends on the file extension of the
+  file selected). Double-click or press enter on a directory to enter it.
+
+  Single-click on the top line (containing the path) to change file mask
+  selection (default is *). Double-click on the top line (containing the
+  browsed path) to change the current directory.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<F>ile mask			Set file mask selection.
+	<S>et cwd			Set DB's current working directory.
+
+  When a key is pressed, the display will move to the first file beginning with
+  it.
+
+
+  A:CPUs window
+  -------------
+  Indicate the state of all processors (M68K, GPU, DSP) states.  A check
+  sign shows the current context's CPU contained in the variable 'ctxtcpu'.
+  Single-click or use arrow keys to move the cursor. Double-click or press
+  enter on a processor name to open a disassembly window starting at that
+  processor's program counter address.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<D>isassembly			Open a disassembly window.
+
+
+
+  B:Object List window
+  --------------------
+  This window allows you to browse an Object Processor list.  Single-click or
+  use arrow keys to move the cursor.  Double-click or press {Enter} on an
+  object to expand or collapse the display for that object.
+
+  Double-clicking on a Branch object will move to the object that is the
+  destination of the branch.
+
+  You can edit the value for a selected field of an expanded object by
+  clicking on the field.  Fields that are either "on" or "off" will toggle
+  back and forth.  Fields that require a value will prompt you for a new
+  value.  Fractional values must be entered in the form d.d where d may be
+  any numerical expression.  Values longer than 32-bits must be entered in
+  the form "h,l" where "l" is the lower 32-bits of the value and "h" is the
+  remaining high bits.  You may also specify just "l" for values that fit in
+  32-bits even if the object field is larger.  Note that values entered are
+  checked against the number of bits in the field, so no overflow is allowed.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<A>ddress start		Set object list address.
+	<R>efresh list		Refresh list from Jaguar's memory.
+	<F>etch list		Fetch Jaguar's memory with window's list.
+	<T>oggle object		Open or close current object.
+	-------------------
+	<O>pen all objects	Open all objects.
+	<C>lose all objects	Close all objects.
+
+
+  C:C Variables window
+  --------------------
+  This window allows you to browse your C program's variables.  Single-click or
+  use arrow keys to move the cursor.  Double-click or press {Enter} on an
+  object to expand or collapse the display for that variable.
+
+  Double-clicking on a scalar type will prompt you for a new value.
+
+  The "Top" menu items shown when this window is topped are:
+
+	<A>dd watch			Add a new watch.
+	<R>emove watch		Remove an existing watch.
+	<E>dit current		Edit current variable/watch.
+	<T>oggle current	Open or close current variable/watch.
+	<V>iew current as -><S>igned decimal
+						<U>nsigned decimal
+						<H>exadecimal
+						<C>haracter
+						------------------
+						<D>efault
+	-------------------
+	<D>isplay		->	<W>atches
+						<L>ocal variables
+						<F>ile variables
+						<G>lobal variables
+	<S>ort by		->	<N>ame
+						<T>ype
+						-------
+						<A>s is
+
+  Keyboard shortcuts are A,R,E,T and S,U,H (or X),C,D (radix control).
+
+
+New WDB Script Language functions
+---------------------------------
+  DB features a powerful scripting language that allows you to write
+  project-specific debugging features and customize and enhance your
+  debugging environment.  The addition of windows to WDB calls for new
+  script commands so that you can create and integrate your own windows
+  into the WDB environment.
+
+  Below is a list of new script commands available in WDB:
+
+	WINDLIST	will list currently opened windows.
+	WINDOPEN	will open a new window.
+	WIND2TOP	will top an opened window.
+	WINDMOVE	will move an opened window.
+	WINDSIZE	will resize an opened window.
+	WINDFULL	will toggle the window to its maximum size
+	WINDICON	will iconify/uniconify an opened window.
+	WINDDUPL	will duplicate an opened window.
+	WINDLOCK	will lock an expression to an window
+	WINDCLSE	will close an opened window.
+
+  All functions take as their first argument the window number, except
+  WINDLIST, WINDOPEN, and (eventually) WINDLOCK.
+
+  The syntax for each of these new functions is shown below:
+
+  WINDLIST	(no argument)
+  ---------------------------
+  Lists the currently open windows, using the syntax for the WINDOPEN
+  function.
+
+
+
+  WINDOPEN	<type> [<x> <y> <w> <h>] ["expression"]
+  or
+  WINDOPEN	<"title"> <x> <y> <w> <h> <proc_name> ["expression"]
+  ------------------------------------------------------------------
+  Opens a new window of the specified type at the specified location.
+
+  The first form allows you to open a standard DB window type.  It calls for
+  a window type code, optionally followed by values for the initial window
+  position and size, and an expression that will be re-evaluated to provide
+  the window contents (such as the starting address for a memory dump
+  window) which is called the 'lock' expression.
+
+  The second form allows you to create custom window types.  It calls for a
+  window title, an initial size and position (not optional in the second
+  form) and the name of a window procedure.  You can also optionally provide
+  a lock expression.
+
+  The 'type' parameter required by the first form specifies what sort of
+  window is to be opened.  It should be one of:
+
+	1: M68K registers window
+	2: M68K disassembly window
+	3: memory dump window
+	4: source level window
+	5: symbols window
+	6: breakpoints window
+	7: checkpoints window
+	8: modules window
+	9: directory window
+	A: cpus window
+	B: objects list window
+	C: C variables window
+
+  The parameters 'x', 'y', 'w', and 'h' are optional in the first form of
+  WINDOPEN but required in the second form.  They specify the initial
+  location and size (in characters) of the new window.  After it is open, the
+  window may be moved and/or sized like any other.
+
+  The parameter "expression" is optional.  When used with the first form of
+  WINDOPEN, the 'x', 'y', 'w', and 'h' parameters must be provided as well.
+  The "expression" parameter must be a valid DB expression.  It will be
+  reevaluated every time a context switch happens, with the results shown in
+  the window.  Note that the "Disassembly" and "Source Level" window types
+  are default locked to the program counter address of the appropriate
+  processor.  For example:
+
+     windopen 3 0 5 5 5 "a0"
+
+  would open a new memory dump window starting in column 0, line 5, that
+  would be 5 columns wide and 5 columns tall (including the window gadgets).
+  The contents of the window would be locked to M68K register a0.  Whenever
+  a context switch occurs, the memory starting at the location contained in
+  a0 would be shown in the window.
+
+  In the second form of WINDOPEN, the "expression" parameter is used to
+  provide an argument to the DB script procedure specified by the 'proc_name'
+  parameter (see below).
+
+  The "title" parameter is an ASCII string that will be used as the title for
+  the new window.
+
+  The 'proc_name' parameter is the name of a DB script procedure that will be
+  responsible for updating the contents of the window.  This procedure will
+  be called on to update the window whenever a context switch occurs.
+  For example:
+
+	windopen "my title" x y w h myproc "d0"
+
+  The 'myproc' procedure would be defined somewhere else in the same script
+  or in a separately loaded script, or even entered interactively in the
+  console window. It might look like this:
+
+	procedure myproc val
+		print "My Information says that d0 = " -d `val
+	.
+
+  Note that once the "myproc" procedure output is tied to the window using
+  WINDOPEN, then the output of that procedure will always go to that window,
+  not just when called from a context switch update.  The output will go to
+  the window even if the procedure is called directly from the Console
+  window's "DB:" prompt.
+
+  For examples of using WINDOPEN, please see the sample script WINS.DB.
+
+  WARNING: If the procedure specified for a window is endless, it will not
+  work properly and you will have to abort with <Control-C>.  For instance,
+  the standard script "od.db" would not work properly inside a window.
+
+
+  WIND2TOP	<num>
+  -------------------
+  Moves the window specified by 'num' to the top of all windows.
+
+
+  WINDMOVE	<num> <dx> <dy>
+  -----------------------------
+  Moves the window specified by 'num' by the number of columns specified by
+  'dx' and the number of rows specified by 'dy'.
+
+
+  WINDSIZE	<num> <dx> <dy>
+  -----------------------------
+  Changes the size of the window specified by 'num' by the number of
+  columns specified by 'dx' and the number of rows specified by 'dy'.
+
+
+  WINDFULL	<num>
+  -------------------
+  Toggles the window specified by 'num' between full-size and normal-size.
+  If the window is not full-screen, it will expand to fill the whole screen.
+  If the window is already full-screen, it will return to its previous size.
+
+
+  WINDICON	<num>
+  -------------------
+  Iconifies an open window or restores an iconified window.  The
+  window number is specifed by the 'num' parameter.
+
+
+  WINDUPL	<num>
+  -------------------
+  Creates a duplicate of the window specified by the 'num' parameter.
+
+
+  WINDLOCK	[<num> <expression>]
+  ----------------------------------
+  Locks the contents of the window specified by 'num' to the expression
+  specified by the "expression" parameter.  The "expression" parameter must
+  be a valid DB expression.  For example:
+
+	windlock 3 "a0+4"
+
+  would lock the contents of window #3 to the result of the expression
+  "a0+4".  If this was a memory dump window, it would lock the display to
+  show whatever was 4 bytes past where register a0 was pointing.
+
+  If "expression" is not specified, this will unlock the window 'num'.
+
+  If "num" and "expression" are not specified, this will print a list of
+  locked windows.
+
+
+  WINDCLSE	<num>
+  -------------------
+  Closes the window specified by the 'num' parameter.
+
+
+
+New WDB Variables
+-----------------
+  WDB also has a number of new variables that allow your scripts to find out
+  things about the current screen display.  These variables are all
+  read-only and may not be modified by your scripts.
+
+   screenw
+   -------
+   This contains the screen width in characters.
+
+
+   screenh
+   -------
+   This contains the screen height in characters.
+
+
+   windnum
+   -------
+   This contains the number of the current window.  (Inside a window
+   procedure, this is the number of the window currently being printed.)
+
+
+   windmsg
+   -------
+   This is the current window message code (codes are listed in WINC.DB).
+
+
+   windw
+   -----
+   This is the width in characters of the current window.  (Inside a window
+   procedure, this refers to the window currently being printed.)
+
+
+   windh
+   -----
+   This is the height in characters of the current window.  (Inside a window
+   procedure, this refers to the window currently being printed.)
+
+
+   autofocus
+   ---------
+   This controls the "autofocus" mouse behaviour.
+
+
+
+Startup Script File for WDB
+---------------------------
+   At startup, immediately after looking for, loading, and executing the
+   RDB.RC file, WDB searches for the script file WDB.RC.
+
+   This file should contain "windopen" commands that will enable creation of
+   any required windows at startup time.  Only the console window is created
+   before its execution.  If the WDB.RC file is not found, WDB opens a
+   standard screen containing window types 1, 2 and 3.
+
+   The "File" menu has options for "Load WDB.RC" and "Save WDB.RC" which
+   allow you to load a window configuration script or save your current
+   window configuration to a script.
+
+
+
+
+
+
+Things to remember about DB:
+----------------------------
+   In order to have symbol names longer than 8 characters, you MUST use the
+   "-fb" option with MADMAC and the "-e" option with ALN.  (Please see
+   corresponding documentation for MADMAC and ALN.)
+
+   In order to have the source level in your programs, you MUST use the "-fb"
+   and "-g" options with MADMAC and the "-e" and "-g" options with ALN.
+   Additionally, the source files must be accessible when you run DB.
+   (Please see corresponding documentation for MADMAC and ALN.)
+
+   GPU/DSP source-level debugging features are now available.  Bear in mind
+   that your program may have many different GPU or DSP modules which are
+   designed to execute in the same address space at different times.
+   Unforunately, the debugger has no way of knowing which symbol names and
+   source code belong to the code which has been copied to that address space
+   (typically the internal RAM of the GPU or DSP) and is being executed at at
+   any given time.  Currently no good solution for dealing with this problem
+   exists.  If you happen to think of one, by all means let us know!
+
+   In order to have DB locate files (such as scripts) in any other directory
+   than the current one, you must set RDBPATH to the directory you want.
+   Typically this is \JAGUAR\BIN.
+
+
+
+
+---------------------------------------------------------
+Changes log      (Laurent Chemla @ Brainstorm, 1993-1995)
+---------------------------------------------------------
+
+Most changes apply to both WDB and RDBJAG.  Changes that apply to only WDB
+are shown with "WDB:" at the beginning.
+
+Feature additions are marked with a "+".  Bug fixes or feature removals
+(things removed because of overlap with other features) are marked with a
+"-".  Feature changes are marked with a "=".  Warnings and notes are marked
+with a "!".
+
+
+TO DO:
+------
++ Optional case insensitivity for commands, variables, symbols.
+
++ A smart TW that would detect a RTS.
+
++ Maybe adding the GPU/DSP register number to the REGEQUate.
+
++ Search in Source window.
+
++ A simple ASCII (text) window.
+
++ A simple Watch window.
+
+
+
+KNOWN BUGS NOT YET FIXED
+------------------------
+- Setting R0 or R14 as 'gpurtmp' or 'dsprtmp' will not work.  Bug report by
+  Mike Beaton. This is now obsolete due to new stub.
+
+24-aug-1995
+-----------
+- Fixed a bug that would cause a crash with a symbol name length > 512 bytes
+when loading a COFF file.
+
+
+12-jul-1995
+-----------
+- Fixed a bug that would skip a lot of symbols when loading a DRI ABS file.
+
+
+30-June-1995
+------------
+- WDB: Fixed bug where all breakpoints were cleared accidentally when one of
+  them was reached.
+
+- Fixed bug where script files specified on commandline were not being
+  handled correctly.
+
++ Added menu items (not enabled yet) for new GPU/DSP debugging features like
+  breakpoints.  (These will be active in a future version coming soon!)
+
+
+08-may-1995 (Bad day)
+-----------
++ WDB: Added "View current as ->" menu option to C variables window.
+
++ Added "/radix" options to `c*' commands.
+
++ WDB: Moved "New watch" to "Add watch" by analogy with "Address set".
+
++ WDB: Moved "Set breakpoint" to "Add breakpoint" by analogy with "Address set".
+
++ WDB: Moved "Set checkpoint" to "Add checkpoint" by analogy with "Address set".
+
++ WDB: Added shortcuts to breakpoints and checkpoints windows.
+
+
+07-may-1995
+-----------
+- Command-line completion was off until a command was issued after using a
+  text input box.
+
+
+02-may-1995
+-----------
++ WDB: Added "Sort by ->" menu option to C variables window.
+
+- DOS: Removed '-m486' compile option for 386 users.
+
+
+30-apr-1995
+-----------
++ WDB: Enhanced C variables window.
+
+
+27-apr-1995
+-----------
++ WDB: Finished C variables window.
+  In order to use the C variables source level, you must give -g2
+  instead of -g to ALN, otherwise this debugging info will be stripped.
+
++ `ceval',`cvars',`clvars',`cfvars',`cgvars' added.
+
+
+20-apr-1995
+-----------
++ WDB: Update the default open coordinates when a window of one type is
+  closed, so that the next time a window of that type is opened, it
+  opens the same.
+
++ WDB: TOS: Fixed Directory window problems (libc's 'chdir' not working).
+
+
+17-apr-1995
+-----------
+- WDB: The CCR field of a branch object was opened with only 2 bits.
+
++ Added CCR name in branch object display.
+
+
+12-apr-1995
+-----------
+- PC/DOS: Removed GCC option -fomit-frame-pointer which seems to fail under
+  DPMI (WIN31 and WINNT).  (Was added on 10-apr-1995).
+
++ WDB: Finished new submenus management, begin to use it for CPU choice.
+
+
+10-apr-1995
+-----------
++ Slightly changed command-line completion in order to have a more direct
+  completion.
+
++ Restricted command-line usage to each machine.
+
+= WDB: Continue to change menu management for submenus support.
+
+
+06-apr-1995
+-----------
+- WDB: Fixed a bug when trying to select the window menu by using Alt-name
+  instead of Alt-T, e.g.  Alt-R for Registers window.  Bug report by Eric
+  Gaudet @ Artifice.
+
+
+03-apr-1995
+-----------
+- Few potential bug fixes, checked under Linux with Checker 0.6 from
+  Tristan Gingold (gingold@amoco.saclay.cea.fr).
+
++ Changed branch object dump to another "logical" manner.  Requested by
+  Eric Gaudet @ Artifice.
+
++ Added index # and 'branch to' index # in objlist command.
+
+- WDB: Fixed a pb in dump command (same as 20-jan-1995 fix in dump window).
+
+
+02-apr-1995
+-----------
++ Linux: Complete rewriting of keyboard management using the new kernel
+  fcntls.  Now requires kernel 1.1.91 or later.
+
+- DOS: GO32 release 1.12m3 is now used as DOS extender.  Was crashing under
+  Windows NT and probably Windows 95.  Reported and fixed by Brian McGroarty
+  @ High Voltage Software.  However, it doesn't seem possible to use a
+  bidirectional // port in a DOS application under Windows NT.  Don't know
+  for Windows 95.
+
++ WDB: Changed menu handling in order to allow sub-menus (not yet done).
+
++ WDB: Removed last '\n' from Usage message.
+
+
+31-mar-1995
+-----------
++ WDB: Added direct keyboard shortcuts in Modules window.
+
+
+27-mar-1995
+-----------
+- Fixed intermittent time display problems in aread and fread under PC/DOS.
+
+
+19-mar-1995
+----------------
+- WDB: Removed spurious cursor when going from one menu window to another when
+  Console window is top.
+
+
+18-mar-1995
+-----------
++ If DB is given a filename with a ".ROM" (either upper or lowercase)
+  suffix in the command line, it will 'fread' it to $802000.
+
+
+14-mar-1995
+-----------
++ WDB: Object list window done.
+
+
+03-mar-1995
+-----------
++ The 'read' and 'fread' commands now take $802000 as default addr to read
+  to, if you don't provide one.
+
+
+02-mar-1995
+-----------
++ WDB: Changed double-click management inside windows.
+
++ WDB: Reduced Console window default size to 11 lines.
+
+= WDB: Menu entry selection is now green.
+
+= WDB: File selection in Directory window is now green.
+
+
+01-mar-1995
+-----------
+- Added missing '.' between integer and fractional part of HSCALE display.
+
+
+24-feb-1995
+-----------
+- WDB: Linux: Added a fflush(stdout) after mouse-selecting a file in Directory
+  window.
+
+
+20-feb-1995
+-----------
+= WDB: Linux: Recompiled with new gpm 0.97 lib/header, because it didn't work
+  with it any more (same for Midnight Commander, BTW).
+
+! WDB: Linux: WARNING: You MUST now have gpm 0.97 in order to use wdb,
+  since it is incompatible with older versions.  You can find it on our BBS.
+  Thanks to Jeremy Gordon @ Hyper Image Productions, Inc.
+
+
+19-feb-1995
+-----------
++ Added 'objlist' command that displays an object list.  Should replace the
+  'od.db' script.  It has at least one advantage: it doesn't stop displaying
+  the list at the first stop object.
+
+
+22-jan-1995
+-----------
++ Added 'listsym' command: prints on one line all the symbols that are at
+  the given address, or at the current cpu PC.  Wish of Scott E. Corley @
+  High Voltage.
+
+
+21-jan-1995
+-----------
+- DB now handles COFF files with more than 3 sections (this cannot happen
+  with ALN).  However, it is not possible to make DB understand COFF symbols,
+  only BSD ones.  Also, it will not handle section names longer than 8 chars.
+  Bug report by Jamie @ Rebellion.
+
+
+20-jan-1995
+-----------
+- WDB: Fixed a pb in dump window, was not displaying good values after the
+  1024th byte (only happened in more than 80x50).
+
+- WDB: Fixed a pb when a message containing whitespaces is displayed in the
+  console window in background.  It was doing a CR after each whitespace.
+
+
+19-jan-1995
+-----------
+= WDB: Changed back File/"About" entry to "Information" because the shortcut is
+  unpleasant.
+
+- WDB: Linux: added a "Reset colors" to "CLS" after 'suspend' or '!'.  Still
+  lacks a fflush(stdout) when you come back to WDB on the last line of
+  console window, the first line and a half of console window is grey until
+  you do something ...  Bug report by Dan @ Rebellion.
+
+
+18-jan-1995
+-----------
++ WDB: Added a close gadget to console window, which acts the same as File/Quit
+  menu option.  Suggestion of Mike Beaton.
+
+= WDB: Changed File/"Informations" entry to "About ...".  Suggestion of Mike
+  Beaton.
+
+- WDB: Fixed Checkpoints window: It had no gadgets!
+
+- WDB: Fixed User windows: they had no gadgets!
+
+
+17-jan-1995
+-----------
++ WDB: Added a sort option to Symbols window.  Simply click on the title you
+   want the symbols sorted by.  Click on the current sort title to unsort.
+
+
+14-jan-1995
+-----------
+- WDB: Linux: Fixed a pb in `suspend' since WDB is a GPM client.  Was stuck
+  after `fg'.
+
++ New GPU/DSP script called ngpu.db, using the new variable ctxtcpu.
+  Mainly useful only with rdbjag.
+
+
+13-jan-1995
+-----------
++ When using "getsym" (and therefore "aread"), already existing symbols
+  will not be created again.  This has been requested at least by Ubi Soft.
+
++ The GPU/DSP Data Organisation Registers are initialized before use of
+  GPU/DSP.  This helps a lot!
+
+! WARNING: The alternate register bank is not handled!
+
+
+12-jan-1995
+-----------
+= DB and WDB for PC/DOS and PC/Linux are now compiled with GCC 2.6.3.
+
++ In command-line completion, symbols not found are searched again with a
+  '_' appended to them.  Useful with GCC generated code!  So, in order to
+  find those symbols easily, just type in the name WITHOUT '_' everywhere
+  and, unless there is another symbol with this name, it will be recognised
+  for what it is.
+
+
+11-jan-1995
+-----------
+- WDB: Fixed a pb when duplicating a window: it has not gadgets!
+
+- WDB: Fixed a pb with "x" command.  Was unsigned since 02-jan-1995.
+
++ Gasm and Dasm now take ccdef in upper case too.
+
+
+09-jan-1995
+-----------
++ Added ccr handling in DSP disassembly for JMP/JR.
+
+= GPU and DSP context switching seems OK and handled everywhere.  Still to
+  do: breakpoints.
+
+= Removed old-style GPU disassembly.
+
+! WARNING: the new GPU/DSP context management is using the same stub area
+  for its code ($2000-$21ff).  So, you will not be able to use the script
+  GPU.DB with DB versions after 02-jan-1995.
+
+
+07-jan-1995
+-----------
+= Changed "stoP" command to "Halt", according to WDB change.
+
+= WDB: Changed "stoP" entry in Context menu to "Halt".
+
+
+06-jan-1995
+-----------
++ GPU registers context switching now OK.
+
++ Changed rate display for time<1 sec.  Now displays the real time.
+  Behaves strangely under MS/Windows !? Fixed on 27-mar-1995.
+
+
+05-jan-1995
+-----------
++ WDB: Added space bar for page down in Disassembly window.
+
++ Added ccr handling in GPU disassembly for JMP/JR.
+
++ Added ccr handling in M68K disassembly for JMP/JSR.
+
+
+04-jan-1995
+-----------
++ WDB: Allowed re-creating Console window, which does not create another window
+  but really move/resize the existing one.  So, in wdb.rc, Console window is
+  saved as the other windows, thus allowing customisation for its
+  size/position.
+
+
+02-jan-1995
+-----------
++ WDB: Finished GPU context handling.  Waow, what a mess to do it!
+
++ WDB: Added a new window type: CPUs, which shows all CPUs activity.  (This
+  window will be improved in the future).
+
++ WDB: Reworked a bit Breakpoints and Checkpoints windows.
+
++ WDB: Fixed a (minor) bug in Symbols window.
+
++ WDB: Removed unnecessary under-titles in array-style windows.
+
++ Almost finished GPU context handling.  Waow, what a mess to do it!
+
++ Added new variable: ctxtcpu, which contains the current cpu number
+  handled by t, etc...  commands.  Default: 0 for M68K.  Still some problems
+  in GPU registers context switching.  For that reason, it is not possible to
+  set GPU registers from DB for the moment.
+
+
+24-dec-1994
+-----------
+- WDB: Fixed a bug that reduced Console window command line to the size of the
+  last Dialog Box command line after using it.
+
++ WDB: Added a Menu to Disassembly and Source window.
+
++ WDB: Reworked a bit other window specific menus.
+
+- Removed "[y/N]" printing after yes/no questions.  Wish of Leonard Tramiel
+  @ Atari Corporation.
+
+
+23-dec-1994
+-----------
+= Changed lowercase hex output by the 'print' command to uppercase.  Wish
+  of Leonard Tramiel @ Atari Corporation.
+
+
+20-dec-1994
+-----------
+- Fixed a disassembly pb in MOVE PC,Rn.  It was (eventually) indicating
+  EQURs related to R0 with dislab==0.  ORIGINAL.  Bug report by Leonard
+  Tramiel @ Atari Corporation.
+
+
+04-dec-1994
+-----------
++ WDB: Changed Modules window.  It now displays N/A instead of `?' if the file
+  is not available.  Also, module filenames are displayed first and the
+  pathname after, since it is usually quicker and enough to see the filename
+  only.
+
+- WDB: Also fixed a bug that could occur when trying to load an ABS file with a
+  non-existent first source file (was saying "read error" in the ABS file).
+
++ Command-line completion has been reworked a bit.  Mainly, you now get the
+  program module filenames together with the program symbols for functions
+  where it makes sense, and procedures and aliases where you want commands.
+
+- The change made on 30-sep-1994 was sometimes not working.  It is now.
+  Also, purging the module will make it searched again (until next error).
+  To reflect that, mlist displays the line numbers if the module is already
+  loaded and `N/A' if it was requested and doesn't appear to be available.
+
+
+28-nov-1994
+-----------
+- WDB: Bug while determining if the contents of a dump window have to be
+  refreshed after setting memory.
+
+- WDB: Also, if a refresh was done, the window was also relocked.  This is
+  fixed.  Same thing for disassembly window.
+
++ Added a new function: gasm <addr> <"opcode op0,op1">.  This assembles the
+  given GPU assembly line into the given address.
+
++ Added a new function: dasm <addr> <"opcode op0,op1">.  This assembles the
+  given DSP assembly line into the given address.
+
++ Added an interactive mode for gasm and dasm.  Simply typing:
+
+		gasm <addr>
+	or	dasm <addr>
+
+  starts the interactive mode. 'q' to end.
+
+
+26-nov-1994
+-----------
++ WDB: Resizing is now also possible on the left of a window, by dragging the
+  left border with the mouse (same as down and right borders).  Also, the
+  upper left corner can be used for resizing.
+
+
+25-nov-1994
+-----------
++ WDB: The mouse is now blocked when trying to over-minimize or over-maximize a
+  window.
+
++ WDB: Double-clicking on a window's title/move bar has the same effect as
+  clicking on its fuller gadget.
+
++ WDB: Double-clicking on a iconified window uniconifies it.
+
++ WDB: An "autofocus" mouse behaviour is obtained by setting the `autofocus'
+  internal variable to something != 0.
+
+
+21-nov-1994
+-----------
++ Added Home and End key handling in commandline editing (PageUp and
+  PageDown have the same effect too).
+
+
+20-nov-1994
+-----------
++ WDB: Linux: WDB is now a gpm client (for the mouse).  You must have gpm v0.94
+  or greater.
+
+= Changed fast // code location from $3e00 to $2200.
+
+
+2-nov-1994
+----------
++ Added "suspend" command under Linux and reenabled it under Atari for
+  MiNT.  If you want to suspend with ctrl-z, you must bind it.
+
+
+31-oct-1994
+----------------
++ WDB: Minor change: now if the debugger receive an event from the Jaguar while
+  doing nothing, it handles that event.  You had to hit <return> in previous
+  releases.  For instance, if you push the reset button, you'll now get the
+  Stub message on the fly.
+
+
+29-oct-1994
+-----------
++ If the GPU/DSP disassembler finds that a "should be zero" 5-bit field is
+  not zero, it prints ";!!" after the instruction.  I wish I could instead
+  display a dc.w, but some people would, as usual, complain that an unwanted
+  feature has been added.  That way is a kind of kludge but neutral.
+
+
+19-oct-1994
+-----------
+- Fixed the previous fix of LEA/MOVEQ.
+
+
+11-oct-1994
+-----------
+- Fixed a bug that can explain why the fast protocol didn't work on some
+  (all ?) portable PC's.  Please report if it now works for you.
+
++ Handled REGEQUates defined with the new MADMAC syntax (bank 0/bank 1).
+  They will be fully handled when the GPU will be totally managed from
+  inside.
+
+
+09-oct-1994:
+-----------
+= Emulated the side effect where 'x' resets the disassembly address to PC
+  (like the good ole DB).
+
+
+30-sep-1994
+-----------
++ Changed behaviour in case of Source Not Found error.  It is only printed
+  the first time.  Wish of Scott Sanders @ Atari Corporation.
+
+
+28-sep-1994
+-----------
+= Removed 'faread'.  'Aread' follows 'pprot' as before.
+
+
+25-sep-1994
+-----------
+= WDB: If the console window is topped after closing another one, the Windows
+  Keyboard Control mode is automatically left.  Wish of Scott Sanders @
+  Atari Corporation.
+
+
+21-sep-1994
+-----------
+= Added function faread ('fast aread') which is controled by pprot.  AREAD
+  IS ALWAYS SLOW.  pprot has no effect on it any more.  But, since it would
+  too loosy to not change it, launching rdbjag with a command line will
+  perform a "faread" function, unless pprot==-1.  Whish of Robert Dibley @
+  Rebellion Software.
+
+- Fixed a pb with the MORE in case of ctrl-c (it's really like the one
+  under Linux :=)) under certain circumstances (like dir - more - ctrl-c -
+  vars).  ( I told you to use the 'Q' key !  -Laurent- ) Thanks to Robert
+  Dibley @ Rebellion Software.
+
++ Changed the '|' to tab (\t) in symbol display in console window.  Whish
+  of Robert Dibley @ Rebellion Software.
+
+
+09-sep-1994
+-----------
++ WDB: Fixed a disappearing '\' on some pathnames when selecting a file in
+   the Directory window.
+
+- Fixed this spurious '\' that was appearing in command line completion of
+  filenames.  Also changed the '/' to '\' under DOS/TOS.  All that is for
+  cosmetic purposes, since something like /1\2//3\\\\4///myprog works anyway.
+
+= Changed back some critical things by special request from Atari:
+
+		moveq changed to moveq.l
+		lea changed to lea.l
+		scc changed to scc.b
+		dbf changed to dbra
+		move from or to usp changed to move.l
+
+= Same for 'dislab' default value, which is now 0 (like the good ole DB).
+
+= Added function 'fread' ('fast read') which is controled by 'pprot'.
+  'READ' IS NOW ALWAYS SLOW.  pprot has no effect on it any more.
+
+
+01-sep-1994
+-----------
++ Inserted a delay between // port toggling.  This helps for some // cards
+  (like some built-in in notebooks and the like) in fast // transfert.
+
+
+30-aug-1994
+-----------
++ Changed the fast // protocol on Atari/TOS to take "pprot" number of
+  "out"s.  It seems that on a TT pprot should be 3 and on Falcon 030 4.  The
+  0 value for pprot uses the full handshaked protocole as on PC/DOS.  The
+  printed time and rate use the built-in clock instead of a timer as on
+  PC/DOS, so they are precise on a 2 seconds gap.
+
+  Q: Why not using a timer?
+
+  A: Why is the parallel bus access not working in IPL<5?  Also fixed a pb
+  with addq/subq value (probably came by 23-aug-1994).
+
+
+23-aug-1994
+-----------
++ Fast // protocol done on Atari/TOS too.  Pprot is only taken as <0 (old
+  slow protocol) or >=0 (new fast protocol, with 3 fixed "out").
+
+
+16-aug-1994
+-----------
+- Fixed a problem in fast // transfer when the block size is not a long
+  multiple.  Thanks to Rob @ HMS Software.
+
+
+10-aug-1994
+-----------
++ Big improvement in parallel transfer protocol (brilliant idea, Tim!).
+  The new protocol is used for uploading a file to the Jaguar, when a 'read'
+  or an 'aread' function is used.  This is only for the PC/DOS version for
+  the moment.
+
+  A new variable called 'pprot' is added.  Its value may vary from -1 to 5,
+  default value is 3.  This value is a time loop for the debugger to wait for
+  the Jaguar to receive one byte.  So the faster your parallel board is, the
+  higher this value must be set.  3 is the best value for the SIIG board, 2
+  is the best value for an Everex MagicIO.
+
+  If your card is a SIIG one, just leave this variable set to 3.  If you have
+  any other card, you'll have to find out by yourself what value you have to
+  assign to pprot: try to leave it set to 3.  If you get an error message
+  during your next 'aread' or 'read' call, increase it's value.  If you get a
+  speed < 100 Ko/s, try to decrease it's value (using the command 'x pprot
+  <value>').  Once you'll know wich is the value for your card, just add a
+  line in your RDB.RC file with the command 'x pprot <value>'.
+
+  A value of 0 should work everywhere with a transfer speed of around
+  120Ko/s.
+
+  A value of -1 will reset the transfer protocol to the old slow one.  A
+  transfer size < 8192 bytes will also use it automatically.
+
+  This protocol has to be uploaded in the Jaguar RAM prior to be used, so it
+  wont be used if you read a very short file.  It uses memory space from
+  $3e00 to $4000, so do NOT try to read data into this space!  (Changed on
+  20-nov-1994 to $2200 to $2400).
+
+  ALSO: support has been added for software reset and stop.  This requires
+  hardware changes to your Alpine board, please contact Atari Corporation if
+  you don't have them.
+
+
+24-jul-94
+---------
+  + Added a '#' in bclr/bset/btst display in GPU disassembly.
+
+
+09-jul-1994
+-----------
++ WDB: Version date added in Informations box.
+
++ WDB: Special (non-ASCII) characters used in window display are converted
+  to ASCII equivalents for transcript. Also, line ends are now CRLF under
+  Atari/TOS and PC/DOS, LF under PC/Linux.
+
+= WDB: Section end address is now the address of the last byte used, not
+  the first byte free.
+
++ WDB: *.* default selection in the Directory window changed to * for PC/DOS
+  version.
+
+
+28-may-1994
+-----------
++ WDB: Top window now has red borders, while back ones have blue.
+
++ WDB: The "Informations" entry has been added, for Copyright informations.
+
+
+22-may-1994
+-----------
++ WDB: Switched "Open" and "Window" menu.  A window list is now displayed at
+  the bottom of the "Window" menu.  If there are more than 10 windows, then
+  the menu entry "Activate" is added to the menu bar, listing all the
+  windows.
+
++ WDB: Added "Aread *.cof" menu option in "File" menu.
+
+
+18-may-1994
+-----------
++ WDB: Few minor cosmetic changes (Menu titles...).
+
++ WDB: Dir window automatically closes if called by Aread, Read or Load.
+
+
+16-may-94
+---------
+- Fixed a bug in transcript that made it always append to an existing file.
+  Nobody uses it?
+
+
+15-may-1994
+----------------
++ WDB: Load and Save WDB.RC.  It contains the windows configuration and is
+  automatically loaded at start if found in current path or RDBRC.
+
+
+13-may-1994
+-----------
++ WDB: Script windows seem ok. Look at WINS.DB.
+
+
+12-may-1994
+-----------
++ WDB: Lock working for disassembly, memory dump and source level windows.
+
+- WDB: windclose <#> now works properly.
+
+= WDB: "windopen"-ing a script window now requires a procedure.
+
+
+01-may-1994
+-----------
++ WDB: Now works under MS-Windows.
+
+- WDB: Alt_Gr is not activating menus any more.
+
+
+19-apr-94
+---------
++ Added a new variable: xenable which controls the x display after context
+  switching.  Set to 1 if you want to have it.  Default is 1 in non-windowed
+  version and 0 in windowed one (Wish from Robert Dibley @ Rebellion
+  software).
+
++ Added a new variable: srclevel which controls the source level display.
+  Set to 1 if you want to have it.  Default is 1.  (Wish from Robert Dibley @
+  Rebellion software).
+
+- Fixed one bug in GPU/DSP disassembly of STORE Rn,(R14/R15+n).  ORIGINAL.
+  The label given was referencing 'n' and not 'Rn'!  (This was not happening
+  in the new label display, of course...).  Thanks to Robert Dibley @
+  Rebellion Software.
+
+- Fixed a bug in getting line number for source level, i.e.
+  <source>:<line> that happened when I added handling of a current line
+  number per source.  It was always taking the last one instead of the new
+  one.  Detected and reported by ...  guess who?
+
+
+15-apr-94
+---------
++ Added a new variable: dislab which controls the way labels are
+  disassembled.  Set to 0 if you want old fashion (default is 1).
+
+
+21-mar-94
+---------
++ Added N_ASLINE source-level type symbol, so you must use MAC and ALN
+  compiled at or after 21-mar-94 if you have ORG'ed GPU/DSP code and want to
+  have source-level in it.
+
++ Fixed a bug in MOVEI's display of symbols (they were swapped).  ORIGINAL.
+
++ Fixed a bug in ADDQMOD's display (1st operand was displayed in decimal
+  with a '$' sign!).  ORIGINAL.
+
++ Cosmetic changes in disassembly:
+
+		values from 0 to 9 are displayed in decimal (so, without '$').
+		moveq.l changed to moveq
+		lea.l changed to lea
+		scc.b changed to scc
+		dbra changed to dbf
+		move.l from or to usp changed to move
+
++ Fixed the way variable names were handled in command line/scripts: Debug
+  symbols are still recognised, but they are scanned after all tries.  This
+  is because it slowed down everything, and it is more consistent with
+  scripts.  So now, globals/locals are scanned first, if it is not found then
+  RDB tries to evaluate in hexadecimal, and if it doesn't succeed, it scans
+  the debug symbols.  If it still not found, it prints <not a number or
+  variable>.  That means, if your variable seems like an hexa number, you
+  should prefix it with '.' (as before) otherwise it will be evaluated as a
+  number.
+
++ Added the '-g' switch in command line that performs a go command after
+  initialisation (should be used as: rdbjag -g myprog).  (wish from Rebellion
+  Software).
+
++ Added (well, 10 minutes!) a skip command: 'z' skips next 68K instruction.
+  (z <count> skips <count> instructions).
+
++ Added standard Motorola style CCDEFs in JR and JUMP disassembly.
+
++ Added the "disaddr" internal variable which contains the current
+  disassembly start address.
+
+- Fixed a bug in COFF input (was forgetting last symbol).
+
+
+
+New features for 1.0
+--------------------
+- Now it should works under Windows, 386max and OS/2 VDM sessions (thanks
+  to Sam Littlewood @ Argonaut).
+
+- Fixed a bug in source level when more than one "aread" was called.
+
+- Fixed a bug on Atari: "s" and "sw" were not working.
+
+- Fixed a bug leading to hang when entering 'reload', 'unload' or 'xgoto'
+  outside of a .db script (i.e when 'not loading').  ORIGINAL.
+
+- Fixed a bug in 'unalias' function.  This was hanging before.  ORIGINAL.
+
++ Added a smarter 'more' everywhere it should be (I think).
+
++ Added a new ls usage: ls <fname>: (see before).
+
+- Now RDBJAG swaps the message number under MSDOS (for autoexecute alias)
+  (thanks to Glenn Williams @ Williams Brothers Development).
+
++ Added a smarter completion, context dependent.
+
+
+New features for 0.99 ( next will be 0.99.1 :-) ):
+--------------------------------------------------
++ Added variable handling in completion and function parameters.  Maybe too
+  slow but quickly done (one line) and dumb (what if some label is to be
+  called 'PC' ?).
+
+
+New features for 0.98:
+----------------------
+- Fixed (again) a bug in inverse video handling on PC's (grin).
+
++ Added a new switch in command line option: -d will force rdbjag to use
+  the parallel port specified with -p without test of parallel board.  Try it
+  if your parallel board isn't recognized well enough.
+
++ Added the possibility to specify in the command line the name of a .ABS
+  or .COF file to be 'aread'.  You now can enter 'rdbjag turtdemo.cof'
+  directly.
+
+- Fixed a bug causing the 'write' command to append to any existing file
+  (thanks to John Carmack @ Id Software).
+
+- Added three source level functions in rdbjag:
+
+  1/ 'ls' will list the source code.  Usage is:
+
+	  ls <addr> will list from <addr> (as before)
+	  ls :<#> will list line number <#> in current source file
+	    Ex: ls :218 will list line 218 of current module.
+	  ls <fname>:<#> will list line number <#> in <fname> source file
+	    Ex: ls main.s:420 will list line 420 of source file main.s.
+	  ls <fname>: will list current line number in <fname> source file
+	    Ex: ls main.s: will list current line of source file main.s.
+
+  2/ 'mlist' prints a list of all source files loaded in memory.  Usage is:
+
+	  mlist
+
+  3/ 'mpurge' to unload source file(s) for small memory configurations.
+
+	  Usage is:
+	  mpurge <fname> will purge source file <fname> from memory.
+	  mpurge * will purge all source files from memory.
+
+!  In order to have the source level in your programs, you MUST use:
+
+	  MADMAC with -fb -g
+	  ALN with -e -g
+	  (please see corresponding documentation for MADMAC and ALN).
+
++ Added the source level handling where it was useful (variables not yet
+  handled: this will be 0.99):
+
+		* after registers display (eg: 'x' but also 't', 'g' etc...).
+
+		* the 'b' command recognizes the same syntax as 'ls'.
+
+		* in breakpoints list.
+
++ Changed line number management according to new MADMAC's one (-1).
+
+
+New features for 0.97:
+----------------------
+- Fixed a bug in 'sw' function, causing rdb to print a long in place of a
+  word if the value was negative,
+
+- Fixed a few bugs in the Atari version (thanks to Normen Kowalewski) : now
+  rdbjag wont make an infinite loop when breaking (ctrlC) while in wait.
+  Remember to make rdbjag.tos 'world readable' with prgflags if it hangs
+  under MultiTos.
+
+- Changed (again) the way rdbjag detects the Jag parallel port on PC's.
+  Hope this will help.
+
+- Changed the way rdbjag stops inverse video when reporting an error.  Now
+  it uses ESC[0m.  Looks like ANSI.SYS doesnt understand the standard ESC[27m
+  to stop inverse video.
+
+- Fixed a bug causing <DEL> key to not work under DOS.
+
+
+New features for 0.96:
+----------------------
+- Fixed a bug in symbols handling, now symbols should appear correctly if
+  the file is loaded trough a filefix generated .SYM or a new aln generated
+  .ABS with the aread function.
+
++ Added a command to load .ABS generated by the new ALN without the filefix
+  step.  Try this 'aread' command and tell me if you like it.  It works with
+  all .ABS, but the new ALN now defines symbols only once so rdbjag doesnt
+  repeat a symbol multiple times.
+
+
+
+27-dec-1993
+-----------
+- Fixed PC relative with negative offset disassembly.
+
+
+New features for 0.94:
+----------------------
+= None.  Mainly a debug release.
+
+
+
+New features for 0.93:
+----------------------
+= Cleanup of parallel board detection.  Basically the detection is:
+
+  1/ Is there a parallel port ?  Try to put the port in standard mode and
+  write a byte in it.  If we can read this byte after writing in I/O address,
+  there is actually a board.
+
+  2/ Is it bidirectionnal.  In this case after putting the port in input
+  mode, we cant read no more what we wrote in it.
+
+  The bug Atari corp detected was: if there is nothing plugged in the
+  parallel DB25, then we always read the byte that was written in 1/.  Now we
+  send another value for 2/.
+
+  The exit(-1) encountered if no board was detected is now replaced with
+  exit(0) to avoid go32 debug message when exiting.
+
+
+
+New features for 0.92:
+----------------------
++ TAB now completes the expression in input.  It tries to make an
+  'intelligent' completion, i.e if getting the first word of a command, it
+  will expand from the command table if it finds anything then from the
+  variables table.  If it's the second word it tries variables first, then
+  commands.  TAB TAB show all occurences found if more than one ('a la' gdb).
+
+- Fixed a bug in creating files for transcript and save commands.
+
++ Added a very dumb 'more' for the help command.
+
+- Fixed a bug in GPU MOVEI disassembly.  ORIGINAL.
+
+
+New features for 0.91:
+----------------------
++ Line editing and Prompt: New line editing with arrows, delete, scrolling
+  and history.  A prompt now appears on each line .  'Db:' for standard
+  input, 'Proc:' for procedure input and 'Set:' for setting values input.
+  There is no history for the two last modes.  The history size is 100 lines
+  for standard input.  Thus, no more key binding is allowed for : TAB,
+  because we'll soon add an automated completion with it, BS, ^@ and ESC for
+  line editing purposes.
+
++ Last command recall: When a single <cr> is entered while in standard
+  input, the last command stored is executed again if it's logical (that is,
+  for example, 'load' wont be stored, 'l' will be without parameters and
+  'help' will be with parameters).

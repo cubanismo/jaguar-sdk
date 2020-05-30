@@ -1,0 +1,4 @@
+load cdbios43.db
+read toc.dat 2c00
+aread cpkdemo.cof
+

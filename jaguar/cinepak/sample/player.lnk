@@ -1,0 +1,5 @@
+player.o utils.o clear.o vidinit.o lister.o intserv.o dspcode.od
+cinepak.a
+#codec.o gpucode.og
+
+

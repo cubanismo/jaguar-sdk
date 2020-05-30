@@ -1,0 +1,27 @@
+; JAGUAR SYNTH PATCH
+; Name: 	strlow 
+; Descr.:	Strings low right (fast)
+; Externals:	s_strlow	; sample	
+;		e_strlow	; envelope
+
+	.dc.l	$00000030	; FAST Compressed 16 bit Sampler
+	.dc.l	$00000800	; Volume ($800 -> times 8.00)
+	.dc.l	s_strlow	; Ptr to sample
+	.dc.l	$00001000	; Pitch (no change)
+	.dc.l	$00000000	; 
+	.dc.l	$00000000	; 
+	.dc.l	$00000000	; Reset to zero
+	.dc.l	$00000000	; Reset to zereo
+	.dc.l	$004D8500	; End of sample
+	.dc.l	$00000000	; 
+	.dc.l	$00000000	; 
+	.dc.l	$00000000	; 
+	.dc.l	$00000000	; 
+	.dc.l	$00000000	; 
+	.dc.l	$00000000
+	.dc.l	$00000000
+	.dc.l	$00000000
+	.dc.l	$00000000
+	.dc.l	$00000000
+	.dc.l	$00003FFF	; Pan
+

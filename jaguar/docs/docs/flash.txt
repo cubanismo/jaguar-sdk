@@ -1,0 +1,94 @@
+                        Flash ROM Download Utility v2.0
+                        Copyright (c)1994,95 Atari Corp.
+
+USAGE
+=====
+
+flash [-p<x>][-d<hx>][-e<hx>] filename
+
+The filename parameter is mandatory, the other parameters are optional.
+
+-p0: 	Use printer port $3BC.
+-p1: 	Use printer port $378.
+-p2: 	Use printer port $278.
+-d<hx>: Replace <hx> with hexdecimal destination address (default = $802000)
+
+This utility loads code into the Jaguar Flash ROM card.  In order to use it,
+the Flash ROM card needs to be plugged into a production level Jaguar or a
+developer Jaguar with a dark-green STUBULATOR rom (2-Nov-1994 or later) - no
+earlier STUBULATOR can support the Flash ROM card.  Additionally you need a
+Joypad connected on the Jaguar's controller port 1.  The 25-Pin connector of
+the Flash ROM card connects to your PC parallel port with a 25-Pin ribbon
+cable connected straight through (such as the one we use to connect PCs to
+Alpine development boards).
+
+
+
+LOADING THE FLASH ROM WITH A PRODUCTION JAGUAR
+==============================================
+Plug the Flash ROM card with the parallel cable connected into the Jaguar.
+Some older Flash ROM's will cause the Jaguar to automatically power-on at
+this point, if not, turn on the Jaguar's power.
+
+Type in a correct command-line to the PC (see above) and hit return to start
+FLASH.COM.  The program will prompt you to hold down the '3' key on the
+Jaguar Joypad.  While holding down '3', hit any PC key to start the transfer
+operation.  Keep it depressed until you see the message 'Erasing...' appear
+on either the PC or Jaguar (some older Flash ROM cards will leave the screen
+black during the whole process).
+
+If everything is done properly, the ROM file will be uploaded to the Flash
+ROM and the program will be started.
+
+
+
+LOADING THE FLASH ROM WITH A STUBLATOR DEVELOPER JAGUAR
+=======================================================
+Plug the Flash ROM card with the parallel cable connected into the Jaguar.
+Some older Flash ROM's will cause the Jaguar to automatically power-on at
+this point, if not, turn on the Jaguar's power.
+
+Type in a correct command-line to the PC (see above) and hit return to start
+FLASH.COM.  The program will prompt you to hold down the '3' key on the
+Jaguar Joypad.  On a stubulator Jaguar you will need to use a special key
+sequence as follows:
+
+1) Press and hold the '3' and 'C' buttons on the Jaguar joypad.
+
+2) Press any key on the PC to begin the transfer process.
+
+3) The Jaguar will reset.  At this point, release and quickly press and hold
+the 'C' button while keeping '3' held down.  This will button through the
+standard Jaguar Cube Intro.
+
+Keep the keys depressed until you see the message 'Erasing...' appear on
+either the PC or Jaguar (some older Flash ROM cards will leave the screen
+black during the whole process).
+
+If everything is done properly, the ROM file will be uploaded to the Flash
+ROM and the program will be started.
+
+
+
+TROUBLESHOOTING
+===============
+If you experience difficulties, please reread these instructions again and
+make sure you've followed all of the steps correctly and are using the proper
+hardware.  Some common mistakes are:
+
+1) Downloading to the wrong parallel port.  Try the '-p1' and '-p2' switches.
+
+2) Using a 'Blue' Stubulator ROM (dated earlier than 2-Nov-94).
+
+3) Not holding the '3' button and/or 'C' button down at the appropriate times
+as indicated above.
+
+4) Attempting to download a non-ROM image file.
+
+
+
+
+Changes
+=======
+July 27, 1995 -- You can now hit Control-C to abort an operation and return
+to the DOS prompt.

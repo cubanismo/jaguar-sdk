@@ -1,0 +1,357 @@
+=======================================================================
+Jaguar Developer Weekly      August 18, 1995                Vol.1, No.9
+=======================================================================
+
+Use Atari's Standard Startup Code...
+------------------------------------
+Developers who are not already using Atari's standard startup code with
+their projects need to be aware that failure to do so may result in
+their software failing to work properly on the next-generation Jaguar
+machines currently in development.
+
+Atari's standard startup code initializes the Jaguar GPU & DSP,
+interrupt vectors, and other hardware in a way that is known to be safe
+on current and future machines.  It displays a simple opening graphic,
+and jumps to your main program code, which would display any additional
+title screens, play a introductory Cinepak film, or whatever else is
+appropriate for your program.
+
+Avoid making changes to the startup code.  In most cases, the only
+acceptable modification to the startup code is changing the startup
+picture.  If you think further modifications are required, please bring
+them to Atari's attention at the earliest possible stage of development
+so that either they can be approved or an alternate method found.
+
+Atari's startup code can be found in the SOURCE.ZIP archive available
+online.  After you've decompressed the archive contents, the source
+files will be in the \JAGUAR\SOURCE\STARTUP directory.
+
+
+
+And Use Our Current EEPROM Code Too!
+------------------------------------
+Atari supplies standard routines for accessing a Jaguar cartridge's
+EEPROM to store or retrieve high score information, user preferences,
+etc.  If you are not using Atari's most current version of these
+routines, then your program may not function correctly with new
+cartridge EEPROM hardware which will soon be used on Jaguar cartridges.
+
+The EEPROM routines are included in the SOURCE.ZIP archive, available
+for downloading online.  The latest revision is from March 14, 1995.
+This extracts to the directory \JAGUAR\SOURCE\EEPROM.
+
+
+CD BIOS v4.5 Update
+-------------------
+The Jaguar CD BIOS has been updated to version 4.5.  Download CDROM.ZIP
+to get the update.  Changes include:
+
+•	Added error reporting to CD_switch.  If the disc during
+CD_switch has a data read or other problem causing an unreadable
+directory, this is reflected as a negative number in the first word of
+the Table of Contents.
+
+•	Changed the sense of err_flag.
+
+•	Changed the time-out scheme on Table of Contents in CD_switch.
+
+
+
+Jaguar CD Error Codes
+---------------------
+There has been some changes and clarifications regarding exactly how
+error codes and error detection work with the Jaguar CD.  This has been
+a bit of a moving target with previous versions, but it has now
+stabilized.  As of the new version 4.5, this is the way it works:
+
+•	The err_flag variable is set to zero when an error occurs, and
+set to one when no error occurs.
+
+•	The only CD BIOS functions that set the err_flag variable are
+CD_ack and under the right circumstances, the functions listed below:
+
+CD_mute
+CD_paus
+CD_spin
+CD_stop
+CD_umute
+CD_upaus
+
+Note that these six functions set err_flag only when your program has
+passed a value of 1 in register d0 to specify that the CD BIOS should
+wait for completion before returning control to your program.
+
+•	The CD_ptr function will set register a1 to zero when no error
+has occurred.  Otherwise, it is set to the approximate address of the
+block containing the most recently detected read error.  If the high bit
+is set, then a seek error occurred.
+
+•	The CD_read function does not set the err_flag variable.  Detect
+read errors using the CD_ptr function as described above.
+
+•	If an error occurs with the CD_switch function, the first long
+word entry in the CD Table of Contents will be set to a negative value.
+
+
+The list below names each CD BIOS function and the method used to return error information.
+
+CD_ack -- Sets the err_flag variable.
+
+CD_getoc -- Sets the 1st long word in TOC to a negative value.
+
+CD_init -- No error codes.
+
+CD_initf -- No error codes.
+
+CD_initm -- No error codes.
+
+CD_jeri -- No error codes.
+
+CD_mode -- No error codes.
+
+CD_mute -- Sets the err_flag variable if you set register d0 to wait for
+completion.
+
+CD_osamp -- Sets the err_flag variable.
+
+CD_paus -- Sets the err_flag variable if you set register d0 to wait for
+completion.
+
+CD_ptr -- Returns a pointer to the error block address in register a1.
+
+CD_read -- No error codes.
+
+CD_setup -- No error codes.
+
+CD_spin -- Sets the err_flag variable if you set register d0 to wait for
+completion.
+
+CD_stop -- Sets the err_flag variable if you set register d0 to wait for
+completion.
+
+CD_switch -- Sets the 1st long word in TOC to a negative value.
+
+CD_umute -- Sets the err_flag variable if you set register d0 to wait
+for completion.
+
+CD_upaus -- Sets the err_flag variable if you set register d0 to wait
+for completion.
+
+CD_uread -- No error codes.
+
+Note that the err_flag variable may be changed by functions that are not
+documented as returning an error code.  Ignore this, because this
+behavior will most likely change in the future.
+
+
+
+CD BIOS Notes
+-------------
+The CD_read function uses registers a0, a2, and d1.
+
+When an error value appears in register a1 after a CD_ptr call, you
+should check that the address in register a0 is equal to or greater than
+the buffer start address given in the last CD_read.  If not, a CD_ack
+should be issued prior to any other CD BIOS call.  Also note that the
+CD_ptr function sets the high bit of register a0 when a seek error
+occurs.
+
+
+Minimum Jaguar CD Track Size
+----------------------------
+When creating a Jaguar CD master, be aware that there is a minimum track
+size of one megabyte imposed by the final encryption and re-mastering
+process done by Atari.  In most cases, this will not be a problem, but
+if you are very close to filling the disc completely, this may have an
+impact.  Remember to always use a minimum of one megabyte per track when
+calculating disc usage.  If you add extra padding yourself, do it after
+the track tailer information.  Also remember that Atari will need space
+for a track containing encryption information and at least one short
+audio track.
+
+
+Don't Use More Than 1 File Per Track With Jaguar CD Emulator
+------------------------------------------------------------
+It is highly recommended that you specify only one file per CD track
+when using the Jaguar CD Emulator on the Falcon030 computer.  This file
+should be the same as what you would use when mastering a CD, complete
+with track header and tailer, and 64-byte sync markers (a unique 4 byte
+pattern repeated 16 times) in front of each distinct piece of data (such
+as contents of the individual files used to create the track file).
+
+Using one file per track insures that the behavior of the emulator will
+be as close as possible to a real CD.  Using multiple files per track
+cause the emulator to exhibit unavoidable differences in behavior
+compared with an actual CD, which can cause major problems when you try
+running your program from a real CD.
+
+Here's a basic explanation of why using multiple files per track in the
+emulator is a bad idea.  The emulator reads data from the hard disk at
+the same time it sends data to the Jaguar.  The timing for this is very
+tight, and when it gets to the end of one file, it doesn't have enough
+time to start reading from the next one.  It must send the data on time
+or it will cause an error in the I2S connection to the Jaguar.  To avoid
+this, it sends zeroes until it can start reading the next file.  The
+result is that file sizes get rounded up, which doesn't happen when you
+combine files together into a raw track file to master a CD, and this is
+where things go wrong.  The position of each file within a track
+changes, as does the overall amount of data you must read to load the
+entire track in one step.
+
+The solution is to use only one file per track in the first place.  The
+one file used for each track should be ready for CD mastering so that
+the difference between reading the data from the emulator or from a real
+CD will be negligible.  Also, when you want to master a CD, you won't
+have to do anything additional to prepare the files.
+
+
+
+
+Multiple Sessions on Jaguar CD
+------------------------------
+The ideal Jaguar CD has a total of two sessions.  Session #0 contains
+only standard Red Book audio tracks.  Session #1 contains your boot
+track as well as all your other code and data files.
+
+Using additional sessions may be useful at times during the development
+process, but serves no real purpose on a production disc.  Using more
+sessions increases the time needed to master the disc and the time it
+takes to start up and go through the encryption verification process on
+an end-user's system.
+
+
+
+Jaguar ProController
+--------------------
+Scheduled to begin production in September, the Jaguar ProController is
+an enhanced version of the standard Jaguar joypad that is designed
+especially for games that demand more control than a standard
+three-button controller.
+
+The ProController features three new primary fire buttons labeled "X",
+"Y", and "Z" to complement the "A", "B", and "C" buttons from a standard
+joypad.  Another new addition is a pair of "Left" and "Right" direction
+buttons at the top of the controller.
+
+From your Jaguar programs, reading the new buttons is very simple,
+because they map directly to keys on the numeric keypad, as follows:
+
+	X = "9"
+	Y = "8"
+	Z = "7"
+	Left = "4"
+	Right = "6"
+
+To see if the "X" button is pressed, for example, you simply check the
+same bit as you would for the "9" key on the keypad.
+
+We'll have more information about the Jaguar ProController, including
+developer availability, in an upcoming issue.
+
+
+New Jaguar System Include Files
+-------------------------------
+There is a new update to the standard Jaguar System Include files
+(JAGUAR.INC for MADMAC and JAGUAR.H for GCC).  This update corrects a
+few typos from earlier versions and adds new definitions:
+
+•	The definition of the LFU_XOR blitter logic mask has been
+corrected.  Previous versions had two bits reversed.
+
+•	There are new definitions for masks to aid in reading the new
+Jaguar ProController.
+
+To update your development system, download the archive SOURCE.ZIP and
+extract the new files.
+
+
+
+New BBS Number
+--------------
+The new Atari Software Development BBS is now up and running as a two
+line system.  The new number to call for both lines is (408) 541-9164.
+The old phone number is no longer active.  The new line does not go
+through the rest of Atari's phone system, so it should be more reliable
+for those callers who have had noise-related connection problems in the
+past.
+
+
+Christmas is coming...
+----------------------
+Developers and publishers should keep in mind that all cartridge-based
+products must be fully-tested and released into production by October 5, and
+CD-based products by October 31, in order to insure that your product is
+shipping in time for the Thanksgiving sales weekend, the beginning of the
+Christmas selling season.  Remember to allow at least 4 weeks for final
+testing.
+
+
+
+Jaguar Tool Updates
+-------------------
+The Jaguar Developers Kit tools and related files listed below have been
+updated in the last month.  You can download the latest versions from
+the Atari Software Development BBS or from the Jaguar Developer library
+in the Atari Gaming forum on Compuserve.
+
+Jaguar CDROM Files — August 11, 1995.  This features a new version of
+the CD BIOS as well as some changes to the included CDROM sample reader
+program, and changes to the CD Boot Emulator.  Download CDROM.ZIP
+
+Jaguar System Include Files — August 8, 1995.  See the article in this
+issue for information.  Download SOURCE.ZIP
+
+Jaguar Artwork Viewer — August 4, 1995.  This new version adds the
+ability to control your horizontal resolution, and has improved
+communications reliability.  Download ARTWORK.ZIP
+
+Flash ROM Utility — July 27, 1995.  You can now hit Control-C to abort a
+download and return to the DOS prompt.  Download UTILPC.ZIP.
+
+Jaguar Graphics Tool — July 24, 1995.  Several minor bugs reported by
+Jaguar Developers have been fixed.  Download ARTWORK.ZIP.
+
+Jaguar NVRAM Simulator — July 21, 1995.  The NVRAM simulator uses the
+Alpine board to emulate the Jaguar Memory Track cartridge, an add-on for
+the Jaguar CD that allows CD game titles to save their user options,
+high score lists, saved-games, and other information.  The archive has
+been updated with additional documentation.  Download JAGLIB.ZIP for the
+complete package.
+
+
+
+Dev Kit Roadmap
+---------------
+The tools, sample source code, libraries, and other components of the
+Jaguar Developers Kit are updated frequently.  To keep track of what's
+new, see the file ROADMAP.TXT that is posted online on the Atari
+Software Development BBS and in the Jaguar Developer library in the
+Atari Gaming forum on Compuserve.  This file is updated and reposted
+whenever any of the standard distribution archives from the Jaguar
+Developer's kit is updated.
+
+
+
+If you've missed previous issues...
+-----------------------------------
+Then it's possible that we may not have a current fax number for you.
+Just in case, please contact us with your current address, telephone and
+fax numbers.  Also, consider that the better solution would be to
+subscribe to the Jaguar Developer Weekly Via EMAIL.
+
+The preferred method for Atari to send out the Jaguar Developer Weekly
+is via EMAIL, but unfortunately, we don't have a database of everybody's
+EMAIL addresses.  If you have a current Internet or Compuserve EMAIL
+address, please send a message to mfulton@atari.com so that we can add
+you to the list of developers that receive the Jaguar Developer Weekly
+via EMAIL instead of fax.
+
+What you get each week will be the ASCII text of the issue, plus an
+online readable version.
+
+
+Note: The ASCII version of the Jaguar Developer Weekly is now formatted
+to 72 columns width since we got a few complaints that the wider lines
+on earlier versions did not come through very well.  If you have
+problems with this formatting, please let us know.
+

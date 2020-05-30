@@ -1,0 +1,28 @@
+
+ls - List contents of directory
+
+This is a utility that lists the contents of a given directory, or multiple
+directories.
+
+Usage: ls [-?alrstxzAR1] [path1...] [path2...]
+
+Flags:
+    -?  HELP... print USAGE
+    -a  List all files, including hidden and system files, ".", and ".."
+    -l  Long listing form (extra information)
+    -r  Reverse order of sorting
+    -s  Display size of each file in kilobytes, and total for each directory
+    -t  Sort by time/date (latest first)
+    -x  Sort by extension
+    -z  Sort by size
+    -A  List all files except "." and ".."
+    -R  List subdirectories recursively
+    -1  Display 1 entry per line of short form
+
+
+
+Changes Log
+-----------
+August 23, 1995 -- Recompiled program using MSDOS HUGE memory model.
+Previous version had problems when faced with directories containing
+many files because of memory limitations of SMALL memory model.

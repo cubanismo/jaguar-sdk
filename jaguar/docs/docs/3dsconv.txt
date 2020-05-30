@@ -1,0 +1,77 @@
+3DSCONV
+-------
+3DSCONV is a utility which converts an AutoDesk 3D Studio v2.0 or v3.0 file
+into the Jaguar 3D model format.  The output is an assembly file containing
+the 3D data which after assembling it can be linked with the final program.
+The file name of the output file will have the file extention ".N3D".
+
+
+Usage: 
+	3dsconv [-f format][-l label][-o outfile][-scale scale][-textseg][-triangles][-verbose] filename
+
+	-f format	specify output data format
+	-l label	label option, assign a label
+	-o outfile	assign an output file name
+	-scale scale	re-scale the output vertices
+	-textseg	do not output a ".data" declaration
+	-triangles	do not combine faces
+	-verbose	print lots of messages about what's going on
+
+
+OPTIONS
+-------
+-f format
+	Format Option. Specifies what kind of 3D file format should be
+	output. `format' may be either `new' (the default), in which
+	case data for the new rendering format is emitted, or
+	`old', in which case data for for the old rendering format
+	(as output by 3DS2JAG) is emitted. The new format is more
+	efficient, but not backwards compatible.
+
+-l label
+	Label Option.  Assigns a label to the 3D data. If no label is
+        assigned the default label is `_foodata', where FOO.3DS is the
+	name of the input 3D Studio file.
+
+-o outfile
+	Output File Name Option. Specifies the name of the output file
+	name. If this option is not given, then the output file name
+	is the same as the input file name, but with the `.3DS' extension
+	replaced by `.N3D' (for new format data) or `.J3D' (for old
+	format data).
+
+-scale s
+	Scale Option. Allows the scale of the output points to be varied.
+	`s' is a floating point number by which all coordinates will
+	be multiplied. The default is 1.0; values greater than this
+	will cause the model to get bigger, and less than this will
+	cause the model to get smaller.
+
+-textseg
+	No Data Option. Suppresses the output of the `.data' command
+	in the output assembly language, so that the compiled data
+	will go in the text segment of the program.
+
+-triangles
+	Triangle Option. Suppress the combination of adjacent faces
+	into quadrilaterals. If this option is given, all output
+	faces will be triangles; otherwise, some adjacent triangles
+	will be combined to make 4 sided polygons.
+
+-verbose
+	Print messages explaining what the program is doing. This is
+	nice for reassurance while the program is converting a large
+	model.
+
+
+Copyrights
+----------
+3DSCONV is Copyright 1995 Atari Corporation. All Rights Reserved.
+
+The GO32 DOS extender used in 3DSCONV.EXE is part of the DJGPP
+C Compiler package, and is Copyright (C) DJ Delorie.
+
+You may obtain GO32 along with the DJGPP GNU C Compiler
+on the internet from:
+
+ftp://oak.oakland.edu:/SimTel/msdos/djgpp/

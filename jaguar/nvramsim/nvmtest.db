@@ -1,0 +1,4 @@
+fread nvmsim.rom 802000
+fread diskimg.img 900000
+g 802000
+

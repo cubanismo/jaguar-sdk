@@ -1,0 +1,18 @@
+# By default, ignore object files, vim swap files, and Jaguar programs of
+# various types
+*.o
+*.abs
+*.cof
+*.rom
+*.j64
+*.jag
+*~
+.*.swp
+
+# Allow some special case binary-only things through the above filter.
+!/jaguar/blitter/blitcook.cof
+!/jaguar/cdboot/cdboot.rom
+!/jaguar/nvramsim/nvmsim.rom
+!/jaguar/bin/maketoc.cof
+!/jaguar/cinepak/decomp/codec.o
+!/jaguar/cinepak/decomp/codec_a.o

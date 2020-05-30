@@ -1,0 +1,233 @@
+=======================================================================
+Jaguar Developer Weekly        August 11, 1995              Vol.1, No.8
+=======================================================================
+
+Jaguar ProController
+--------------------
+Scheduled to begin production in September, the Jaguar ProController is
+an enhanced version of the standard Jaguar joypad that is designed
+especially for games that demand more control than a standard
+three-button controller.
+
+The ProController features three new primary fire buttons labeled "X",
+"Y", and "Z" to complement the "A", "B", and "C" buttons from a standard
+joypad.  Another new addition is a pair of "Left" and "Right" direction
+buttons at the top of the controller.
+
+From your Jaguar programs, reading the new buttons is very simple,
+because they map directly to keys on the numeric keypad, as follows:
+
+X = "9"
+Y = "8"
+Z = "7"
+Left = "4"
+Right = "6"
+
+To see if the "X" button is pressed, for example, you simply check the
+same bit as you would for the "9" key on the keypad.
+
+We'll have more information about the Jaguar ProController, including
+developer availability, in an upcoming issue.
+
+
+
+New Jaguar System Include Files
+-------------------------------
+There is a new update to the standard Jaguar System Include files
+(JAGUAR.INC for MADMAC and JAGUAR.H for GCC).  This update corrects a
+few typos from earlier versions and adds new definitions:
+
+• The definition of the LFU_XOR blitter logic mask has been corrected.
+Previous verions had two bits reversed.
+
+• There are new definitions for masks to aid in reading the new Jaguar
+ProController.
+
+To update your development system, download the archive SOURCE.ZIP and
+extract the new files.
+
+
+
+New BBS Number
+--------------
+The new Atari Software Development BBS is now up and running as a two
+line system.  The new number to call for both lines is (408) 541-9164.
+The old phone number is no longer active.  The new line does not go
+through the rest of Atari's phone system, so it should be more reliable
+for those callers who have had noise-related connection problems in the
+past.
+
+
+Don't Use More Than 1 File Per Track With Jaguar CD Emulator
+------------------------------------------------------------
+It is highly recommended that you specify only one file per CD track
+when using the Jaguar CD Emulator program on the Falcon030 computer.
+This file should be exactly the same as what would be used when you
+actually master a CD, complete with track header and tailer, and 64-byte
+sync markers (a unique 4 byte pattern repeated 16 times) in front of
+each distinct piece of data (such as contents of the individual files
+used to create the track file).
+
+The emulator allows multiple files per track, but this causes certain
+differences in behaviour compared with an actual CD.  These differences
+are unavoidable, and can cause major problems when you later try to
+master a real CD.  Using just one file per track means that the
+behaviour of the emulator will be as close as possible to a real CD.
+
+Here's a basic explanation of why using multiple files per track in the
+emulator is a bad idea.  The emulator reads data from the hard disk at
+the same time it sends data to the Jaguar.  The timing for this is very
+tight, and when it gets to the end of one file, it doesn't have enough
+time to start reading from the next one.  It must send the data on time
+or it will cause an error in the I2S connection to the Jaguar.  To avoid
+this, it sends zeroes until it can start reading the next file.  The
+result is that file sizes get rounded up, which doesn't happen when you
+combine files together into a raw track file to master a CD, and this is
+where things go wrong.
+
+If you have a track with 10 files that are 2000 bytes each, then
+normally when you create a track file for CD mastering, you'll end up
+with about 20000 bytes of data (we still have to add the sync markers,
+track header, and track tailer).  With the emulator, because each file's
+length is going to be rounded up, it will be necessary to read about
+200000 bytes to get all the data in one step (10 data files, plus the
+files for the track header and tailer).
+
+Obviously if your track lengths are so dramatically different, the
+position of the data from each file is going to be quite different as
+well.  This will almost certainly break something in your program.
+
+In order to support multiple files in a track using the emulator, you
+basically have to read each file's data individually, using the file
+position specified in the header file created by the emulator.  (The
+padding is taken into account when the emulator creates the header.)
+This allows you to ignore the extra padding, but it is quite inefficient
+when reading many small chunks of data.  Also, when you later create a
+real CD, the time codes given in header file will no longer be correct.
+The end result is, you'll end up with your data in dramatically
+diffferent places on the CD, and your program won't work.
+
+The solution to all of these problems is to use only one file per track
+in the first place.  The one file used for each track should be ready
+for CD mastering.  This way, the difference between reading the data
+from the emulator or from a real CD will be negligable.  Furthermore,
+when you are ready to master a CD, you won't have to do anything
+additional to prepare the files.
+
+
+
+Multiple Sessions on Jaguar CD
+------------------------------
+The ideal Jaguar CD has a total of two sessions.  Session #0 contains
+only standard Red Book audio tracks.  Session #1 contains your boot
+track as well as all your other code and data files.
+
+Using additional sessions may be useful at times during the development
+process, but serves no real purpose on a production disc.  Using more
+sessions also increases the time needed to master the disc, as well as
+the time it takes to start up and go through the encryption verification
+process on an end-user's system.
+
+
+
+Minimum Jaguar CD Track Size
+----------------------------
+When creating a Jaguar CD master, be aware that there is a minimum track
+size of one megabyte imposed by the final encryption and re-mastering
+process done by Atari.  In most cases, this will not be a problem, but
+if you are very close to filling the disc completely, this may have an
+impact.  Remember to always use a minimum of one megabyte per track when
+calculating disc usage.  Also remember that Atari will need space for a
+track containing encryption information and at least one short audio
+track.
+
+
+
+CD BIOS Notes
+-------------
+The CD BIOS documentation says the CD_read function returns an error
+code in the err_flag variable.  This is not correct.  You do not get an
+error code until you've called the CD_ptr function.  Also, the register
+usage shown is not correct.  The CD_read function uses registers A0, A2,
+and D1.
+
+When an error value appears in register A1 after a CD_ptr call, you
+should check that the address in A0 is equal to or greater than the
+buffer start address given in the last CD_read.  If not, a CD_ack should
+be issued prior to any other CD BIOS call.  Also note also that the
+CD_ptr function sets the high bit of register A0 when a seek error
+occurs.  This is not mentioned in the documentation.
+
+The CD_mode function will return an error condition in err_flag.  CD
+BIOS versions 4.04 and below, however, always mistakenly report an error
+condition.  This has been corrected for future releases of the BIOS.
+
+
+
+Christmas is coming...
+----------------------
+Developers and publishers should keep in mind that all cartridge-based
+products must be fully-tested and released into production by October 5,
+and CD-based products by October 31, in order to insure that your
+product is shipping in time for the Thanksgiving sales weekend, the
+beginning of the Christmas selling season.  Remember to allow at least 4
+weeks for final testing.
+
+
+
+Jaguar Tool Updates
+-------------------
+The Jaguar Developers Kit tools and related files listed below have been
+updated in the last month.  You can download the latest versions from
+the Atari Software Development BBS or from the Jaguar Developer library
+in the Atari Gaming forum on Compuserve.
+
+Jaguar CDROM Files — August 11, 1995.  This features some changes to the
+included CD-ROM sample reader program, and changes to the CD Boot
+Emulator.  Download CDROM.ZIP
+
+Jaguar System Include Files — August 8, 1995.  See the article in this
+issue for information.  Download SOURCE.ZIP
+
+Jaguar Artwork Viewer — August 4, 1995.  This new version adds the
+ability to control your horizontal resolution, and has improved
+communications reliability.  Download ARTWORK.ZIP
+
+Flash ROM Utility — July 27, 1995.  You can now hit Control-C to abort a
+download and return to the DOS prompt.  Download UTILPC.ZIP.
+
+Jaguar Graphics Tool — July 24, 1995.  Several minor bugs reported by
+Jaguar Developers have been fixed.  Download ARTWORK.ZIP.
+
+
+
+
+Dev Kit Roadmap
+---------------
+The tools, sample source code, libraries, and other components of the
+Jaguar Developers Kit are updated frequently.  To keep track of what's
+new, see the file ROADMAP.TXT that is posted online on the Atari
+Software Development BBS and in the Jaguar Developer library in the
+Atari Gaming forum on Compuserve.  This file is updated and reposted
+whenever any of the standard distribution archives from the Jaguar
+Developer's kit is updated.
+
+
+
+If you've missed previous issues...
+-----------------------------------
+Then it's possible that we may not have a current fax number for you.
+Just in case, please contact us with your current address, telephone and
+fax numbers.  Also, consider that the better solution would be to
+subscribe to the Jaguar Developer Weekly Via EMAIL.
+
+The preferred method for Atari to send out the Jaguar Developer Weekly
+is via EMAIL, but unfortunately, we don't have a database of everybody's
+EMAIL addresses.  If you have a current Internet or Compuserve EMAIL
+address, please send a message to mfulton@atari.com so that we can add
+you to the list of developers that receive the Jaguar Developer Weekly
+via EMAIL instead of fax.
+
+What you get each week will be the ASCII text of the issue, plus an
+online readable version.
+

@@ -1,0 +1,19 @@
+./lib/jagrt.o
+./lib/alloc.o ./lib/clock.o ./lib/ctype.o ./lib/font.o ./lib/gpulib.o
+	./lib/joyinp.o ./lib/joypad.o ./lib/memset.o ./lib/olist.o
+	./lib/sprintf.o ./lib/strcat.o ./lib/strcmp.o ./lib/strcpy.o ./lib/strdup.o
+	./lib/strncmp.o ./lib/util.o ./lib/video.o
+
+demo.o trig.o mkmat.o miscasm.o gstex.o texrend.o wfrend.o gourrend.o flattex.o
+ship1.o radar.o globe.o castle.o
+-ii ./fonts/clr6x12.jft _usefnt
+	-ii back3.cry _back3 -ii bottom.cry _bottom -ii bottomfr.cry _bottomfr -ii engbot.cry _engbot
+	-ii engfrnt.cry _engfrnt -ii engside.cry _engside -ii engtop.cry _engtop -ii fin.cry _fin
+	-ii finside.cry _finside -ii gunback.cry _gunback -ii gunside.cry _gunside -ii guntop.cry _guntop
+	-ii hood.cry _hood -ii roof.cry _roof -ii rtfront.cry _rtfront -ii rtside.cry _rtside
+	-ii winfrnt.cry _winfrnt -ii wing.cry _wing -ii wingside.cry _wingside -ii winrt.cry _winrt
+	-ii c1.cry _c1 -ii c2.cry _c2 -ii c3.cry _c3 -ii u1.cry _u1 -ii u2.cry _u2 -ii u3.cry _u3
+	-ii l1.cry _l1 -ii l2.cry _l2 -ii l3.cry _l3
+	-ii radar1a.cry _radar1a -ii radar1b.cry _radar1b -ii radar1d.cry _radar1d -ii radar1e.cry _radar1e
+	-ii turret1b.cry _turret1b
+

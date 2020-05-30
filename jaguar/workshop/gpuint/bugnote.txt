@@ -1,0 +1,6 @@
+A bug in the Jaguar Software Development Manual came up while developing
+this example. The YPOS field in GPU Interrupt Objects is ignored. This
+may easily be worked around with the use of Branch objects as is done in
+this example.
+
+-Scott Sanders @ Atari Corp.

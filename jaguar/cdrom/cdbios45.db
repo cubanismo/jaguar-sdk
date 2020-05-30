@@ -1,0 +1,7 @@
+echo "Loading Jaguar CD Bios v4.5..."
+gag on
+read cdbios45.tx 3000 ; read cdbios45.dta 3e00
+gag off
+echo "	start	size	end"
+echo "text	3000	9f0	39ef"
+echo "data	3e00	8	3e07"

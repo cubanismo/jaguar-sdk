@@ -1,0 +1,110 @@
+============================================================================
+Jaguar Developer Weekly            June 30, 1995                 Vol.1, No.2
+============================================================================
+
+MIDI Add-on Board Problem
+-------------------------
+Due to a schematics error, the MIDI-Add-On Boards already being used by
+developers in the field are most likely to lack a modification that is
+supposed to decrease likelihood of MIDI data transfer errors.  These errors
+occur roughly once every 30kb of data sent with the Jaguar Sound Tool if the
+fix is not applied.
+
+The fix is fairly simple, and can probably be done by yourself without
+needing to send the board back to Atari.  What you need to do is to add a
+4.7k resistor between pin 4 and pin 6 of the PC900 Opto-Coupler component on
+the MIDI Add-On board.  This should act to prevent data loss on MIDI transfer
+with MIDI capable Alpines.  Please have your technicians apply this fix on
+all MIDI Add-On boards you are using which do not already have it.
+
+If you do not have a technician capable of performing this fix, please
+contact Atari Jaguar Developer Support to arrange for an exchange.
+
+
+
+CD Boot ROM Emulator For Alpine
+-------------------------------
+Atari now has a new CD Boot ROM emulator that loads into the Alpine board and
+emulates the boot process of the Jaguar CD, loading the boot code from the CD
+(or the CD emulator running on a Falcon030) and executing it in the same
+fashion as if you had created a bootable CD disc.  You can even boot directly
+from the CD Emulator!
+
+The CD Boot Emulator program is available online in the CDROM.ZIP archive.
+See the enclosed documentation for details about how to use it.
+
+
+
+Tool Updates
+------------
+The Jaguar Developers Kit tools and related files listed below have been
+updated in the last few weeks.  You can download the latest versions from the
+Atari Software Development BBS or from the Jaguar Developer library in the
+Atari Gaming forum on Compuserve.
+
+Jaguar Cinepak Utility — June 30, 1995.  The status display shown during the
+various conversion functions has been updated and is now entirely
+dialog-based.  Also, the program now displays an error message warning you if
+the QuickTime movie you are trying to convert does not use Cinepak for the
+video compression.  Download JAGMAC.SEA using MacBinary on the Macintosh, or
+download to your PC and use a MacBinary-intelligent utility to transfer the
+file to your Macintosh.  Once you get the file to the Mac, JAGMAC.SEA is a
+self-extracting archive.
+
+Jaguar Graphics Tool — June 29, 1995.  A problem that caused the ONLINE help
+file to not be displayed when "Help" was selected has been fixed.  Download
+the file ARTTOOL.ZIP.
+
+New 3D Library — June 13, 1995.  This is a new 3D Graphics library similar to
+the original Jaguar 3D library, but faster and with greater flexibility.
+Comes with a new utility for converting Autodesk 3D Studio object files into
+Jaguar 3D library format.  Download JAGLIB.ZIP for the complete package.
+
+Jaguar Graphics Utility — June 13, 1995.  The TGA2CRY utility has had a
+problem with the status display output fixed.  Download file GRAFIK.ZIP.
+
+GCC C Compiler — June 12, 1995.  New version corrects a problem with some
+comparisons not working properly when generating GPU/DSP code.  Download the
+files GCC1.ZIP, GCC2.ZIP, and GCC3.ZIP for the complete package.
+
+
+
+Developer Kit Archive Roadmap
+-----------------------------
+The programming tools, sample source code, libraries, and other components of
+the Jaguar Developers Kit are updated frequently, but not exactly at regular
+intervals.  Sometimes the updates come so fast that it can be hard to keep
+track of all of them.
+
+To make it easier to figure out what's new, Atari now maintains a "Roadmap"
+to the various archives that are available online.  This comes in the form of
+an ASCII text file named ROADMAP.TXT that is posted online on the Atari
+Software Development BBS and in the Jaguar Developer library in the Atari
+Gaming forum on Compuserve.
+
+The ROADMAP.TXT file is updated and reposted whenever any of the standard
+distribution archives from the Jaguar Developer's kit is updated.  To find
+out what is the latest version of anything, simply read the contents of
+ROADMAP.TXT.  There's a description of each group of files contained in each
+ZIP archive, along with a list of all the files in that archive, complete
+with date, file size, and the complete pathname as specified in the archive.
+
+
+
+Delivery Via The Internet
+-------------------------
+Those developers who request the Jaguar Developer Weekly via the Internet
+will receive a ZIP archive each week containing monochrome TIF files with the
+exact image of one page each.  Because we will occasionally have some
+graphics to go along with the articles, simple text EMAIL won't work.  You
+can load the TIF files into a graphics viewer to read online or print them
+out.  (This method should be one that most people can handle, but if you have
+alternative suggestions, please let us hear them!)
+
+Please keep in mind that Internet mail should be faster and more reliable
+than fax.  To subscribe, please send EMAIL with the text "subscribe Jaguar
+Developer Weekly" to "mfulton@atari.com" and we'll add you to the EMAIL list.
+Compuserve users, don't forget that you can send and receive mail via the
+Internet too!  You can send a message to "Internet:mfulton@atari.com" to
+subscribe!
+

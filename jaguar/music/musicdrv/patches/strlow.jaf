@@ -1,0 +1,27 @@
+; JAGUAR SYNTH PATCH
+; Name: 	strlow
+; Descr.:	Strings low right
+; Externals:	s_strlow	; sample	
+;		e_strlow	; envelope
+
+	.dc.l	$0000002C	; Compressed Sample/Envelope
+	.dc.l	$80004000	; Loop Flag / Volume 
+	.dc.l	s_strlow	; Ptr to sample
+	.dc.l	$00001000	; Pitch (no change)
+	.dc.l	$004D8500	; End of loop
+	.dc.l	$00338400	; Loop length
+	.dc.l	$00000000	; Reset to zero
+	.dc.l	$00000000	; Reset to zereo
+	.dc.l	$004D8500	; End of sample
+	.dc.l	e_strlow	; Ptr to envelope
+	.dc.l	$FFFD8139	; Release slope
+	.dc.l	$00000001	; Current value (set to 1)
+	.dc.l	$00010000	; Current slope (set to $10000)
+	.dc.l	$00000001	; Current destination (set to 1)
+	.dc.l	$00000000
+	.dc.l	$00000000
+	.dc.l	$00000000
+	.dc.l	$00000000
+	.dc.l	$00000000
+	.dc.l	$00003FFF	; Pan
+

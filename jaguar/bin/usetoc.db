@@ -1,0 +1,3 @@
+load /root/jaguar/bin/cdbios45.db
+read toc.dat 2c00
+

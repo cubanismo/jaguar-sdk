@@ -1,0 +1,131 @@
+============================================================================
+Jaguar Developer Weekly            June 21, 1995                 Vol.1, No.1
+============================================================================
+
+Hello and Welcome!
+------------------
+This is the first edition of a brand new Jaguar Developer Newsletter that
+will be sent out on a weekly basis to all Jaguar Publishers and developers.
+
+Each week, the Jaguar Developer Weekly will bring you important new
+information about updates to the Jaguar Developer's kit tools and
+documentation, news about upcoming events such as trade shows and developer
+conferences, programming hints and tips, and much more.
+
+
+
+How Do You Want It?
+-------------------
+The primary means of distribution for the Jaguar Developer Weekly will be via
+fax.  However, if you prefer, we can send each issue to you via Internet
+mail.  To request this, please send an EMAIL message with the text "subscribe
+Jaguar Developer Weekly" to "mfulton@atari.com" and we'll add you to the
+EMAIL list.
+
+For those developers who have neither a fax machines or Internet mail, we'll
+also make each issue available online on the Atari Software Development BBS
+and the Jaguar Developer areas of the Atari Gaming forum on the Compuserve
+Information Service.
+
+
+
+New Graphics Tools
+------------------
+There are two new graphics tools in the Jaguar Developer's Kit which run
+under Microsoft Windows.  The Jaguar Graphics Tool is capable of reading all
+popular graphics file formats such as Targa, TIFF, GIF, PCX, Windows BMP, and
+more.  Once you've loaded a picture in, you can do basic image manipulation
+such as brightness and contrast adjustment or color correction, you can
+resize the image, you can run filters to sharpen or soften an image, and
+more.  The Jaguar Graphics Tool can convert your images to Jaguar RGB or CRY
+color mode and allows you to save your graphics as Madmac source code files
+or as linkable raw binary files, or you can automatically call the BPEG
+compression tool to save your images in BPEG format.
+
+The Jaguar Artwork Viewer tool allows you to take bitmapped graphics images
+copied to the Windows system Clipboard from your favorite Windows graphics
+applications such as the Jaguar Graphics Tool, or maybe one of those
+lesser-known programs like Adobe Photoshop or Fractal Design Painter, and
+view them on the Jaguar.  You can either "Paste" your images individually, or
+you can configure the Jaguar Artwork Viewer to be a "Clipboard Viewer"
+application that will automatically transfer any graphics to the Jaguar when
+they are copied to the Windows clipboard.  Once the image is shown on the
+Jaguar, you can adjust the Jaguar's object processor clipping and scaling
+parameters, view the image in various RGB or CRY color modes, and so forth.
+You can then save your images as either binary data files or Madmac Source
+code.
+
+These new graphics tools are available to Jaguar developers online in the
+ARTTOOL.ZIP archive.  See the article "Developer Kit Updates" below for
+further information.
+
+(Note: the Jaguar Artwork Viewer is a 32-bit application that runs natively
+under Windows NT or Windows 95, but which requires WIN32S to run under
+Windows 3.11 or earlier.  The WIN32S files are not included, but may be
+downloaded from the Microsoft area on Compuserve.  Go to the Microsoft area
+and select the software library option.  Search for "WIN32" to locate the
+correct file.  If you are not able to obtain WIN32S, please contact Atari
+Developer Support for assistance.)
+
+
+
+Development Tool Updates
+------------------------
+The Jaguar Developers Kit tools listed below have been updated in the last
+few weeks.  You can download the latest versions from the Atari Software
+Development BBS or from the Jaguar Developer library in the Atari Gaming
+forum on Compuserve.
+
+Jaguar Artwork Viewer — June 12, 1995.  See the New Graphics Tools article
+for more information.  Download the file ARTTOOL.ZIP.
+
+Jaguar Graphics Tool — June 12, 1995.  See the New Graphics Tools article for
+more information.  Download the file ARTTOOL.ZIP.
+
+GCC C Compiler — June 12, 1995.  New version corrects a problem with some
+comparisons not working properly when generating GPU/DSP code.  Download the
+files GCC1.ZIP, GCC2.ZIP, and GCC3.ZIP for the complete package.
+
+New 3D Library — June 13, 1995.  This is a new 3D Graphics library similar to
+the original Jaguar 3D library, but faster and with greater flexibility.
+Comes with a new utility for converting Autodesk 3D Studio object files into
+Jaguar 3D library format.  Download the file JAGLIB.ZIP for the complete
+package.
+
+Updated Include Files — June 13, 1995.  The Jaguar standard include files for
+the MADMAC Macro Assembler and GCC C compiler have been updated with new
+equates for the Jaguar's serial I/O hardware.  Download the file SOURCE.ZIP
+for the update.
+
+MIDI Parser — June 1, 1995.  Fixes a problem with MIDI volume control events
+not being handled properly.  Download the file MUSICP.ZIP for the MSDOS
+version, or STTOOLS.ZIP for the Atari version.
+
+
+
+Roadmap To The Developer Kit Archives
+-------------------------------------
+The programming tools, sample source code, libraries, and other components of
+the Jaguar Developers Kit are updated frequently, but not exactly at regular
+intervals.  Sometimes the updates come so fast that it can be hard to keep
+track of all of them.
+
+To make it easier to figure out what's new, Atari now maintains a "Roadmap"
+to the various archives that are available online.  This comes in the form of
+an ASCII text file named ROADMAP.TXT that is posted online on the Atari
+Software Development BBS and in the Jaguar Developer library in the Atari
+Gaming forum on Compuserve.
+
+The ROADMAP.TXT file is updated and reposted whenever any of the standard
+distribution archives from the Jaguar Developer's kit is updated.  To find
+out what is the latest version of anything, simply read the contents of
+ROADMAP.TXT.  There's a description of each group of files contained in each
+ZIP archive, along with a list of all the files in that archive, complete
+with date, file size, and the complete pathname as specified in the archive.
+
+
+
+That's All Folks!
+-----------------
+That's all for the premiere edition of the Jaguar Developer Weekly.  See you
+next time!

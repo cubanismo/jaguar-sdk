@@ -1,0 +1,50 @@
+#please use the defines below, since their values may change ...
+define	WMSG_NONE	0	;# nothing to do
+define	WMSG_INIT	1	;# init window
+define	WMSG_EXIT	2	;# exit window
+define	WMSG_PRNT	3	;# print
+define	WMSG_KBRD	4	;# keyboard
+define	WMSG_MOUS	5	;# mouse
+define	WMSG_SIZE	6	;# resize
+define	WMSG_LNLT	7	;# left arrow
+define	WMSG_LNRT	8	;# right arrow
+define	WMSG_LNUP	9	;# up arrow
+define	WMSG_LNDN	@10	;# down arrow
+define	WMSG_PGLT	@11	;# (not sent yet)
+define	WMSG_PGRT	@12	;# (not sent yet)
+define	WMSG_PGUP	@13	;# page up
+define	WMSG_PGDN	@14	;# page down
+define	WMSG_HOME	@15	;# home key
+define	WMSG_END	@16	;# end key
+define	WMSG_INS	@17	;# ins key
+define	WMSG_DEL	@18	;# del key
+define	WMSG_2TOP	@19	;# (not sent yet)
+define	WMSG_2BOT	@20	;# (not sent yet)
+define	WMSG_LOCK	@21	;# (re)locked
+define	WMSG_ADDG	@22	;# address get
+define	WMSG_ADDS	@23	;# address set
+define	WMSG_MEMM	@24	;# memory modify
+define	WMSG_MEMR	@25	;# memory refresh
+define	WMSG_SYMR	@26	;# symbols reset
+define	WMSG_SYMM	@27	;# symbol modify
+define	WMSG_BRKM	@28	;# breakpoint modify
+define	WMSG_CHKM	@29	;# checkpoint modify
+define	WMSG_MODR	@30	;# modules reset
+define	WMSG_MODM	@31	;# module modify
+define	WMSG_CPUM	@32	;# CPU modify
+define	WMSG_REGM	@33	;# Registers modify
+define	WMSG_CTXT	@34	;# CPU context change
+
+#these are simply convenient aliases if you don't like the mouse ...
+alias	wr	windopen 1	;# Registers (`ctxtcpu) window
+alias	wd	windopen 2	;# Disassembly (`ctxtcpu) window
+alias	wm	windopen 3	;# Memory dump window
+alias	ws	windopen 4	;# Source level (`ctxtcpu) window
+alias	wy	windopen 5	;# sYmbols window
+alias	wb	windopen 6	;# Breakpoints window
+alias	wc	windopen 7	;# Checkpoints window
+alias	wm	windopen 8	;# Modules window
+alias	wdir	windopen 9	;# Directory window
+alias	wcpu	windopen $a	;# CPUs window
+alias	wobj	windopen $b	;# Objects list window
+alias	wvar	windopen $c	;# C variables window

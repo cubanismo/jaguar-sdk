@@ -1,0 +1,192 @@
+tga2cry -- Targa to 16-bit CRY or RGB converter
+-----------------------------------------------
+This program converts a 24-bit RGB Targa picture file to an assembly
+language or binary file containing Jaguar CRY or RGB image data.
+
+NOTE: See the information below regarding the use of this utility from
+within the Microsoft Windows environment.
+
+
+
+Usage:
+
+tga2cry [-quiet][-noblitwarn][-binary][-dither][-header][-hflip][-vflip]
+	[-rotate][-resize w,h][-filter filt][-aspect]
+	[-f format][-o outfilename] inputfilename
+
+Only 24-bit Targas are understood by this program; they may be RLE compressed.
+The input file name must be given explicitly. The output file name may
+be given with the "-o" option; if no output file name is given, the
+input file name with the .TGA extension changed to .CRY (for CRY output),
+.RGB (for RGB output) or .MSK (for MSK output) is used.
+
+Other options:
+
+-noblitwarn:
+	Don't exit with fatal error if image is not a valid Jaguar blitter
+	width. A warning message will still be printed, however.
+
+-quiet:
+	Don't print status information to screen during conversions.
+	Fatal error messages are still printed.
+
+-binary:
+	Output raw binary data, rather than assembly language. Binary
+	data must be included with the -i or -i options of the ALN linker.
+	
+-dither:
+	Use Floyd-Steinberg dithering during the conversion. This can
+	be useful in reducing the "banding" that can appear in CRY
+	pictures because of the more limited range of colors (as opposed
+	to intensities) that CRY has as compared to RGB. The -dither
+	flag has no effect for RGB or MSK output.
+
+-header:
+	Output a header suitable for some texture mapping tools; with this
+	option, the width, height, and flags for the blitter are placed
+	in the first phrase of the data, with the picture data immediately
+	following. (See below for sample output.)
+
+-hflip:
+	Flip the picture horizontally.
+
+-vflip:
+	Flip the picture vertically.
+
+-rotate:
+	Rotate the picture 90 degrees clockwise (i.e. turn it on its side).
+
+-f format:
+	Controls the format of the data. This must be one of:
+
+		cry	For 16 bit CRY output data (the default)
+
+		rgb	For 16 bit RGB output data
+
+		rgb24	For (Jaguar format) 24 bit RGB data
+
+		msk	For a 1 bit per pixel mask.  Black pixels in the
+		        source will create a 1 bit in the mask, and non-black
+			pixels will create a 0 bit.  (Black pixels are those
+			with red, green, and blue all set to zero.)
+
+		imsk	For a 1 bit per pixel mask.  This is an inverse
+			mask compared to the one created with "-fmsk".
+		        (Creates mask with 0 for black pixels, 1 for
+			non-black pixels.)
+
+-resize w,h:
+	Resize the picture to w pixels wide and h pixels high.
+
+The following options control how resizing is done:
+
+-aspect:
+	Preserve aspect ratio. If this option is given, a black border
+	will be added either to the right and left or top and bottom sides
+	of the output, as appropriate, so that the resized picture has
+	the same aspect ratio as the input.
+
+-filter filt:
+	Controls the filter used during resizing. Different filters will
+	give different weight to pixels when blending them; which one
+	will look best generally depends on the input, although there
+	frequently isn't much difference. Filters available are:
+		box	simple box filter; produces noticeable
+			pixellation when scaling up
+		bell	pseudo bell-shaped curve
+		lanc	Lanczos3 filter
+		mitch   Mitchell filter
+		sinc	Sinc function, windowed from -4.0 to 4.0
+		tri	triangle filter
+
+	The Mitchell filter is the default, and usually produces
+	good results.
+
+
+Output:
+
+Default:
+
+		.globl	name
+		.data
+		.phrase
+	name:
+		dc.w ...
+
+With the -header option:
+
+		.globl	name
+		.data
+		.phrase
+	name:
+		dc.w	width,height
+		dc.l	$xxxxxxxx	; (PITCH1|PIXEL16|WIDxxx|XADDINC)
+		dc.w ...
+
+Note that TGA2CRY can calculate the blitter flags itself.
+
+
+
+Changes
+-------
+
+
+June 13, 1995
+-------------
+This version fixes a bug in the status information output which would
+cause the "Image compression xx% complete" message to walk up the screen.
+
+
+April 26, 1995
+--------------
+The "-noblitwarn" option was added.  The "-fimsk" option to create a negative
+mask was added.  A bug that caused "-fglass" to create the same output as
+"-fgray" was fixed.
+
+
+November 3, 1994
+----------------
+The "-quiet" option was added.
+
+
+July 25, 1994
+-------------
+This is a new and vastly improved version of TGA2CRY which has been
+completely rewritten.  The same tool is now available on both PC/MSDOS and
+Atari/TOS machines (unlike in the past when we had slightly different
+conversion tools on each system).
+
+The PC/MSDOS version of TGA2CRY is a 32-bit DOS protected mode application.
+The files DPMI32VM.DLL, 32RTM.EXE, CW3211.DLL, and WINDPMI.386 are part
+of the Borland Powerpack DOS Protected Mode Interface support package,
+and are copyright (c) 1994 Borland International, All rights reserved.
+They are distributed with permission.
+
+Because of a bug with the PC/MSDOS version of the MAKE utility not properly
+passing commandline options to certain DPMI programs, there is a problem
+calling TGA2CRY.EXE directly from your MAKEFILE.  To work around this, we
+have included a batch file named MAKECRY.BAT which simply calls the
+TGA2CRY.EXE.  It's simple, and only passes the first commandline option,
+but you can modify it to do more if necessary.  A similar MAKECRY.G batch
+file for the GULAM shell on the Atari/TOS platform is also provided.
+Note that this bug may not exist with other PC versions of MAKE.
+
+
+
+
+USING THIS PROGRAM UNDER MICROSOFT WINDOWS
+------------------------------------------
+If you are running under Microsoft Windows, you need to add a line to
+your WINDOWS\SYSTEM.INI file.  Find the line that looks like this:
+
+[386Enh]
+
+and then add the following line immediately afterwards:
+
+device=windpmi.386
+
+This assumes that the JAGUAR\BIN directory is part of your PATH environment
+variable.  (This is the directory where the WINDPMI.386 file is normally
+located after being extracted from the ZIP file.  You can also choose to
+move the WINDPMI.386 to your WINDOWS\SYSTEM directory, the usual location
+for such driver files.)

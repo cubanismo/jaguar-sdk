@@ -1,0 +1,337 @@
+Adds of WDB:
+
+Menu:
+A menu bar is available by right-clicking on the very first screen line or
+by pressing <alt>. Key shortcuts are <alt><letter>, where <letter> is in
+red upper case.
+
+The menus are:
+File:
+	Aread *.COF
+	Aread *.ABS
+	Load *.DB
+	Read *.DAT
+	Reload
+	Load WDB.RC
+	Save WDB.RC
+	Quit
+Context:
+	Trace
+	Overtrace
+	Verbose trace
+	Verbose overtrace
+	Next
+	Skip
+	Go
+	Go Until
+	Continue
+	Wait
+	Stop
+	Reset
+Open:
+	Registers
+	Disassembly
+	Memory dump
+	Source level
+	Symbols
+	Breakpoints
+	Checkpoints
+	Modules
+	Directory
+	Cpus
+	Objects list
+Window:
+	Close
+	Full
+	Iconify
+	Duplicate
+	Lock
+	Cycle
+	Close all
+	Iconify all
+Activate:
+	<List of opened windows. Choose one to activate.>
+Top:
+	<Top window specific menu>
+
+Windows:
+
+Overview:
+The number of windows is constrained by you hard disk size :=).
+Windows are not bound to screen (except screen top).
+
+Windows cosmetic:
+
+A window is built as:
+- an upper border containing the title bar:
+	[close] <window number>:<title> [<lock>] ... [duplicate][iconify][full]
+- a left border where you can click to resize the window horizontally.
+- a right border where you can click to resize the window horizontally.
+- a bottom border where you can click to resize the window vertically.
+- at the cross of right border and bottom border, you can click to resize
+  both horizontally and vertically.
+- at the cross of leftt border and upper border, you can click to resize
+  both horizontally and vertically.
+
+[close]			closes the window.
+<window number>	the window's number starting from 0 (which is always the
+				console window).
+<title>			the window's title.
+[<lock>]		an optional lock expression.
+[duplicate]		duplicates the window.
+[iconify]		toggles icon/normal mode.
+[full]			toggles full/normal mode.
+No resizing is allowed when iconified.
+
+Windows management:
+
+1) Mouse:
+This is what you would expect. Click left on a gadget to activate its function.
+This will automatically top the window, unless you also right clicked.
+Double-clicking on a window's title/move bar has the same effect as
+clicking on its fuller gadget.
+Double-clicking on an iconified window uniconifies it.
+An "autofocus" mouse behaviour is obtained by setting the `autofocus'
+internal variable to something != 0.
+
+2) Keyboard:
+Pressing [Esc] while in console window will lead you to Windows Keyboard
+Control mode. In this mode, some keys are active:
+[Tab]			goto next window.
+[*],[/],[+],[-]	resize window.
+[1] ~ [9] - [5]	move window.
+[0]				full/unfull window.
+[.]				icon/unicon window.
+[5]				duplicate window.
+[Esc]			quit Windows Keyboard Control mode and return to console window.
+[Alt][1]~[9]	goto window 1~9.
+
+Default windows:
+
+0:Console window:
+It emulates RDBJAG's behaviour. One major difference is that when a context
+switching is detected, the registers value (x) are not printed, they are
+updated in the registers window instead (unless you've reset the xenable
+variable to 0).
+
+1:Registers (xxx) window:	Contains the registers.
+In M68k mode, A7 means SSP.
+Click on a register value allows change of this value.
+Associated menu:
+	<6>8k registers			Display M68k registers
+	<G>pu registers			Display GPU registers
+	<D>sp registers			Display DSP registers
+
+2:Disassembly (xxx) window:	Contains a disassembly listing.
+Click in the address field to set start address.
+Click in the column to the right of address field to set
+	or remove (toggle) a breakpoint (M68k only).
+Associated menu:
+	<A>ddress start			Set start address
+	<B>reakpoint toggle		Toggle breakpoint
+	-----------------------
+	<T>race	into			Step into
+	<O>ver trace			Step over (M68k only)
+	<S>kip next instruction
+	<G>o
+	Go <U>ntil address		M68k only
+	<H>alt execution
+	-----------------------
+	<J>ump to top of window
+	<W>atch branch address
+	-----------------------
+	<6>8k disassembly
+	g<P>u disassembly
+	<D>sp disassembly
+
+3:Memory dump window:	Contains a memory dump.
+Click in the address field to set start address.
+Click in hex field or ascii field to enter edit mode.
+In edit mode:
+	in hex field:
+		<0>-<9>/<A>-<F> to change values
+		<+>/<-> increment/decrement the current field value.
+	in ASCII field:
+		any ASCII key to change values
+	to toggle between hex and ASCII fields, press <tab>.
+	to leave edit mode, press <esc>
+Associated menu:
+	<A>ddress start			Set start address
+	<E>dit					Enter edit mode
+	---------------
+	<F>ind					Find a value
+	<N>ext find				Find next occurence
+	---------------
+	<B>yte					Set display type to byte.
+	<W>ord					Set display type to word.
+	<L>ong					Set display type to long.
+
+4:Source level window:	Contains the program source files.
+Use <a> or click in the first line to change address/filename/line number.
+Use <b> or click in column to the right of line numbers field to set or
+  remove (toggle) a breakpoint.
+Associated menu:
+	<A>ddress start			Set start address
+
+5:Symbols window:	Lists the program' symbols.
+Single-click or use arrow keys to move the cursor.
+Double-click or press enter to open a memory dump window starting from the
+highlighted symbol's value.
+Associated menu:
+	<D>isassembly				Open a new disassembly window starting from
+								the highlighted symbol's value.
+	<M>emory dump				Open a new memory dump window starting from
+								the highlighted symbol's value.
+	<S>ource level				Open a new source level window starting from
+								the highlighted symbol's value.
+Click on a title to sort symbols. Click on the current one to unsort.
+
+6:Breakpoints window:	Lists the breakpoints.
+Single-click or use arrow keys to move the cursor.
+Associated menu:
+	<S>et breakpoint	  		Set a new breakpoint
+	<R>emove breakpoint			Remove the highlighted breakpoint
+	<D>elete all breakpoints	Delete all breakpoints.
+
+7:Checkpoints window:	Lists the memory checkpoints.
+Single-click or use arrow keys to move the cursor.
+Associated menu:
+	<S>et checkpoint	  		Set a new checkpoint
+	<R>emove checkpoint			Remove the highlighted checkpoint
+	<D>elete all checkpoints	Delete all checkpoints.
+
+8:Modules window:	Lists the program's modules.
+Single-click or use arrow keys to move the cursor.
+Double-click or press enter to open a corresponding source level window.
+Associated menu:
+	<O>pen						Open the highlighted module
+	<P>urge						Purge the highlighted module
+	<A>ll purge					Purge all modules.
+
+9:Directory window:
+Browse files in a directory. Directories and drive letters are in upper case.
+Single-click or use arrow keys to move the cursor.
+Double-click or press enter on a file to aread, load or read it.
+Double-click or press enter on a directory to enter it.
+Single-click on the very first line (containing the browsed path) to change
+file mask selection (default is * on PC/DOS or *.* on Atari/TOS).
+Double-click on the very first line (containing the browsed path) to change
+wdb's current directory.
+Associated menu:
+	<F>ile mask					Set file mask selection.
+	<S>et cwd					Set DB's current working directory.
+
+A:CPUs window:
+Indicate all CPUs (M68k, GPU, DSP) states. A '*' shows the current context's
+CPU contained in the variable 'ctxtcpu'.
+Single-click or use arrow keys to move the cursor.
+Double-click or press enter on a CPU to open a disassembly window starting at
+the CPU's PC.
+
+B:Objects list window:
+Browse an object list.
+Single-click or use arrow keys to move the cursor.
+Double-click or press enter on an object to open it if it is closed,
+	or to edit the selected field if it is opened. If it is a branch, then
+	the cursor will move to the branched object.
+Fractional values must be entered in the form d.d where d may be any
+numerical expression.
+More than 32-bit values must be entered in the form d,d where d may be any
+numerical expression, or d only, which is taken as the low 32-bit value.
+Values are checked against their number of bits, so no overflow is allowed.
+Associated menu:
+	<A>ddress start				Set object list address.
+	<R>efresh list				Refresh list from Jaguar's memory.
+	<F>etch list				Fetch Jaguar's memory with window's list.
+	<T>oggle object				Open or close current object.
+	-------------------
+	<O>pen all objects			Open all objects.
+	<C>lose all objects			Close all objects.
+
+Script functions:
+
+WINDLIST	will list currently opened windows.
+WINDOPEN	will open a new window.
+WIND2TOP	will top an opened window.
+WINDMOVE	will move an opened window.
+WINDSIZE	will resize an opened window.
+WINDFULL	will toggle the window to its maximum size (usually screen size).
+WINDICON	will iconify/uniconify an opened window.
+WINDDUPL	will duplicate an opened window.
+WINDLOCK	will lock to an expression an opened window ("pc" is special).
+WINDCLSE	will close an opened window.
+
+All functions take as 1st argument the window number, except
+WINDLIST, WINDOPEN and eventually WINDLOCK.
+Syntaxes are:
+WINDLIST	(no argument)
+WINDOPEN	<type> [<x> <y> <w> <h>] ["expression"]
+where:
+	type is one of:
+	1: 68k registers window
+	2: 68k disassembly window
+	3: memory dump window
+	4: source level window
+	5: symbols window
+	6: breakpoints window
+	7: checkpoints window
+	8: modules window
+	9: directory window
+	A: cpus window
+	B: objects list window
+	<x> <y> <w> <h> are optional,
+	"expression" is the optional lock expression (Disassembly and source
+	level windows are default locked with "pc")
+or
+WINDOPEN	<"title"> <x> <y> <w> <h> <proc_name> ["expression"]
+(see below: User windows)
+WIND2TOP	<num>				Ex: wind2top 3
+WINDMOVE	<num> <dx> <dy>		Ex: windmove 3 -1 2
+WINDSIZE	<num> <dx> <dy>		Ex: windsize 3 -4 1
+WINDFULL	<num>				Ex: windfull 3
+WINDICON	<num>				Ex: windicon 3
+WINDDUPL	<num>				Ex: winddupl 3
+WINDLOCK	<num> "expression"	Ex: windlock 3 "a0+4"
+will lock window 3 on the address "a0+4", or
+WINDLOCK	<num>				Ex: windlock 3
+will unlock window 3, or
+WINDLOCK						Ex: windlock
+will list locked windows.
+WINDCLSE	<num>				Ex: windclse 3
+
+Variables (all read-only):
+
+screenw	is the screen width in caracters.
+screenh	is the screen height in caracters.
+windnum	is the current window number (means: window currently printed).
+windmsg	is the current window message.
+windw	is the current window width in caracters.
+windh	is the current window height in caracters.
+autofocus	controls the "autofocus" mouse behaviour.
+
+User windows:
+
+One can define a window where a script procedure can print informations.
+The way to do that is:
+
+windopen "my title" x y w h myproc
+
+and myproc is
+
+procedure myproc
+	print "my informations"
+.
+
+PLEASE WATCH CAREFULLY THE SAMPLE SCRIPT WINS.DB.
+
+WARNING: if your script is endless, it will not work properly and you will
+have to abort with <ctrl_c>. For instance, the standard script "od.db" will
+not work properly inside a window.
+
+RC file for WDB:
+At start but after looking for the RDB.RC file, WDB searches its config file
+WDB.RC which should be a script file. It should contains windopen commands
+that will enable creation of any required windows at start. Only the console
+window is created before its execution. If the RC file is not found,
+WDB opens a standard screen containing window types 1, 2 and 3.
+It is always possible to reload or save this file from the File menu.

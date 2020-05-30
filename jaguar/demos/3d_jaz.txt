@@ -1,0 +1,41 @@
+Welcome to JAZ!
+---------------
+
+This is a new DEMO (!) of JAZ.  JAZ is the newly developed Jaguar
+Audio System. It contains the new JAGsynth and a powerful tool to
+create sounds, effects and whole songs. The features are:
+
+JAGsynth:
+
+- up to 14 voices
+- second MIDI score for sound effects
+- modular and flexible. JAGsynth creates sound using a programmable
+  algorithm. You can combine oscillators (sample player, FM, ROM wave
+  and poly wave) with distortion and filter modules and use up to
+  3 LFOs or envelopes. As additional effects you have delay, reverb
+  and a surround encoder.
+- utilizes sample pre-fetch to avoid bus problems
+
+JAZ:
+
+- GUI with mouse support
+- with JAZ you edit every parameter the new synth offers
+- realtime MIDI parser turns your Jaguar in a polyphonic synthesizer.
+  So you are able connect your favourite sequencer and compose a song.
+- JAZ creates a "ready-to-start" source code from your song that can
+  easily be integrated in your game code.
+  
+  
+NOTE:
+
+This demo of JAZ is integrated with a demo of the 3D graphics library. 
+Note that this demo contains a BETA (!) version of the synth which has still
+some problems (i.e. some note offs seem to be unrecognized). Nevertheless
+the demo gives you a good impression what is possible with the new software.
+
+Make sure you have good speakers hooked up to your Jaguar before you
+play the demo!
+
+
+9/1/95
+Atari Corp., Sunnyvale

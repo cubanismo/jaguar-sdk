@@ -1,0 +1,3 @@
+fread nvmsim.rom 802000
+g 802000
+

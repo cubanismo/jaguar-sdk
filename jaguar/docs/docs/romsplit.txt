@@ -1,0 +1,93 @@
+		=============================================
+		= File Split/Merge Utility for ROM Creation =
+		=               ROMSPLIT.EXE                =
+                =                   v1.1                    =
+		=       Copyright (c)1994 Atari Corp.       =
+		=            All Rights Reserved            =
+		=============================================
+
+------------
+INTRODUCTION
+------------
+
+ROMSPLIT.EXE was designed to take a standard .ROM file and split it 
+into the pieces necessary for most EPROM burners. Some EPROM burners 
+can accept input from a single file. This program handles those that 
+cannot.
+
+The three primary configurations of EPROM/ROM destinations are:
+
+1. Four 4 Mbit, 8-bit wide chips (for 2 Mb Test Cartridges)
+2. Two 8 Mbit, 16-bit wide chips (for 2 Mb Production Cartridges)
+3. Two 16 Mbit, 16-bit wide chips (for 4 Mb Test/Production Cartridges)
+
+When creating files for 8-bit wide chip configuration, ROMSPLIT.EXE 
+creates four files with the same root as the source file and the 
+following four extensions: U1, U2, U3, and U4. Files with the 
+extensions .HI and .LO are created for 16-bit wide chips.
+
+-----------------------
+COMMAND LINE PARAMETERS
+-----------------------
+
+The command-line format for ROMSPLIT.EXE is as follows:
+
+romsplit sourcefile[.rom] [-bw24pe]
+
+-b: Specify that this file is destined for 8-bit wide chips (default).
+-w: Specify that this file is destined for 16-bit wide chips.
+
+-2: Specify that this file is destined for a 2 Mb cartridge (default).
+-4: Specify that this file is destined for a 4 Mb cartridge.
+	
+-p: Pad the first 8192 bytes with $FF.
+    You must specify this option if you haven't already padded the .ROM file.
+
+-e: Force the created files to fill cartridge space (pad with $FF).
+    Normally the files are extended to the nearest power of 2 in size.
+
+-------------
+COMMON USAGES
+-------------
+
+If you have a 2 Mb (or less) .ROM file that you could normally read into the 
+Jaguar Debugger and execute with the command 'read romfile.rom 802000' you 
+should use the following command to make Eprom-ready files:
+
+romsplit romfile.rom -p
+
+If you have a 4 Mb .ROM file readable by the debugger at $802000 then you 
+should use the following command:
+
+romsplit romfile.rom -w -4 -p
+
+If your file is pre-padded to start at $800000 then omit the '-p'.
+
+-------
+MERGING
+-------
+
+ROMSPLIT.EXE may also be used to merge files it has split back together 
+again. Simply specify the filename of one of the output files (with any of 
+the output extensions) and it will merge the files together into a .ROM. For 
+example:
+
+romsplit romfile.u1
+
+----------------
+REVISION HISTORY
+----------------
+v1.1 fixes a bug that would cause ROMSPLIT to improperly identify a filetype
+when an extension was specified.
+
+---------------------
+QUESTIONS/BUG REPORTS
+---------------------
+
+If you have any questions or comments regarding this file please contact:
+
+Scott Sanders
+Atari Developer Support
+(408) 745-2143
+E-Mail: ssanders@atari.com
+

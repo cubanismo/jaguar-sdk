@@ -1,0 +1,197 @@
+============================================================================
+Jaguar Developer Weekly           July 21, 1995                  Vol.1, No.5
+============================================================================
+
+Jaguar CD-ROM Track Format
+--------------------------
+Just a quick reminder to developers working on CD-ROM titles: it's very
+important to make sure you are following the correct format for a Jaguar
+CD-ROM track and are including the proper track header and tailer
+information.  Failure to do so will prevent you from creating a bootable CD.
+
+The proper format for a Jaguar CD-ROM track is described in the Jaguar
+Developer documentation in the section entitled The Jaguar CD-ROM:
+Programming, Procedures, and Guidelines in the Jaguar CD-ROM chapter.  Here
+are some of the highlights: The start of each data track must contain a
+specific Atari data header, and the end of each track must contain a
+corresponding data tailer.  No data may precede a track header or follow a
+track tailer.  The header must consist of 16 repetitions of the string "ATRI"
+(64 bytes total) followed by the string:
+
+"ATARI APPROVED DATA HEADER ATRIx"
+
+where the "x" at the end is ASCII 32 + the number of the track (relative to
+the disc, starting from 0).  For example, track 0 would have an ASCII 32,
+track 1 would have an ASCII 33, etc.  The tailer must be long aligned (i.e.
+your data must be a multiple of 4 bytes in length) and consist of the string:
+
+"ATARI APPROVED DATA TAILER ATRIx"
+
+The "x" should be the same value as in the track header.  This is followed by
+16 repetitions of the string "ATRI" (64 bytes total).
+
+The boot track of a Jaguar CD-ROM has two Motorola-format long words
+immediately following the track header.  The first specifies the target
+address of your boot code, which must be between $4000 and $40000.  The
+second specifies the length of your boot code, which should be no longer than
+64K.  The boot track may be longer than this, but only 64K will be loaded
+automatically at boot time by the system.
+
+
+Memory Track NV-RAM Cartridge
+-----------------------------
+The Jaguar Memory Track is an Non Volatile RAM (NV-RAM) cartridge used by CD
+titles to save game high scores, user options, and save-game information.  It
+is accessed via a set of BIOS routines which are organized and used much like
+a disk file system on a computer.
+
+The NV-RAM Simulator uses the Alpine board to simulate the Jaguar NV-RAM
+cartridge during the development process.  This is available in the
+JAGLIB.ZIP archive online.
+
+The NV-RAM BIOS allocates blocks of memory on the cartridge to programs in
+512 byte blocks.  Therefore, to get the best performance, your program should
+read or write NV-RAM in multiples of 512 bytes.  Doing reads or writes with
+smaller amounts of data will work, but is many times slower than reading or
+writing the same amount of data in one step.  The difference is easily
+noticable to people using your program.
+
+
+CD Error Handling
+-----------------
+When an error value appears in register A1 after a CD_ptr call, you should
+check that the address in A0 is equal to or greater than the buffer start
+address given in the last CD_read.  If not, a CD_ack should be issued prior
+to any other CD BIOS call.
+
+
+Important Note about Adobe Premiere 4.0
+---------------------------------------
+Several in-house and third party developers have had difficulty in creating
+Cinepak movies for Jaguar titles using Adobe Premiere 4.0.  These errors are
+consistent with internal rounding errors that cause video frames to
+occasionally be added or skipped.  In addition, these errors have induced
+'clicking' in audio samples that are resampled by Premiere.
+
+Adobe Tech Support has acknowledged these problems and is planning to correct
+them in some future update.  Until then, Adobe (was CoSa) AfterEffects is not
+known to suffer from these problems.  To correct Audio resampling problems,
+we have used Macromind SoundEdit 16 with success as it has the ability to
+edit the audio stream of a Quicktime movie atomically, without necessitating
+the recompression of video on resaving the file.
+
+
+Normen Is Back From Vacation
+----------------------------
+Atari's Jaguar Developer Support Manager Normen Kowalewski has returned from
+his vacation, so things are back to what we call "normal" at Atari's
+Developer Support department.
+
+
+Tool Updates
+------------
+The Jaguar Developers Kit tools and related files listed below have been
+updated in the month.  You can download the latest versions from the Atari
+Software Development BBS or from the Jaguar Developer library in the Atari
+Gaming forum on Compuserve.
+
+Jaguar NVRAM Simulator — July 21, 1995.  The NVRAM simulator uses the Alpine
+board to emulate the Jaguar Memory Track cartridge, an add-on for the Jaguar
+CD that allows CD game titles to save their user options, high score lists,
+saved-games, and other information.  The archive has been updated with
+additional documentation.  Download JAGLIB.ZIP for the complete package.
+
+Jaguar Graphics Tool — July 21, 1995.  Several minor bugs reported by Jaguar
+Developers have been fixed.  Download ARTWORK.ZIP.
+
+Jaguar Cinepak Utility — July 7, 1995.  A couple of small cosmetic glitches
+have been fixed.  Also the program now gives an error if the QuickTime movie
+you are trying to convert does not use Cinepak for video compression.
+Download JAGMAC.SEA using MacBinary on the Macintosh, or download to your PC
+and use a MacBinary-intelligent utility to transfer the file to your
+Macintosh.  Once you get the file to the Mac, JAGMAC.SEA is a self-extracting
+archive.
+
+WDB Debugger — June 30, 1995.  A problem was fixed where all your breakpoints
+were cleared when one was reached.  Also fixed is a problem loading and
+executing script files from the command line.  Download DBPC.ZIP
+
+
+CD Boot ROM Emulator For Alpine
+-------------------------------
+Atari now has a new CD Boot ROM emulator that loads into the Alpine board and
+emulates the boot process of the Jaguar CD, loading the boot code from the CD
+(or the CD emulator running on a Falcon030) and executing it in the same
+fashion as if you had created a bootable CD disc.  You can even boot directly
+from the CD Emulator!
+
+The CD Boot Emulator program is available online in the CDROM.ZIP archive
+(dated June 23).  See the enclosed documentation for details about how to use
+it.
+
+
+Developer Kit Archive Roadmap
+-----------------------------
+The tools, sample source code, libraries, and other components of the Jaguar
+Developers Kit are updated frequently.  To keep track of what's new, see the
+file ROADMAP.TXT that is posted online on the Atari Software Development BBS
+and in the Jaguar Developer library in the Atari Gaming forum on Compuserve.
+This file is updated and reposted whenever any of the standard distribution
+archives from the Jaguar Developer's kit is updated.
+
+
+Brainstorm BBS
+--------------
+We've had a few developers tell us that they "cannot find the ROADMAP.TXT
+file on Atari's French BBS".  However, the reason is that the BBS they are
+refering to is operated by Brainstorm, not Atari Corporation.  Brainstorm
+does programming work for Atari on some of the Jaguar Developer tools, and
+their BBS normally does have the latest versions of those specific tools, but
+not the same exact archives as what is distributed by Atari.  Also, they
+normally do not have current versions of other files.
+
+While it certainly may be useful and convenient in many cases, the Brainstorm
+BBS is not an official site for downloading any of the Jaguar Developer Kit
+distribution files.  This is why ROADMAP.TXT is not available on this system.
+The official sites for the Jaguar Developer distribution archives, where
+you'll find ROADMAP.TXT and all the files it refers to, are the Jaguar
+Developer areas of the Atari Gaming forum on Compuserve and the Atari
+Software Development BBS operated by Atari in Sunnyvale.
+
+
+New BBS Number
+--------------
+In order to improve reliability, the Atari Software Development BBS is
+getting a new phone line soon.  This will be a direct line that doesn't go
+through the rest of Atari's phone system, so there should be fewer
+noise-related modem connection problems.
+
+The new number for the BBS will be (408) 541-9164.  But remember this number
+is not active yet!  The number will also be posted on the BBS itself at least
+a week in advance of the change, as well as in future issues of the Jaguar
+Developer Weekly.
+
+
+If you've missed previous issues...
+-----------------------------------
+then it's possible that we may not have a current fax number for you.  Just
+in case, please contact us with your current address, telephone and fax
+numbers.  Also, consider that the better solution would be to subscribe to
+the..
+
+
+Jaguar Developer Weekly Via EMAIL
+---------------------------------
+The preferred method for Atari to send out the Jaguar Developer Weekly is via
+EMAIL, but unfortunately, we don't have a database of everybody's EMAIL
+addresses.  If you have a current Internet or Compuserve EMAIL address,
+please send a message to mfulton@atari.com so that we can add you to the list
+of developers that receive the Jaguar Developer Weekly via EMAIL instead of
+fax.
+
+What you get each week will be the ASCII text of the issue, plus an online
+readable version.  We've been sending out TIF files of each page, but some
+people have had problems with this, so we are investigating the possibility
+of using something like Adobe Acrobat or Word Perfect Envoy to create an
+online version.  Let us know what you think.
+

@@ -1,0 +1,169 @@
+
+
+
+                                  29-jan-1994
+
+
+
+                        MadMac Addendum (Jaguar version).
+
+
+
+                          Raphael Lemoine - Brainstorm
+
+
+
+  The MadMac assembler given with the Jaguar development kit differs from
+the original MadMac. Here is the list of all current changes. It's divided in
+three parts( new functions, changes, and GPU/DSP syntax):
+
+
+
+                               *****************
+                               * NEW FUNCTIONS *
+                               *****************
+
+
+
+- '.GPU' and '.DSP' directives added, for switching to GPU/DSP assembly mode.
+These directives MUST be used when the current section is 'TEXT' or 'DATA'.
+To return to 68000 assembly, use the directive '.68000'.
+
+
+- '.JPAD' and '.NOJPAD' directives added, for turning on/off NOP padding
+after every JUMP/JR instructions, in GPU/DSP mode. Each time you declare a
+GPU/DSP section, padding is reset to its default condition (off).
+
+
+- '.CLEAR' and '.NOCLEAR' directives added, which allow/forbid the use of
+the 'CLR.L memory' instructions (this doesn't work on the Jaguar). Default
+state is '.CLEAR' (CLR.L memory allowed). By 'memory', I mean:
+(An), (An)+, -(An), d16(An), d8(An,Nx), abs.w, abs.l.
+
+
+- '.LONG', '.PHRASE' and '.DPHRASE' directives added, which align the CURRENT
+section to 32, 64 and 128 bits boundary. Note that GPU/DSP instructions have no
+specific section, they are just stored in the current section (TEXT or DATA). If
+you want to align GPU/DSP code, align the current section BEFORE and AFTER the
+GPU/DSP code.
+
+
+- '.EQUR' directive added, which allow you to name a register. It is only
+implemented in GPU/DSP sections, declaring/using a named register is forbidden
+in 68000/6502 sections.
+ex:
+ClipW   .EQUR   r18
+ClipH   .EQUR   r19
+
+
+- '.EQURUNDEF' directive added, which undefine one/several previously declared
+'.EQUR'.
+ex:
+        .EQURUNDEF      ClipW,ClipH
+
+
+- '.CCDEF' directive added, for naming GPU/DSP JUMP/JR condition codes.
+ex:
+Always  .CCDEF  0
+        jump    Always,(r3)
+
+
+- '.CCUNDEF' directive added, which undefine one/several previously declared
+'.CCDEF'.
+ex:
+        .CCUNDEF        Always
+
+
+- '.INCBIN' directive added, which include a binary file in your source. The
+syntax is the same as the '.INCLUDE' directive, except that if the filename
+has no suffix, MadMac will add automatically a '.BIN' instead of a '.S'.
+
+- '.DC' takes a new size: .DC.I generates a long word-swapped (as in MOVEI
+  instruction).
+
+- All GPU/DSP instructions are assembled, when in GPU/DSP mode (see above).
+
+- MadMac takes several new flags in the command line:
+
+  * In addition to -fa (generate DRI object file) and -fm (MWC object file),
+  -fb generates BSD object files. Those are symbols length unlimited.
+  In addition to -fb, one can add the -g option which generates source-level
+  information for use under RDBJAG. (Please note that you must also set the
+  -e -g flags in ALN command line if you want to have the source-level).
+  The standard BSD object file format has also been extended to support the
+  MOVEI relocation, but not the DRI. So,
+
+               PLEASE USE -fb WHEN DEVELOPPING FOR JAGUAR
+
+  * The -a <text> <data> <bss> option has been also added. This follows the
+  same syntax as in ALN, except that the 'r' switch is not supported. This
+  will generate a DRI .ABS file. In this case, you have no possibility to
+  get source-level info nor symbols length greater than 8 caracters. But
+  you will be able to directly load it under RDBJAG (without the ALN step).
+  This allows quick assembly for test purposes only.
+  Use -as to have symbols (same as -ps).
+
+  * The -c<dsp/gpu> flag acts like the '-cdsp' and '-cgpu' flags in GASM.
+  You can mix it with '-fb' for BSD output and '-g' for source level.
+
+  * The -r<size> flag, which force 2/4/8/16/32 bytes alignment on the TEXT/
+  DATA and BSS sections:
+  -rw for word alignment (2 bytes, default alignment)
+  -rl for long alignment (4 bytes)
+  -rp for phrase alignment (8 bytes)
+  -rd for double phrase alignment (16 bytes)
+  -rq for quad phrase alignment (32 bytes)
+
+
+
+                                  ***********
+                                  * CHANGES *
+                                  ***********
+
+
+
+- You cannot use R0->R15 register names in 68000 mode anymore. Use instead
+D0->D7, A0->A7, and SP register names.
+
+
+- '.UNDEFMAC' directive name changed to '.MACUNDEF'.
+
+
+- '.INIT', '.CARGS', '.TEXT', '.DATA' and '.BSS' directives are forbidden in
+GPU/DSP mode.
+
+- '.ABS' directive name changed to '.OFFSET', to avoid conflicts with the 'ABS'
+GPU/DSP instruction.
+
+- '.NLIST' directive name changed to '.NOLIST', for compatibility with most
+assemblers.
+
+
+
+                               ******************
+                               * GPU/DSP SYNTAX *
+                               ******************
+
+
+
+- The following condition codes are build-in:
+CC (%00100), CS (%01000), EQ (%00010), MI (%11000), NE (%00001), PL (%10100),
+HI (%00101), T (%00000).
+ex:
+        jump    CS,(r3)
+
+
+- Use the '#' character before any constant/expression:
+ex:
+        bset    #2,r5
+        cmpq    #3,r2
+
+
+- MadMac tests all GPU/DSP restrictions, and correct them whenever possible
+(inserting a NOP).
+
+
+- The '(Rx+N)' addressing mode is optimized to (Rx), if N=0 (a warning is
+displayed).
+
+- Backpatch is performed only in all instructions.

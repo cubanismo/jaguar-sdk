@@ -1,0 +1,9 @@
+gag on
+fread sndtool.tx 802000 ; fread sndtool.dta 4000 ; getsym sndtool.sym
+gag off
+echo "          start   size    end"
+echo "text      802000  173cc   8193cb"
+echo "data      4000    18926   1c925"
+echo "bss       1c926   15c790  1790b5"
+echo "Symbols loaded"
+xpc 802000

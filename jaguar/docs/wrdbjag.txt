@@ -1,0 +1,174 @@
+01-may-1994:
+	+ Now works under MS-Windows.
+	- Alt_Gr is not activating menus any more.
+
+12-may-1994:
+	+ Lock working for disassembly, memory dump and source level windows.
+	- windclose <#> now works properly.
+	= windopening a script window now requires a procedure.
+
+13-may-1994:
+	+ Script windows seem ok. Look at WINS.DB.
+
+15-may-1994:
+	+ Load and Save WDB.RC. It contains the windows configuration and is
+	  automatically loaded at start if found in current path or RDBRC.
+
+18-may-1994:
+	+ Few minor cosmetic changes (Menu titles...).
+	+ Dir window automatically closes if called by Aread, Read or Load.
+
+22-may-1994:
+	+ Switched "Open" and "Window" menu.
+	  A window list is now displayed at the bottom of the "Window" menu.
+	  If there are more than 10 windows, then the menu entry "Activate"
+	  is added to the menu bar, listing all the windows.
+	+ Added "Aread *.cof" menu option in "File" menu.
+
+28-may-1994:
+	+ Top window now has red borders, while back ones have blue.
+	+ The "Informations" entry has been added, for Copyright informations.
+
+09-jul-1994:
+	+ Version date added in Informations box.
+	+ Special (non-ASCII) characters used in window display are converted
+	  to ASCII equivalents for transcript. Also, line ends are now CRLF under
+	  Atari/TOS and PC/DOS, LF under PC/Linux.
+	= Section end address is now the address of the last byte used, not
+	  the first byte free.
+	+ *.* default selection in the Directory window changed to * for PC/DOS
+	  version.
+
+09-sep-1994:
+	+ Fixed a disappearing '\' on some pathnames when selecting a file in
+	  the Directory window.
+
+25-sep-1994:
+	= If the console window is topped after closing another one, the
+	  Windows Keyboard Control mode is automatically left.
+	  Wish of Scott Sanders @ Atari Corporation.
+
+31-oct-1994:
+	+ Minor change: now if the debugger receive an event from the Jaguar
+	  while doing nothing, it handles that event. You had to hit <return>
+	  in previous releases. For instance, if you push the reset button,
+	  you'll now get the Stub message on the fly.
+
+20-nov-1994:
+	+ Linux: WDB is now a gpm client (for the mouse). You must have gpm
+	  v0.94 or greater.
+
+25-nov-1994:
+	+ The mouse is now blocked when trying to over-minimize or over-maximize a
+	  window.
+	+ Double-clicking on a window's title/move bar has the same effect as
+	  clicking on its fuller gadget.
+	+ Double-clicking on a iconified window uniconifies it.
+	+ An "autofocus" mouse behaviour is obtained by setting the `autofocus'
+	  internal variable to something != 0.
+
+26-nov-1994:
+	+ Resizing is now also possible on the left of a window, by dragging the
+	  left border with the mouse (same as down and right borders).
+	  Also, the upper left corner can be used for resizing.
+
+28-nov-1994:
+	- Bug while determining if the contents of a dump window have to be
+	  refreshed after setting memory.
+	- Also, if a refresh was done, the window was also relocked. This is
+	  fixed.
+	  Same thing for disassembly window.
+
+04-dec-1994:
+	+ Changed Modules Window. It now displays N/A instead of `?' if the file
+	  is not available. Also, module filenames are displayed first and the
+	  pathname after, since it is usually quicker and enough to see the filename
+	  only.
+	- Also fixed a bug that could occur when trying to load an ABS file with a
+	  non-existent first source file (was saying "read error" in the ABS file).
+
+24-dec-1994:
+	- Fixed a bug that reduced Console Window command line to the size of the
+	  last Dialog Box command line after using it.
+	+ Added a Menu to Disassembly and Source window.
+	+ Reworked a bit other window specific menus.
+
+02-jan-1995:
+	+ Finished GPU context handling. Waow, what a mess to do it!
+	+ Added a new window type: CPUs, which shows all CPUs activity.
+	  (This window will be improved in the future).
+	+ Reworked a bit Breakpoints and Checkpoints windows.
+	+ Fixed a (minor) bug in Symbols window.
+	+ Removed unnecessary under-titles in array-style windows.
+
+04-jan-1995:
+	+ Allowed re-creating Console Window, which does not create another
+	  window but really move/resize the existing one. So, in wdb.rc,
+	  Console Window is saved as the other windows, thus allowing
+	  customisation for its size/position.
+
+05-jan-1995:
+	+ Added space bar for page down in Disassembly window.
+
+07-jan-1995:
+	= Changed "stoP" entry in Context menu to "Halt".
+
+11-jan-1995:
+	- Fixed a pb when duplicating a window: it has not gadgets!
+	- Fixed a pb with "x" command. Was unsigned since 02-jan-1995.
+
+14-jan-1995:
+	- Linux: Fixed a pb in `suspend' since WDB is a GPM client. Was stuck
+	  after `fg'.
+
+17-jan-1995:
+	+ Added a sort option to Symbols window. Simply click on the title you
+	  want the symbols sorted by. Click on the current sort title to unsort.
+
+18-jan-1995:
+	+ Added a close gadget to console window, which acts the same as File/Quit
+	  menu option. Suggestion of Mike Beaton.
+	= Changed File/"Informations" entry to "About ...". Suggestion of Mike
+	  Beaton.
+	- Fixed Checkpoints Window: It had no gadgets!
+	- Fixed User Windows: they had no gadgets!
+
+19-jan-1995:
+	= Changed back File/"About" entry to "Information" because the shortcut is
+	  unpleasant.
+	- Linux: added a "Reset colors" to "CLS" after 'suspend' or '!'. Still
+	  lacks a fflush(stdout) when you come back to WDB on the last line of
+	  console window, the first line and a half of console window is grey
+	  until you do something ...
+	  Bug report by Dan @ Rebellion.
+
+20-jan-1995:
+	- Fixed a pb in dump window, was not displaying good values after the 1024th
+	  byte (only happened in more than 80x50).
+	- Fixed a pb when a message containing whitespaces is displayed in the
+	  console window in background. It was doing a CR after each whitespace.
+
+20-feb-1995:
+	= Linux: Recompiled with new gpm 0.97 lib/header, because it didn't work
+	  with it any more (same for Midnight Commander, BTW).
+	! WARNING: You MUST now have gpm 0.97 in order to use wdb, since it is
+	  incompatible with older versions. You can find it on our BBS.
+	  Thanks to Jeremy Gordon @ Hyper Image Productions, Inc.
+
+24-feb-1995:
+	- Linux: Added a fflush(stdout) after mouse-selecting a file in directory
+	  window.
+
+02-mar-1995:
+	+ Changed double-click management inside windows.
+	+ Reduced Console Window default size to 11 lines.
+	= Menu entry selection is now green.
+	= File selection in Directory window is now green.
+
+14-mar-1995:	
+	+ Object list window done.
+
+TODO:
+	- Search in source window.
+	- A simple ASCII window.
+	- A simple Watch window.

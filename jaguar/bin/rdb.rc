@@ -1,0 +1,29 @@
+echo
+echo RDB.RC file, Release Sept. 13, 1995*
+echo
+alias OLPLO 'sw f00020'
+alias OLPHI 'sw f00022'
+
+alias VMODE 'sw f00028'
+
+alias HDB1 'sw f00038'
+alias HDB2 'sw f0003a'
+alias HDE 'sw f0003c'
+
+alias VDB 'sw f00046'
+alias VDE 'sw f00048'
+
+alias VI 'sw f0004e'
+alias INT1 'sw f000e0'
+alias INT2 'sw f000e2'
+
+alias BORD1 'sl f0002a'
+alias BG 'sw f00058'
+
+load /root/jaguar/bin/od.db
+load /root/jaguar/bin/fill.db
+load /root/jaguar/bin/gpu.db
+load /root/jaguar/bin/ngpu.db
+
+pprot=4
+

@@ -1,0 +1,164 @@
+FILEFIX v6.81 - September 1, 1995
+---------------------------------
+
+FILEFIX is a utility that converts an executable file output by the ALN
+linker (.COF or .ABS files) into separate files containing the raw data for
+the TEXT and DATA sections of the program, and a symbol table containing the
+symbol information for the program, and an RDBJAG script file for loading it
+all into the ALPINE board of a Jaguar Development System.
+
+FILEFIX also has an option for writing out ROM image files.  These files
+are 2mb or 4mb in length and consist of the program's text segment and
+data segment, with the rest of the file set to zero bytes.  There are
+also some other new options.  See the information below.
+
+
+Usage:
+------
+filefix [options] <filename>
+
+<filename> =	A DRI or BSD/COFF format absolute-position executable file.
+		A filename extension of .COF or .ABS is assumed if none is given.
+		(i.e. "FILEFIX testprog\" will look for <testprog>, then
+		<testprog.cof>, then <testprog.abs>, before giving up.
+
+Options
+-------
+
+-q = Quiet mode, don't print information about executable file.
+
+-r <romfile> = Create ROM image file named <romfile> from executable
+
+-rs <romfile> = Same as -r, except also create DB script to load and run file.
+
+-p = Pad ROM file with zero bytes to next 2mb boundary.
+     (this must be used along with the -r or -rs switch)
+
+-p4 = Same as -p, except pads to a 4mb boundary
+      (this must be used along with the -r or -rs switch)
+
+-z = Use $00 for padding value with "-p" and "-p4" options
+     (default value to use for padding is $FF)
+
+Examples:
+---------
+	filefix program
+
+This example finds 'program', 'program.cof', or 'program.abs'
+Creates program.txt, program.dta, program.db, and program.sym (if the
+file is not a COFF-format file)
+
+	filefix program.abs
+
+Finds program.abs, creates same files as previous example.
+
+	filefix -rs program.rom -p -q program
+
+Finds 'program', 'program.cof', or 'program.abs.  Creates a ROM
+image file named PROGRAM.ROM, pads the size to 2mb boundary, and
+prints only minimal information to screen.
+
+
+
+Some developers have wondered why FILEFIX is needed, since RDBJAG can read
+.ABS & .COF files directly.  Perhaps the most important reason is that when
+you want to build a Jaguar ROM or EPROM cartridge from your program, you need
+access to the raw data that cooresponds to what will become the ROM image of
+the cartridge.  While this can be done by loading the program into the Alpine
+board and then writing it back out using the debugger, using FILEFIX is
+easier and more convenient.  Another advantage is that FILEFIX also creates a
+symbol file that has been sorted and had duplicates removed.  (This currently
+works for Alcyon format executables only.)
+
+When you send a program to Atari that may end up becoming a cartridge (like
+an early version of a game), please use FILEFIX and send the resulting files
+rather than sending an ABS file (or in addition to sending an ABS file).
+
+Similar situation exists for CD-ROM code: You do not burn a *.COF
+file or an *.abs file with all its symbols and addition informations on CD,
+but the bare game code and data (compliant with the CD-ROM documentation).
+Again you must use FILEFIX to extract the essential code out of your program
+file(s).
+
+
+CHANGES
+-------
+
+v6.81, September 1, 1995
+------------------------
+This version still checks to see if you are trying to create a ROM image
+file from an executable that does not load into ROM space, but now displays
+a warning message rather than an error.  This allows you to create binary
+images of your code & data that you want to compress and/or put onto a
+CD-ROM disc.
+
+
+v6.80, March 17, 1995
+---------------------
+The "-z" command line option was added, and the default padding value
+used when creating ROM image files was changed from $00 to $FF.
+
+Also, this version checks to see if you are trying to create a ROM image
+file from an executable that does not load into ROM space.  If so, an
+error message is shown and no file is created.  If the source file executable
+loads into ROM space, but doesn't execute from $802000, then a warning is
+displayed, but the ROM image file is created anyway.
+
+
+
+v6.75, March 6, 1995
+--------------------
+When creating ROM image files and padding them to a 2mb size boundary, the
+previous version of FILEFIX would create a file that was exactly 2mb or 4mb
+in size.  However, you really want it to be $2000 bytes smaller than that,
+since a program starts executing at $802000, not $800000.  The new version
+now creates files that are $2000 bytes smaller, just like you had typed
+"write file.rom 802000[1fe000]" from the debugger.
+
+
+Sept. 29, 1994
+--------------
+Filefix now supports a number of new command line options, primarily related
+to the new capability of writing out ROM image files.  See the list of
+command line switches for more information.
+
+
+
+July 20, 1994
+-------------
+FILEFIX still does not output a .SYM symbol file when the source file is a
+COFF-format executable, but this new version now adds a command to the output
+script file to make the debugger load symbols from the original executable
+file. This does not provide everything the separate .SYM file does, but it
+should cover most situations. (The difference is that the symbol table in a
+.SYM file is sorted and has had duplicate symbols deleted.)
+
+Also, there was a bug in the PC version of FILEFIX which caused RDBJAG/WDB to
+print an error message when you did a GETSYM command on one of the .SYM files
+it created.  (The error message would be either "Out of Memory" or "This file
+was created by a buggy version of FILEFIX".)  This has been fixed.
+
+
+June 28, 1994
+-------------
+There was a bug fixed that would cause FILEFIX to create DTA and TXT files
+that were zero bytes long if the data section and/or text section was empty,
+rather than simply not creating the files in the first place.  As of this
+version, when a section is empty the files are not created and the references
+to them are left out of the debugger script file that is output.
+
+The tools now use a default filename extension of .COF for BSD/COFF format
+executables, and FILEFIX has been updated to support this.  Now FILEFIX will
+first look for the filename exactly as specified on the commandline.  If that
+file is not found, and no extension was specified, then it will try for
+<filename>.COF and <filename>.ABS in that order.  If the filename specified
+did have an extension, then an error message is displayed and the program
+aborts with an error code.
+
+
+May 13, 1994
+------------                                                                           								
+The FILEFIX utility has been updated to work with the new BSD/COFF file
+format used by GCC, MADMAC, and ALN.  Please Note: when reading BSD/COFF
+files, FILEFIX will not output a symbol file, and the RDBJAG script file it
+outputs will not reference the symbol file.

@@ -1,0 +1,518 @@
+NV-RAM Cartridge Access Library
+-------------------------------
+Because CD-ROM titles do not normally have access to non-volatile storage,
+Atari will make available a special NV-RAM cartridge as a consumer product.
+This will give end-users the option to save high scores, setup options, and
+saved game information for their CD-ROM games.  This cartridge is accessed by
+your program through the NV-RAM cartridge library.
+
+Overview
+--------
+These calls are provided to allow developers writing CD-ROM based games to
+save game information into a special cartridge containing non-volatile Flash
+ROM memory in an efficient and easy to use manner.  There will be 128K bytes
+available in NV memory in the first version of the hardware (later cartridges
+may include more or less memory, so developers should use the Inquire
+function to determine the actual space available).  This memory will be used
+and allocated in a file system-like manner, so that multiple games may use
+the same non-volatile memory cartridge without conflict, and so that
+different cartridge sizes may easily be supported.  The NVM_Bios calls are
+thus much like the GEMDOS or MS-DOS file system calls.
+
+The length of each block of memory is some multiple of 512 bytes.  Memory
+blocks must be given a size when they are created, and cannot exceed that
+size later.  The total number of memory blocks depends on the size of the
+cartridge being used, but as long as you use the NVM_Bios calls you will be
+able to deal with whatever is available.
+
+A memory block is uniquely identified by two strings: the application which
+created it, and a block-specific name (its "filename").  The application name
+is available so that users may quickly identify which applications are
+associated with which blocks of memory.  Application names may be up to 15
+characters in length, and file names may be up to 9 characters in length.
+Both application and file names must use only characters chosen from the
+following 40 character set:
+
+A B C D E F G H I J K L M N O P Q R S T U V
+W X Y Z 0 1 2 3 4 5 6 7 8 9 : ' . space
+
+
+
+Accessing NV Memory
+-------------------
+There are eleven calls provided to access NV memory.  When the calls are
+available, a magic cookie with the value '_NVM' (0x5F4E564D) will exist at
+address $2400, and a dispatcher will exist at $2404.  To invoke a function,
+do a 68000 JSR to location $2404 with the opcode and parameters described on
+the following pages.
+
+All of the functions return a 32 bit value in d0, although in many cases only
+the lower 16 bits will be of interest.  If bit 31 of d0 is set (i.e.  if d0.l
+is negative) then an error has occured.  The following error codes are
+defined:
+
+Error Name	Code	Description
+-----------------------------------
+ENOINIT		-1	the Initialize function has not yet been called
+ENOSPC		-2	there is not enough free space for the operation
+EFILNF		-3	the file was not found
+EINVFN		-4	an attempt was made to use an invalid function
+ERANGE		-5	an attempt was made to seek out of range
+ENFILES		-6	no more file handles are available
+EIHNDL		-7	invalid handle passed to function
+
+The following functions are available:
+
+Function	Opcode
+----------------------
+Initialize	0
+Create		1
+Open		2
+Close		3
+Delete		4
+Read		5
+Write		6
+Search First	7
+Search Next	8
+Seek		9
+Inquire		10
+
+
+
+Initialize	Opcode 0
+
+C Prototype
+int NVM_Bios( short opcode = 0, char *app_name, char *work_area)
+
+68000 Assembly
+Example
+	pea	work_area
+	pea	app_name
+	move.w	#0,-(sp)
+	jsr	NVM_Bios
+	adda.l	#10,sp
+
+Returns
+0
+
+Purpose
+Initialize must be called before any other NVM_Bios function.  Its purpose is
+to initialize the NVM_Bios system, and also to identify the current
+application to the NVM Bios.  The application name (a null terminated string
+satisfying the rules listed above) is passed as the parameter app_name.  All
+subsequent Create and Open operations will use this application name for the
+memory blocks being created or opened.  The second parameter (work_area) must
+point to a 16K, phrase aligned buffer which the NVM Bios may use as a scratch
+buffer.  Applications need not preserve the contents of this memory between
+NVM_Bios calls (i.e.  they can also use it for other purposes when not using
+the NVM Bios) but they must be aware that the buffer will be modified by all
+NVM_Bios calls.  In other words, you can do what you want with the 16K
+between NVM_Bios calls, but every time you call NVM_Bios the 16K will be
+trashed.
+
+It is legal to call Initialize more than once; indeed, this is the only way
+for applications to open another application's memory blocks or for an
+application to change the location of the 16K NVM_Bios buffer.  Please note
+that calling Initialize will invalidate all currently open handles (returned
+by Create or Open).
+
+All other NVM_Bios functions will return ENOINIT if called before the first
+call to Initialize.
+
+
+
+Create	Opcode 1
+
+C Prototype
+int NVM_Bios( short opcode = 1, char *file_name, long file_size)
+
+68000 Assembly
+Example
+	move.l	file_size
+	pea	file_name
+	move.w	#1,-(sp)
+	jsr	NVM_Bios
+	adda.l	#10,sp
+
+Returns
+A non-negative handle on success
+ENOINIT	if the Initialize function has not yet been called
+ENOSPC	if there is insufficient room to allocate the file
+
+Purpose
+Create should be used to allocate a specified number of bytes from backup
+memory.  The parameter file_name should point to a name for the memory block.
+If the current application (specified by the Initialize call) already has a
+memory block with the same name, then that block will be deleted and a new
+one created (i.e.  the new block will replace the existing one).  The
+file_size parameter should contain the size in bytes required for the block.
+This size will be rounded up to the nearest multiple of 256 before being used
+for allocation.
+
+Note that multiple applications may have files with the same name, without
+affecting one another; Create will only delete an existing file if both the
+file name AND the application name match.
+
+The file handle returned by Create must be used in any Read, Write, or Seek
+calls referring to this file.
+
+WARNING: do not make this call if there is an existing file handle (returned
+by a previous Create or Open call) referring to a file with the same name as
+the new file being created.  Use the Close call to close all such file
+handles before re-creating the file.
+
+
+
+Open	Opcode 2
+
+C Prototype
+int NVM_Bios( short opcode = 2, char *file_name)
+
+68000 Assembly
+Example
+	pea	file_name
+	move.w	#2,-(sp)
+	jsr	NVM_Bios
+	adda.l	#6,sp
+
+Returns
+A non-negative handle on success
+EFILNF	if the application has no file with the given name
+
+Purpose
+Instructs the Bios to attempt to access the blocks of memory owned by the
+current application (as set in Initialize) and whose file name is file_name.
+The file_name parameter must point to a null terminated file name string of
+an existing file.  As with the Create call, Open will search only for files
+owned by the current application; it will not open a file owned by a
+different application, even if the file names are the same.
+
+The handle returned by Open must be used in any Read, Write, or Seek calls
+referring to this file.
+
+
+
+Close	Opcode 3
+
+C Prototype
+int NVM_Bios( short opcode = 3, short handle)
+
+68000 Assembly
+Example
+	move.w	#handle,-(sp)
+	move.w	#3,-(sp)
+	jsr	NVM_Bios
+	adda.l	#4,sp
+
+Returns
+0 on success
+EIHNDL if passed an invalid handle
+
+Purpose
+Used by an application to indicate that it is finished working with a file
+previously opened by Open or Create.  After the call to Close, the handle
+passed to close becomes invalid, and no further Read or Write calls on that
+handle will succeed.
+
+
+
+Delete	Opcode 4
+
+C Prototype
+int NVM_Bios( short opcode = 4, char *app_name, char *file_name)
+
+68000 Assembly
+Example
+	pea	file_name
+	pea	app_name
+	move.w	#4,-(sp)
+	jsr	NVM_Bios
+	adda.l	#10,sp
+
+Returns
+0 on success
+EFILNF if no file matching the given application name and file name is found
+
+Purpose
+Deletes a file, freeing the memory associated with it.  Any application may
+delete any other application's file, by passing in the application name and
+file name (as determined by Search First and Search Next) in app_name and
+file_name respectively.
+
+Note that applications should never delete files belonging to other
+applications unless specifically requested to do so by the user .  If an
+application needs more space than is available on the cartridge, then it
+should tell the user and offer him or her the choice of either aborting the
+current operation or of selecting one or more files to delete from the
+cartridge.
+
+WARNING: do not make this call if there is an existing file handle (returned
+by a previous Create or Open call) referring to the file being deleted.  Use
+the Close call to close all such file handles before deleting the file.
+
+
+
+Read	Opcode 5
+
+C Prototype
+long NVM_Bios( short opcode = 5, short handle, char * bufptr, long count)
+
+68000 Assembly
+Example
+	move.l	count,-(sp)
+	pea	bufptr
+	move.w	handle,-(sp)
+	move.w	#5,-(sp)
+	jsr	NVM_Bios
+	adda.l	#12,sp
+
+Returns
+number of bytes read in d0, if successful
+EIHNDL if passed an invalid handle
+
+Purpose
+The Read call may be used to fill a buffer pointed to by bufptr with count
+number of bytes from the file specified by handle (returned from a previous
+Open or Close call).  The read will begin at the current position in the
+file.  This position is initialized to 0 by Open or Create, is incremented by
+Read and Write (by the number of bytes read or written, respectively), and
+may be changed by Seek.  The game code must provide a buffer large enough to
+hold count number of bytes.  If successful, the call will return the number
+of bytes read.  At the end of the file (i.e.  when the file's current
+position exceeds its size) 0 bytes will be returned by Read.
+
+
+
+Write	Opcode 6
+
+C Prototype
+long NVM_Bios( short opcode = 6, short handle, char *bufptr, long count )
+
+68000 Assembly
+Example
+	move.l	count,-(sp)
+	pea	bufptr
+	move.w	handle,-(sp)
+	move.w	#6,-(sp)
+	jsr	NVM_Bios
+	adda.l	#12,sp
+
+Returns
+number of bytes written in d0, if successful
+EIHNDL if passed an invalid handle
+
+Purpose
+The Write call may be used to write count number of bytes from the file
+specified by handle (returned from a previous Open or Close call).  The write
+will begin at the current position in the file.  This position is initialized
+to 0 by Open or Create, is incremented by Read and Write (by the number of
+bytes read or written, respectively), and may be changed by Seek.  The number
+of bytes actually written to the file is returned.  This may be less than
+count if, for example, an attempt is made to write more bytes to the file
+than the space allocated for it in Create.
+
+
+
+Search First	Opcode 7
+
+C Prototype
+int NVM_Bios( short opcode = 7, NV_FILEINFO *search_buf, long search_flag)
+
+68000 Assembly
+Example
+	move.l	search_flag,-(sp)
+	pea	search_buf
+	move.w	#7,-(sp)
+	jsr	NVM_Bios
+	adda.l	#10,sp
+
+Returns
+0 on success
+EFILNF if no files match the search
+
+Purpose
+The Search First call can be used in conjunction with the Search Next call to
+browse through the backup memory table of contents.  This can be useful for
+displaying to the user all of the games whose information is backed up on a
+given cart.  It can also be used by a game to obtain application and file
+names to be used in the Delete call to make room on a cartridge for its own
+information.  The game player must be given final authority on this type of
+action.
+
+The search_buf parameter should point to a word-aligned 30 byte buffer used
+as a structure as shown below:
+
+typedef struct
+{
+	long	size;
+	char	app_name[16];
+	char	file_name[10];
+} NV_FILEINFO
+
+If the search is successful, the size field will be filled in with a long
+word giving the total size of the file.  The app_name field will be filled
+with a null terminated character string giving the name of the application
+that created this file.  The file_name field will be filled with a null
+terminated string consisting of the name the application gave to the file.
+These two strings constitute the app_name and file_name parameters for the
+Delete call.
+
+The search_flag parameter must be either 0 or 1.  If it is zero, then the
+search will include all files on the cartridge, regardless of which
+application created them.  If it is one, only files created by the current
+application (as specified by the last call to Initialize) will be included in
+the search.  The value of search_flag will be used in subsequent Search Next
+calls as well.
+
+
+
+Search Next	Opcode 8
+
+C Prototype
+int NVM_Bios( short opcode = 8, NV_FILEINFO *search_buf )
+
+68000 Assembly
+Example
+	pea	search_buf
+	move.w	#8,-(sp)
+	jsr	NVM_Bios
+	adda.l	#6,sp
+
+Returns
+identical to Search First
+
+Purpose
+To be used in conjunction with Search First to provide the caller with table
+of contents information.  This call can be made successive times until EFILNF
+is returned in d0.  This will mean that no other entries exist in backup
+memory.
+
+See the entry for Search First for the definition of the NV_FILEINFO
+structure.
+
+
+
+Seek	Opcode 9
+
+Prototype
+long NVM_Bios( short opcode = 9, short handle, long offset, short flag )
+
+68000 Assembly
+Example
+	move.w	flag,-(sp)
+	move.l	offset,-(sp)
+	move.w	handle,-(sp)
+	move.w	#9,-(sp)
+	jsr	NVM_Bios
+	adda.l	#10,sp
+
+Returns
+the new file position, if successful
+EIHNDL if passed an invalid handle
+ERANGE if the offset would be past the end of file
+
+Purpose
+Resets the file position (used by Read and Write) for the file whose file
+handle (as returned by Open or Create) is handle to be at offset bytes from
+the beginning of the file (if flag is 0) or from the current position in the
+file (if flag is 1).  Subsequent Read or Write calls will begin their
+operations at this point (and will update the file position as usual).
+
+
+
+Inquire	Opcode 10
+
+Prototype
+int NVM_Bios( short opcode = 10, long *totspc, long *freespc )
+
+68000 Assembly
+Example
+	pea	freespc	; Ptr to ‘freespc’ variable somewhere in RAM
+	pea	totspc	; Ptr to ‘totspc’ variable somewhere in RAM
+	move.w	#10,-(sp)
+	bsr	NVM_Bios
+	adda.l	#10,sp
+
+Returns
+0 on success
+
+Purpose
+Inquires about the amount of space available on the cartridge.  The totspc
+parameter points to a long word which is filled in with the total amount of
+cartridge memory which may be used for applications (i.e.  the size of the
+largest possible memory block, assuming it is the only memory block on the
+cartridge).  The freespc parameter points to a long word which is filled in
+with the amount of cartridge memory currently free (i.e.  the size of the
+largest memory block which could be created at the present time).  (Note that
+the amount of free memory is not the only constraint on the Create call; even
+if there is sufficient space for a memory block, Create may return ENOSPC if
+there is no room left in the cartridge's table of contents.)
+
+
+
+Using The NV-RAM Simulator
+--------------------------
+The NV-RAM Simulator allows you to use an Alpine board plugged into your
+Jaguar CD-ROM development station to simulate a NV-RAM cartridge during the
+development process.  It provides the same functions for accessing NV memory
+as described in the previous section.
+
+The NV-RAM Simulator is normally located in the JAGUAR\NVRAMSIM directory.
+To use it, load the debugger and then type:
+
+	load nvmsim.db
+
+The NVRAM BIOS will be installed into your system and then control will
+return to the debugger.  At this point you may load and execute your main
+program.
+
+The Alpine board’s memory from $900000 to $91FFFF will be used to hold the
+cartridge data.  A sample disk image (full of files containing random data)
+is included with the simulator.  The file is called DISKIMG.IMG.  To load
+this file, type "read diskimg.img 900000" while in the debugger.  The
+debugger script NVMTEST.DB is also included.  It will load both the NV- RAM
+simulator and the sample cartridge files in one easy step.
+
+Keep in mind that the Alpine board’s memory switch must be set for “write
+enable” in order for the simulator to work.  Also keep in mind that any
+program or debugger script that clears DRAM below $4000 will erase the
+simulator from memory.
+
+Save Cartridge Manager
+----------------------
+If you hold down the "Option" key (and keep it held down) before typing the
+"load nvmsim.db" or “load nvmtest.db” command in the debugger, you will be
+presented with the Save Cartridge Manager screen.  This is a sample
+application which users will also be able to access in order to delete files.
+(Please note that the existence of the Save Cartridge Manager does not excuse
+individual applications from providing similar functionality themselves!!!).
+The Save Cartridge Manager uses the following keys:
+
+up arrow/down arrow
+Selects files
+
+A,B,C
+To delete a file
+
+OPTION
+To choose how to sort files
+
+OPTION + 1
+To save preferences in a file
+
+OPTION + 7 + 9
+To create a (dummy) file
+
+OPTION + * + #
+To erase all files
+
+OPTION + * + 0 + #
+To do a test of free memory
+
+* + #
+To exit the manager
+
+
+Once the Save Cartridge Manager has run, the BIOS will be copied to RAM (at
+$2400).  You can then reset the machine and load and run your own
+application.  The BIOS will remain in RAM until the machine is powered off.

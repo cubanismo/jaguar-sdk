@@ -1,0 +1,48 @@
+#====================================================================
+# Makefile that creates cd_samp.db cd_asamp.db
+# This is a very primitive use of Make!
+#====================================================================
+# FILES FOR A DATA READ SAMPLE PROGRAM
+#====================================================================
+# Note: You must change the path below to match your system.
+#       Also, change RENAME to 'rename' or 'mv' depending on your CLI.
+#====================================================================
+
+INC = g:/jaguar/inc
+RENAME = rename
+
+#====================================================================
+
+cd_samp.db: cd_samp.o cd_samp.ot makefile
+	aln -l -a 802000 x x cd_samp.o cd_samp.ot
+	filefix cd_samp.abs
+
+cd_samp.o: cd_samp.s cd.inc
+	mac cd_samp.s
+
+cd_samp.ot: cd_samp.gas
+	gasm -o -CGPU -R1 -I$(INC) cd_samp.gas
+	ltxconv -l -otgasm cd_samp
+	$(RENAME) tgasm.o cd_samp.ot
+
+# FILES FOR AUDIO SAMPLE PROGRAM
+
+cd_asamp.db: cd_asamp.o inout.oj makefile
+	aln -l -a 802000 x x cd_asamp.o inout.oj
+	filefix cd_asamp.abs
+
+
+cd_asamp.o: cd_asamp.s cd.inc
+	mac cd_asamp.s
+
+
+inout.oj: inout.das
+	gasm -o -CDSP -R0 -I$(INC) inout.das
+	ltxconv -l -ojgasm inout
+	$(RENAME) jgasm.o inout.oj
+
+
+#====================================================================
+#               EOF
+#====================================================================
+

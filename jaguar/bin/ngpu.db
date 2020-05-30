@@ -1,0 +1,395 @@
+#New script for new GPU/DSP context management, now internal to DB.
+
+#GPU/DSP defines
+define	GCPU	$fe
+define	DCPU	$fd
+define	LGADDR	gpc
+define	LDADDR	dpc
+define	GVERB	1	;# 0 means no verbose
+define	DVERB	1	;# 0 means no verbose
+
+procedure	lg	addr	range	;#GPU disassembly
+	local	oldcpu
+
+	set	oldcpu	discpu
+	set	discpu	GCPU
+	if	(`argc>=1)	set	LGADDR	addr
+	if	(`argc!=2)	l	LGADDR
+	if	(`argc==2)	l	LGADDR[range]
+	set	discpu	oldcpu
+	set	LGADDR	LGADDR+dissize
+.
+
+procedure	ld	addr	range	;#DSP disassembly
+	local	oldcpu
+
+	set	oldcpu	discpu
+	set	discpu	DCPU
+	if	(`argc>=1)	set	LDADDR	addr
+	if	(`argc!=2)	l	LDADDR
+	if	(`argc==2)	l	LDADDR[range]
+	set	discpu	oldcpu
+	set	LDADDR	LDADDR+dissize
+#:end
+.
+
+procedure	dispcc	cc
+	if (cc)		print -n CC:
+	if (cc&1)	print -n ZC
+	if (cc&2)	print -n ZS
+	if (cc&10)	goto N
+	if (cc&4)	print -n CC
+	if (cc&8)	print -n CS
+	goto		end
+#:N
+	if (cc&4)	print -n NC
+	if (cc&8)	print -n NS
+#:end
+	if (cc)		print
+.
+
+procedure	gdispcc
+	local	opcode dest
+	set	opcode	peek(gpc)>>2
+	set	dest	peek(gpc+1)&$1f
+	if	((opcode!=@53) & (opcode!=@52))	goto exit
+	lg	gpc+2	1
+	dispcc	dest
+#:exit
+.
+
+procedure	ddispcc
+	local	opcode dest
+	set	opcode	peek(dpc)>>2
+	set	dest	peek(dpc+1)&$1f
+	if	((opcode!=@53) & (opcode!=@52))	goto exit
+	ld	dpc+2	1
+	dispcc	dest
+#:exit
+.
+
+procedure	xg			;#GPU display regs
+	if	(GVERB==0)	goto	noverb
+	print	Current bank is -d ((gccr>>@14)&1)
+
+	print	-n	R00	-x08 gr0
+	print	-n		-x08 gr1
+	print	-n		-x08 gr2
+	print	-n		-x08 gr3
+	print	-n		-x08 gr4
+	print	-n		-x08 gr5
+	print	-n		-x08 gr6
+	print			-x08 gr7
+	print	-n	R08	-x08 gr8
+	print	-n		-x08 gr9
+	print	-n		-x08 gr10
+	print	-n		-x08 gr11
+	print	-n		-x08 gr12
+	print	-n		-x08 gr13
+	print	-n		-x08 gr14
+	print			-x08 gr15
+	print	-n	R16	-x08 gr16
+	print	-n		-x08 gr17
+	print	-n		-x08 gr18
+	print	-n		-x08 gr19
+	print	-n		-x08 gr20
+	print	-n		-x08 gr21
+	print	-n		-x08 gr22
+	print			-x08 gr23
+	print	-n	R24	-x08 gr24
+	print	-n		-x08 gr25
+	print	-n		-x08 gr26
+	print	-n		-x08 gr27
+	print	-n		-x08 gr28
+	print	-n		-x08 gr29
+	if (`version==4442)	print	-n		-x08 gr30
+	if (`version!=4442)	print	-n		"TRASHED!"
+	print			-x08 gr31
+
+	print	-n	A00	-x08 ga0
+	print	-n		-x08 ga1
+	print	-n		-x08 ga2
+	print	-n		-x08 ga3
+	print	-n		-x08 ga4
+	print	-n		-x08 ga5
+	print	-n		-x08 ga6
+	print			-x08 ga7
+	print	-n	A08	-x08 ga8
+	print	-n		-x08 ga9
+	print	-n		-x08 ga10
+	print	-n		-x08 ga11
+	print	-n		-x08 ga12
+	print	-n		-x08 ga13
+	print	-n		-x08 ga14
+	print			-x08 ga15
+	print	-n	A16	-x08 ga16
+	print	-n		-x08 ga17
+	print	-n		-x08 ga18
+	print	-n		-x08 ga19
+	print	-n		-x08 ga20
+	print	-n		-x08 ga21
+	print	-n		-x08 ga22
+	print			-x08 ga23
+	print	-n	A24	-x08 ga24
+	print	-n		-x08 ga25
+	print	-n		-x08 ga26
+	print	-n		-x08 ga27
+	print	-n		-x08 ga28
+	print	-n		-x08 ga29
+	print	-n		-x08 ga30
+	print			-x08 ga31
+#:noverb
+	lg	gpc	1
+	gdispcc
+	set	LGADDR	gpc
+.
+
+procedure	xd			;#DSP display regs
+	if	(DVERB==0)	goto	noverb
+	print	Current bank is -d ((dccr>>@14)&1)
+
+	print	-n	R00	-x08 dr0
+	print	-n		-x08 dr1
+	print	-n		-x08 dr2
+	print	-n		-x08 dr3
+	print	-n		-x08 dr4
+	print	-n		-x08 dr5
+	print	-n		-x08 dr6
+	print			-x08 dr7
+	print	-n	R08	-x08 dr8
+	print	-n		-x08 dr9
+	print	-n		-x08 dr10
+	print	-n		-x08 dr11
+	print	-n		-x08 dr12
+	print	-n		-x08 dr13
+	print	-n		-x08 dr14
+	print			-x08 dr15
+	print	-n	R16	-x08 dr16
+	print	-n		-x08 dr17
+	print	-n		-x08 dr18
+	print	-n		-x08 dr19
+	print	-n		-x08 dr20
+	print	-n		-x08 dr21
+	print	-n		-x08 dr22
+	print			-x08 dr23
+	print	-n	R24	-x08 dr24
+	print	-n		-x08 dr25
+	print	-n		-x08 dr26
+	print	-n		-x08 dr27
+	print	-n		-x08 dr28
+	print	-n		-x08 dr29
+	if (`version==4442)	print	-n		-x08 dr30
+	if (`version!=4442)	print	-n		"TRASHED!"
+	print			-x08 dr31
+
+	print	-n	A00	-x08 da0
+	print	-n		-x08 da1
+	print	-n		-x08 da2
+	print	-n		-x08 da3
+	print	-n		-x08 da4
+	print	-n		-x08 da5
+	print	-n		-x08 da6
+	print			-x08 da7
+	print	-n	A08	-x08 da8
+	print	-n		-x08 da9
+	print	-n		-x08 da10
+	print	-n		-x08 da11
+	print	-n		-x08 da12
+	print	-n		-x08 da13
+	print	-n		-x08 da14
+	print			-x08 da15
+	print	-n	A16	-x08 da16
+	print	-n		-x08 da17
+	print	-n		-x08 da18
+	print	-n		-x08 da19
+	print	-n		-x08 da20
+	print	-n		-x08 da21
+	print	-n		-x08 da22
+	print			-x08 da23
+	print	-n	A24	-x08 da24
+	print	-n		-x08 da25
+	print	-n		-x08 da26
+	print	-n		-x08 da27
+	print	-n		-x08 da28
+	print	-n		-x08 da29
+	print	-n		-x08 da30
+	print			-x08 da31
+#:noverb
+	ld	dpc	1
+	ddispcc
+	set	LDADDR	dpc
+.
+
+procedure	tg	addr	;#GPU trace
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	GCPU
+	if	(argc==0)	goto	once
+#:step
+	if	(gpc==addr)	goto	end
+	t
+	goto	step
+#:once
+	t
+#:end
+	set	ctxtcpu	oldcpu
+	xg
+.
+
+procedure	td	addr	;#DSP trace
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	DCPU
+	if	(argc==0)	goto	once
+#:step
+	if	(dpc==addr)	goto	end
+	t
+	goto	step
+#:once
+	t
+#:end
+	set	ctxtcpu	oldcpu
+	xd
+.
+
+procedure	gg	addr	;#GPU Go
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	GCPU
+	if	(argc==0)	goto	noaddr
+	g	addr
+	goto	end
+#:noaddr
+	g
+#:end
+	set	ctxtcpu	oldcpu
+.
+
+procedure	gd	addr	;#DSP Go
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	DCPU
+	if	(argc==0)	goto	noaddr
+	g	addr
+	goto	end
+#:noaddr
+	g
+#:end
+	set	ctxtcpu	oldcpu
+.
+
+procedure	hg	;#GPU halt
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	GCPU
+	halt
+	set	ctxtcpu	oldcpu
+	xg
+.
+
+procedure	hd	;#DSP halt
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	DCPU
+	halt
+	set	ctxtcpu	oldcpu
+	xd
+.
+
+procedure	zg	;#GPU skip
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	GCPU
+	z
+	set	ctxtcpu	oldcpu
+	xg
+.
+
+procedure	zd	;#DSP halt
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	DCPU
+	z
+	set	ctxtcpu	oldcpu
+	xd
+.
+
+procedure	bg	arg1 arg2	;#GPU Break
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	GCPU
+	if	(argc==0)	goto	zero
+	if	(argc==1)	goto	one
+	b	arg1 arg2
+	goto	end
+#:one
+	b	arg1
+	goto	end
+#:zero
+	b
+#:end
+	set	ctxtcpu	oldcpu
+.
+
+procedure	bd	arg1 arg2	;#DSP Break
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	DCPU
+	if	(argc==0)	goto	zero
+	if	(argc==1)	goto	one
+	b	arg1 arg2
+	goto	end
+#:one
+	b	arg1
+	goto	end
+#:zero
+	b
+#:end
+	set	ctxtcpu	oldcpu
+.
+
+procedure	nbg	arg1 arg2	;#GPU No Break
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	GCPU
+	if	(argc==0)	goto	zero
+	if	(argc==1)	goto	one
+	nb	arg1 arg2
+	goto	end
+#:one
+	nb	arg1
+	goto	end
+#:zero
+	nb
+#:end
+	set	ctxtcpu	oldcpu
+.
+
+procedure	nbd	arg1 arg2	;#DSP No Break
+	local	oldcpu
+
+	set	oldcpu	ctxtcpu
+	set	ctxtcpu	DDSP
+	if	(argc==0)	goto	zero
+	if	(argc==1)	goto	one
+	nb	arg1 arg2
+	goto	end
+#:one
+	nb	arg1
+	goto	end
+#:zero
+	nb
+#:end
+	set	ctxtcpu	oldcpu
+.

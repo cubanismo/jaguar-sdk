@@ -1,0 +1,50 @@
+*
+* parse.cnf
+* channel: pitchrange_a - pitchrange_b patch pitch_offset
+*
+* n = number_of_channels_to_be_used
+* (default is 8)
+
+
+
+*kick1
+9:	36 - 36 0	18
+ 
+*snare1
+9:	38 - 38 1	16  
+
+*chh
+9:	42 - 42	2	12
+
+*toms
+9:	43 - 53 3	8
+
+*synthbass1
+1:	0 - 127 4	7
+
+*synthbassL
+4:	0 - 127	5	0
+
+*synthbassR
+5:	0 - 127 6	0
+
+*stix
+9:	31 - 31	7	24
+
+*slap
+9:	28 - 28	8	27
+
+*kick2
+12:	36 - 36	9	18
+
+*snare2
+12:	38 - 38	10	16
+
+*mgun
+13:	0 - 127	11	0
+
+*step
+14:	0 - 127	12	0
+
+*stepr
+15:	0 - 127 13	0

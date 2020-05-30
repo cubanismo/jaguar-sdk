@@ -1,0 +1,27 @@
+
+			CHANGES TO ATARI JAGUAR FULSYN
+			==============================
+
+
+08/29/94 HMK	Added a new called volume called UEBERVOLUME which effects
+		the sound data right before it goes out to the DAC.
+
+11/20/94 HMK	Fixed problems with controller changes (pan, volume) not 
+		effecting the patch. 
+		Version 2.52
+
+12/01/94 PF/HMK	New module added: non looping, non interpolated fast 16 bit
+		compressed sampler. Module ID = $30.
+
+12/02/94 HMK	Jump Event Format changed so there is room for a back up of
+		the jump count so that nested loops work properly. NOTE: The
+		max loop number was reduced to 15. Infinite looping is still
+		possible.
+
+12/06/94 HMK	Fixed WaveTable module. Used to crash the synth when used
+		by the Score Player.
+		Version 2.53
+
+01/02/95 HMK	Fix in new do_dump. Infinite looping was not working
+		Version 2.55
+

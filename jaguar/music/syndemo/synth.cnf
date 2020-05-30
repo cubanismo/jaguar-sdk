@@ -1,0 +1,60 @@
+;----------------------------------------------------------------------------
+; This is a simple sample program to play a tune on the synth code.
+;
+; MODULE: SYNTH CONFIGURATION FILE
+; DESCR:  THIS FILE CONTAINS THE FULSYN CONIFGURATION (WHICH MODULES TO 
+;	  INCLUDE), GLOBAL VOLUME, SCLK etc.
+;
+;
+;	  COPYRIGHT 1992,1993,1994 Atari U.S. Corporation           	     
+;									      
+;         UNAUTHORIZED REPRODUCTION, ADAPTATION, DISTRIBUTION,               
+;         PERFORMANCE OR DISPLAY OF THIS COMPUTER PROGRAM OR               
+;         THE ASSOCIATED AUDIOVISUAL WORK IS STRICTLY PROHIBITED.          
+;         ALL RIGHTS RESERVED.
+;----------------------------------------------------------------------------
+
+;____________________________________________________________________________
+;	Configuration for Fulsyn. 
+;	To save DSP memory, turn only those module on which are needed.
+;____________________________________________________________________________
+
+	ON		equ	1
+	OFF		equ	0
+
+	FMSIMPLE_MOD	equ	OFF	; Voice type 8
+	FMCMPLX_MOD	equ	OFF	; Voice type 16
+	FMENV_MOD	equ	ON	; Voice type 4
+	WAVEFM_MOD	equ	OFF	; Voice type 24
+	WAVEFM2_MOD	equ	OFF	; Voice type 36
+	WAVETAB_MOD	equ	OFF	; Voice type 20
+	SMPL8_MOD	equ	OFF	; Voice type 28
+	SMPL16_MOD	equ	OFF	; Voice type 12
+	CSMPL16_MOD	equ	OFF	; Voice type 32
+	SMPLENV_MOD	equ	OFF	; Voice type 40
+	CSMPLENV_MOD	equ	OFF	; Voice type 44
+	FCSMP_MOD	equ	OFF	; Voice type 48
+;_____________________________________________________________________________
+; The following is for the note on/off modules. 
+; This section does not need to be edited.
+;_____________________________________________________________________________
+
+	WAVEFM_NOTE	equ	WAVEFM_MOD + WAVEFM2_MOD
+	FMCMPLX_NOTE	equ	FMCMPLX_MOD
+	FM_NOTE		equ	FMSIMPLE_MOD + FMENV_MOD
+	SMPL_NOTE	equ	SMPL8_MOD+SMPL16_MOD+CSMPL16_MOD+SMPLENV_MOD+CSMPLENV_MOD
+	WAVETAB_NOTE	equ	WAVETAB_MOD
+
+;_____________________________________________________________________________
+; SET GLOBAL & MIDI VOLUME 
+;_____________________________________________________________________________
+	GLOBALVOLUME	equ	$7fff
+	MIDIVOLUME	equ	$7fff
+	
+;_____________________________________________________________________________
+; SET SCLK
+;_____________________________________________________________________________
+	SCLKVALUE	equ	19
+
+;_____________________________________________________________________________
+;____________________________________EOF______________________________________

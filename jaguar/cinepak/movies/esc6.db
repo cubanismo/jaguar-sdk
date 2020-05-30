@@ -1,0 +1,8 @@
+echo "Reading player program..."
+aread endless.abs
+echo "Reading sync pattern into buffer..."
+read sync 3ffc0
+echo "Reading 6 chunk sequence from Star Wars escape into buffer..."
+read esc6.crg 40000
+g 4000
+

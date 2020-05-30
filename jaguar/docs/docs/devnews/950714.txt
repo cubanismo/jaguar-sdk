@@ -1,0 +1,132 @@
+============================================================================
+Jaguar Developer Weekly           July 14, 1995                  Vol.1, No.4
+============================================================================
+
+Error Recovery for CD Read Operations
+-------------------------------------
+To retry a CD_read operation that fails (i.e.  the CD_ptr routine returns an
+error result) while running in double-speed mode, the following steps should
+be performed:
+
+1)	Switch the CD to single-speed using the CD_mode call.
+
+2)	Switch the CD to double-speed using the CD_mode call.
+
+3)	Re-execute the CD_read call that failed.
+
+This should make error recovery reliable under all circumstances where it is
+actually possible (i.e.  the error is a "soft" error and the disc isn't
+actually damaged or defective.)
+
+
+
+Tool Updates
+------------
+The Jaguar Developers Kit tools and related files listed below have been
+updated in the last few weeks.  You can download the latest versions from the
+Atari Software Development BBS or from the Jaguar Developer library in the
+Atari Gaming forum on Compuserve.
+
+Jaguar Artwork Viewer — July 14, 1995.  This pacakge now includes a Windows
+Help file with online documentation for using the program.  For the complete
+package, download ARTWORK.ZIP.
+
+Jaguar Graphics Tool — July 7, 1995.  The previous version of this archive
+was missing the VBRUN300.DLL Visual Basic runtime library needed by the
+program.  If you don't already have this library installed for another
+programs you use, this update will fix the problem.  Download ARTWORK.ZIP.
+
+Jaguar Cinepak Utility — July 7, 1995.  A couple of small cosmetic glitches
+have been fixed.  Also the program now gives an error if the QuickTime movie
+you are trying to convert does not use Cinepak for video compression.
+Download JAGMAC.SEA using MacBinary on the Macintosh, or download to your PC
+and use a MacBinary-intelligent utility to transfer the file to your
+Macintosh.  Once you get the file to the Mac, JAGMAC.SEA is a self-extracting
+archive.
+
+WDB Debugger — June 30, 1995.  A problem was fixed where all your breakpoints
+were cleared when one was reached.  Also fixed is a problem loading and
+executing script files from the command line.  Download DBPC.ZIP
+
+CD Boot Emulator — June 23, 1995.  This is the CD Boot emulator described in
+the article later in this issue.  Download CDROM.ZIP.
+
+New 3D Library — June 13, 1995.  This is a new 3D Graphics library similar to
+the original Jaguar 3D library, but faster and with greater flexibility and
+better documentation.  Comes with a new utility for converting Autodesk 3D
+Studio object files into Jaguar 3D library format.  Download JAGLIB.ZIP for
+the complete package.
+
+
+
+CD Boot ROM Emulator For Alpine
+-------------------------------
+Atari now has a new CD Boot ROM emulator that loads into the Alpine board and
+emulates the boot process of the Jaguar CD, loading the boot code from the CD
+(or the CD emulator running on a Falcon030) and executing it in the same
+fashion as if you had created a bootable CD disc.  You can even boot directly
+from the CD Emulator!
+
+The CD Boot Emulator program is available online in the CDROM.ZIP archive.
+See the enclosed documentation for details about how to use it.
+
+
+
+Developer Kit Archive Roadmap
+-----------------------------
+The tools, sample source code, libraries, and other components of the Jaguar
+Developers Kit are updated frequently.  To keep track of what's new, see the
+file ROADMAP.TXT that is posted online on the Atari Software Development BBS
+and in the Jaguar Developer library in the Atari Gaming forum on Compuserve.
+This file is updated and reposted whenever any of the standard distribution
+archives from the Jaguar Developer's kit is updated.
+
+
+
+If you've missed previous issues...
+-----------------------------------
+then it's possible that we may not have a current fax number for you.  Just
+in case, please contact us with your current address, telephone and fax
+numbers.  Also, consider that the better solution would be to subscribe to
+the..
+
+
+
+Jaguar Developer Weekly Via EMAIL
+---------------------------------
+The preferred method for Atari to send out the Jaguar Developer Weekly is via
+EMAIL, but unfortunately, we don't have a database of everybody's EMAIL
+addresses.  If you have a current Internet or Compuserve EMAIL address,
+please send a message to mfulton@atari.com so that we can add you to the list
+of developers that receive the Jaguar Developer Weekly via EMAIL instead of
+fax.
+
+What you get each week will be the ASCII text of the issue, plus an online
+readable version.  We've been sending out TIF files of each page, but some
+people have had problems with this, so we are investigating the possibility
+of using something like Adobe Acrobat or Word Perfect Envoy to create an
+online version.  Let us know what you think.
+
+
+
+Normen is on Vacation
+---------------------
+Atari's Jaguar Developer Support Manager Normen Kowalewski is on vacation
+until July 18.  While he is absent, please contact Mike Fulton with any
+questions or problems you may have.  You may call Mike at (408) 745-8821, fax
+him at (408) 745-2088, or send email to mfulton@atari.com.
+
+
+
+New BBS Number
+--------------
+In order to improve reliability, the Atari Software Development BBS will be
+getting a new phone line soon.  This will be a direct line that doesn't go
+through the rest of Atari's phone system, so there should be fewer
+noise-related connection problems.
+
+The new number for the BBS will be (408) 541-9164.  But remember this number
+is not active yet!  The number will also be posted on the BBS itself at least
+a week in advance of the change, as well as in future issues of the Jaguar
+Developer Weekly.
+

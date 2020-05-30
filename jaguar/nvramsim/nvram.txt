@@ -1,0 +1,38 @@
+To use the Non-volatile RAM simulator, in RDBJAG type
+	read nvmsim.rom 802000
+	g 802000
+The NVRAM BIOS will be copied to RAM, and then the
+application will terminate with an illegal instruction
+and return to the debugger.
+
+Romulator memory from $900000 to $91ffff will be used
+to hold the hiscore cartridge data. A sample disk image
+(full of files containing random data) is provided as
+"diskimg.img"; to load this, type "read diskimg.img 900000"
+to the debugger.
+
+If you hold down the "Option" key (and keep it held down)
+before typing the "g 802000" instruction, you
+will be presented with the "Save Cartridge Manager"
+screen. This is a sample application which users will
+also be able to access to delete files (PLEASE NOTE
+THAT THE EXISTENCE OF THE SAVE CARTRIDGE MANAGER
+DOES NOT EXCUSE INDIVIDUAL APPLICATIONS FROM PROVIDING
+SIMILAR FUNCTIONALITY THEMSELVES!!!). The save
+cartridge manager uses the following keys:
+
+up arrow/down arrow	selects files
+A,B,C			to delete a file
+OPTION			to choose how to sort files
+OPTION+1		to save preferences in a file
+OPTION+7+9		to create a (dummy) file
+OPTION+*+#		to erase all files
+OPTION+*+0+#		to do a test of free memory
+*+#			to exit the manager
+
+Once the Save Cartridge Manager has run, the BIOS will
+be copied to RAM (at $2400). You can then reset
+the machine and load and run your own application.
+The BIOS will remain in RAM until the machine is
+powered off.
+

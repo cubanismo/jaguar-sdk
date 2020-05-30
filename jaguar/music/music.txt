@@ -1,0 +1,1379 @@
+		HITCHHIKER'S GUIDE TO THE ATARI JAGUAR SYNTH
+			   September 7, 1995
+			    - Confidential -
+	                   ATARI Corporation
+
+1.) Introduction
+
+This document is the latest of a series of documents on how to do music on
+the Atari Jaguar.  It describes which documents and which tools are
+available, contains release notes as well as some frequently asked questions.
+From now on this document will be frequently updated to inform you about the
+latest changes.  It also contains some information you might not find in any
+of the other documents.
+
+
+2.) Documentation
+
+	The following documents are available:
+
+	+ The Jaguar Synth - part of the developer doc.
+
+	+ Jaguar Music Driver - part of the developer doc.
+
+	+ Parse - MIDI File Parser - part of the developer doc.
+
+	+ Merge Utility - part of the developer doc.
+
+	+ Sndcomp Utility - part of the developer doc
+
+	+ A Complete Guide to Processing a MIDI File on the Jaguar
+	  - part of the latest developer doc & available on the BBS/Compuserve
+
+	+ Various Release Notes - part of the releases
+
+	+ This document
+
+
+3.) Jaguar Music Tools
+
+	The following tools/files are available:
+
+	fsxx_xx.das	Jaguar DSP Synthesizer
+
+	driver.s	Jaguar Music Driver - Example on how to load the Synth
+	                and to start a music score
+
+	sndtool.db	Jaguar Sound Tool - runs on the Jaguar and is used to
+	                create sound effects and patches
+
+	parse.exe	MIDI parser to convert MIDI Type 0 files into the
+	                Jaguar Synth Event format
+
+	merge.exe	Utility to merge parsed MIDI files
+
+	sndcmp.exe	Utility to compress a file containing 16 bit sample
+	                data
+
+	uncmp.exe	Utility to uncompress a compressed sample
+
+	stripaif.exe	Utility to convert an AIF file to a raw sample file
+
+	mkaif.exe	Utility to convert a raw sample file to an AIF file
+
+	wavefm.exe	Utility to create a Jaguar wave from from an AIF file
+
+	mono.exe	Utility to convert a stereo sample to mono
+
+	xnotes.exe	Utility to create a NOTES.CNF file for different
+			sampling rates.
+
+	demo		Directory containing a demo using some FM patches
+
+	SoundLib	A library of sound patches from Invision - contact
+	                Atari for more information
+
+
+4.) Status
+
+	Latest version numbers of Jaguar music tools:
+
+	fs02_55.das	2.55	(fulsyn - the Jaguar Synth)
+	sndtool.db	1.62    (Jaguar Sound Tool patch editor for fulsyn)
+	parse.exe	7.74
+	merge.exe	1.25
+	sndcmp.exe	1.2
+	uncmp.exe	1.2
+	stripaif.exe	1.3
+	mkaif.exe	1.1
+	wavefm.exe	1.1
+	mono.exe	1.0
+	xnotes.exe	1.0
+
+Most of these tools display their version number by simply calling the tool
+from the command line.  PARSE requires the '-v' option.  SNDTOOL displays its
+version number on the main screen.  FULSYN contains its version number in the
+file name.
+
+
+5.) Where to Start
+
+Have a look at the Syndemo inside the 'SYNDEMO' directory.  This is
+located within the JAGUAR\MUSIC directory when everything is installed
+normally.
+
+Next, look at the 'Complete Guide to Processing a MIDI file on the
+Jaguar'.  It will explain to you how all the different pieces link
+together (see Figure 1 in that document).  Here's a short overview:
+
+SYNDEMO - Directory containing main project-specific sources for synth demo.
+
+	STARTUP.S	- Jaguar standard startup code (initializes
+			  Jaguar hardware)
+
+	DRIVER.S	- Loads synth code into dsp, sets up timers & starts
+	                  the score player
+
+	SYNTH.S         - Contains patch data, includes samples & envelopes
+
+	SYNTH.CNF	- Specifies which synth modules are used
+
+	DEMO.MID	- MIDI file we want to play
+
+	PARSE.CNF	- Tells the parser which MIDI channels get mapped to
+	                  which patch #.  Allows you also to set the number
+			  of voices being used.
+
+	PATCHES		- Subdirectory containing all patch information
+
+FULSYN	- Directory containing source code of fsxx_xx.das
+          (Jaguar Synth)	
+
+	FSxx_xx.OJ	- Compiled version of the Jaguar Synth (Fulsyn).
+			  The "xx_xx" represents the version number.
+
+	FULSYN.INC	- Header file for files using the Jaguar Synth
+
+
+
+When you build the sample program, other files will created.  These
+include:
+
+	DRIVER.O:	Linkable object module derived from DRIVER.S,
+			FULSYN.INC, and SYNTH.CNF.
+
+	SYNTH.O:	Linkable object module derived from SYNTH.S,
+			FULSYN.INC, SYNTH.CNF, plus the contents
+	                of the files inside the PATCHES subdirectory.
+
+	FSxx_xx.O:	Linkable object module with Jaguar Synth.  The
+			demo programs use this from a global FULSYN
+			directory, but you may wish to create
+			project-specific FULSYN subdirectories and
+			change your MAKEFILE to match. 
+
+	DEMO.OUT:	Parsed MIDI music score data created by running
+			the file demo.mid through the PARSE utility, using the
+			parameters specified by the PARSE.CNF file.
+
+	DEMO.O:		Linkable object module derived by assembly of
+			the DEMO.OUT file.
+
+	TEST.COF:	Executable Jaguar program file derived from the
+			various source and data files.
+
+
+The patch files in the PATCHES directory were created using the Jaguar 
+Sound Tool, with a little bit of manual post-processing.  Each patch consists
+of several files of different types, depending on what sort of voice the
+patch is designed to use.
+
+Assuming the patch name is GUITAR, then you'd have some combination of
+the following files (depending on the patch type and what you've saved
+from the SOUND TOOL):
+
+GUITAR.PTC -- Sound Tool Patch file.  This is the native format of the
+Jaguar Sound Tool and is used to reload patches into the sound tool for
+further editing.
+
+GUITAR.JAF -- ASCII file with MADMAC source code for patch table
+information.  This is typically included into another source code file. 
+See SYNTH.S in the demo programs for an example.
+
+GUITAR.ENV -- Envelope information.  Also an ASCII file containing
+MADMAC source code information.  Not all voice types use an envelope.
+
+GUITAR.WFM -- Waveform information.  This is a binary file containing
+waveform defintion information.  Not all voice types require a waveform 
+definition.
+
+GUITAR.RAW -- Raw sample information, used if the patch uses an uncompressed
+sample voice type.
+
+GUITAR.CMP -- Compressed sample information obtained by passing GUITAR.RAW
+through the SNDCMP utility.  Used if the patch uses a compressed sample voice
+type.
+
+When you save a patch from the sound tool in ASCII format, the file created
+contains both the patch table information and envelope information (if 
+required by the patch).  Using a text editor, you must manually save each
+section out to separate files.  Look at the SYNTH.S file and files in the
+PATCH directory for an example of the desired format.
+
+The main reason the patch table and envelope are separated is to allow
+the envelope information to be moved into DSP RAM at runtime for optimal
+performance.  Looking at SYNTH.S reveals that the envelope information is
+included within a DSP code segment.  This segment is moved to the DSP 
+internal RAM at runtime by code within DRIVER.S.  The patch table 
+information, which is not accessed as frequently, is left in DRAM.
+
+The SYNTH.CNF file controls which voice types are active in the
+synthesizer.  You specify each voice type to be "ON" or "OFF" by using
+the equates in SYNTH.CNF, and then reassemble the synth source code so
+that it has the proper combination of voice modules enabled.
+
+After changing SYNTH.CNF file, always make sure the 'FSxx_xx.DAS' file
+is reassembled.  The demo file does this in the MAKEFILE.
+
+
+
+Usually you should not have to change 'driver.s'.  This file shows the proper
+way of how to setup Fulsyn.  Also, look at the comment in 'driver.s' on how
+to shut off Fulsyn.
+
+
+6.) Fulsyn - The Jaguar Synth
+
+Fulsyn is documented in the Library section of the Jaguar Development System
+Documentation under 'Music & Sound - The Jaguar Synth'.  There are twelve
+synthesis modules:
+	
+	- 6 sampler modules
+	- 3 FM modules
+	- A wavetable module
+	- 2 Waveforms with envelope modules
+
+Fulsyn is voice table driven.  Its main loop checks a voice table to see
+which voices are turned on.  Each voice table entry has a size of 20 longs.
+Its first entry is always the module type.  A value of '-4' means that the
+voice is turned off.  A value of '0' marks the end of the voice table.
+
+The main music score is played by the score player.  A timer interrupt
+routine is reading the music events (e.g.  note on) from the score buffer.
+It encodes the event and turns voices on/off or performs controller changes.
+A note on event contains voice number, patch number, frequency and velocity.
+Fulsyn copies the patch data from the patch table into the voice table and
+calculates the pitch and the volume.  If the voice number specified in the
+event is already turned on, Fulsyn will turn it off (voice gets stolen)
+before it copies the new patch data into the voice table.  This can lead to
+clicking problems.  Please keep this in mind when writing your music.
+
+Sound effects usually get written directly into the voice table.  The last
+value being written into the voice table (parameter 1) should be the voice
+(module) type which will cause the voice to be turned on.  Make sure that the
+voice is available (voice is turned off => has a value of [-4] in its first
+parameter) before you start copying your data.
+
+You will have to decide which voices get used by the score player and which
+voices are used for sound effects.  The MIDI parser allows you to specify a
+voice range.
+
+
+7.) Differences between Voice Table Entries and Patches
+
+There are some small differences between a patch and a voice table entry.
+You need to know about these differences when doing sound effects because
+there are certain things taken care off for you by the score player which you
+have to do yourself when doing sound effects.  For a complete list of voice
+table entries, check the Jaguar Synth chapter in your developer
+documentation.  The differences are:
+
+- Pitch: voice table contains frequency, patch contains pitch factor.  On a
+note on event the frequency of the note gets multiplied by the pitch factor
+of the patch.  The result will be stored in the voice table.  The pitch
+factor is in 23.8 format for samples and in 15.16 for internal waves.  So a
+factor of $1000 means no change to the frequency (multiply by 1.0).
+
+- Volume: voice table contains actual volume ($0000 - $7fff) where patch
+contains volume factor.  On a note on event the velocity of the note gets
+multiplied by the volume factor.  The result will be stored in the voice
+table.  The volume factor is in 15.8 format.  So a factor of $100 means no
+change to the volume (multiply by 1.0).
+
+- FM Envelope Patch: end of envelope is stored in the 15th long.
+
+- Waveform Patch: end of envelope end is stored in the 10th long.
+
+- Looping: a looping voice loops until its loop flag gets cleared.  That
+usually happens when a note off event occurs.  Fulsyn will then copy the end
+of envelope/sample into the end of loop.  If you are doing a sound effect and
+want to stop looping, you have to do the same thing in your code.  You have
+to clear the loop flag in the voice table and copy the end of envelope/sample
+into the end of loop.  Note: this does not apply for slope/destination
+envelopes since looping there means staying at the sustain point.
+
+- FM Sounds: the ratio mode flag is only interpreted by the score player (in
+a patch).  If you do a sound effect you have to calculate the frequency
+yourself:
+
+	t1 = pitch * frequency.integer_part
+
+	t2 = pitch * (frequency.fractional_part >> 5) / $800
+
+	frequency_ratiomode = t1 + t2
+
+
+8.) Summary of Main Changes since April 1994
+
+8.1) Fulsyn
+
+- Includes controller changes for pitch bend, volume and pan.  In a patch
+volume and pitch are now multiply factors (see Jaguar Synth Doc - Music Event
+Format).
+
+- There are new synth modules:
+
+	- Sampler with Slope/Dest. Env. (see Jaguar Synth Doc.)
+
+	- Compressed Sampler with Slope/Dest. Env. (see Jaguar Synth Doc.)
+
+	- Waveform with Slope/Dest. Env. (see Jaguar Synth Doc.)
+
+	- Non-looping, non-interpolated compressed sampler
+	  (see Release Note 12-08-94)
+
+- WaveTable module got fixed. Now also works from the score player.
+
+- In order to allow nested loops to work, the loop count was reduced to 15.
+Infinite looping is still possible.  The event format for that was changed
+(see Release Note 12-08-94).
+
+- VOLUME and UEBERVOLUME were added. (See Release Notes 09-01-94, FAQ)
+
+- The music driver 'test.s' got split into 'driver.s' and 'synth.s'.
+'Driver.s' now just contains the driver while 'synth.s' contains the patch
+data and the voice table.
+
+- The file name of the synth was changed from 'fulsyn.das' to 'fsXX_XX.das'
+where XX_XX represents the version number.
+
+
+8.2) Parse & Merge
+
+- Merge was added. See FAQ.
+
+- Parser reads 'parse.cnf' and 'notes.cnf'.
+
+	PARSE.CNF - MIDI channel to Jaguar Patch Translation. Format:
+
+	midi_channel:  begin_note_range  -  end_note_range  jag_patch  pitch_offset
+
+	Allows you also to set the number of uses to be used:
+
+		n = x
+	
+	Example:
+		* This is a comment
+		n = 4		* Set number of voices to 4
+		0: 0 - 127 3	0
+		1: 36-36   1	-5
+		1: 18-40   0	24
+
+	NOTES.CNF - Frequency Table. Format:
+		#define NOTE_STR	freq
+	Example:
+		#define Note_C0	52
+
+- Parser supports pitch bend as well as pan & volume controller changes
+
+- Many options have been added to parse. Here's a complete list:
+	-v	Print version number
+	-d	Turn debug mode on, additional information gets included in
+		the '.out' file
+	-q	Quite mode, don't print event messages
+	-k	Override event dropping if channel is not specified in 'parse.cnf'
+	-o fn	Specifies out put file name (fn)
+	-x a	Sets voice offset to (a). Start at voice (a)
+	-n b	Sets number of voices to (b)
+	-z c 	Sets volume scale down factor to (c)
+
+
+8.3)  SoundTool
+
+- MIDI support was added.  Contact Atari Developer Support for more
+information about the MIDI interface for the Alpine board.  Allows you to try
+the sounds you create with the SoundTool using your MIDI keyboard.
+
+- Support for the Sampler/Envelope was added.
+
+- The main page got changed.  You can't access the last row of buttons with
+the cursor anymore.  Instead you just press the button number indicated in
+the last row when any of the voice rows is selected.  Button '3' saves all
+voices in binary format.  Button '4' loads a binary file.  Button '5' saves
+the currently selected voice in ASCII format.  It will ask you if you want it
+to get saved as a sound fx or a patch.
+
+- WaveTable User Interface:
+
+	'C' button changes the current instruction
+	'#' button appends instruction after current instruction
+
+
+
+
+9.) Frequently Asked Questions
+
+Q: The synth crashes while playing music.
+
+A: Check 'synth.cnf' and make sure all modules you are using in your patches
+(like CSAMP_ENV) are also turned on in the 'synth.cnf' file.  When you made
+changes to 'synth.cnf' make sure that 'fsxx_xx.das' got recompiled.  If you
+use compressed samples and include them using the '.incbin' statement, make
+sure you have '.even' statements in-between.
+
+
+
+Q: The music crackles.
+
+A: Check the global variable TIMELEFT using the debugger (type 'dl
+.TIMELEFT'; values range from 0 - $A8).  If it gets down to 0 you are using
+too much DSP time.  Try to cut back on the number of voices.  If samples
+crackle, the DSP might not get out to the bus in time to grab the next
+sample.  You should insert a couple objects in your object list with the
+release bit set .  See Atari's Technical Note about this issue.  If there is
+enough room left in the DSP you can put your patches into DSP RAM.  Please
+keep in mind that turned off voices also take a few time units (~ 2).  Set
+the end of the voice table to the actual maximum number of voices you are
+using.  Make sure your envelopes are in DSP RAM.
+
+
+
+Q: My samples sound strange.
+
+A: Check to see if you use the right sampler module.  Make sure that for
+compressed samples you use the compressed sampler (check the patch).  If you
+use compressed samples and include them using the '.incbin' statement, make
+sure you have '.even' statements in-between.  Do not put samples into the DSP
+RAM since the DSP can access DSP RAM only 32 bit wide.
+
+
+
+Q: When playing music, some notes get stolen.
+
+A: When a MIDI file gets parsed the parser does not know how long the release
+time of a certain note lasts.  When turning a note on, the parser will use
+the voice which was turned off the longest time ago.  Because of that it's
+unlikely that you run into that problem.  If you do, try to rearrange your
+music or shorten the release time of that patch.  Or you can use the merge
+utility to protect certain voices.
+
+
+
+Q: What is the purpose of the merge utility?
+
+A: The merge utility merges parsed MIDI file (*.out).  It's useful if you
+want to make sure that a certain voice will never get stolen.  For example,
+let's say you have a heart beat sound going and want to protect that voice.
+You then would create a separate MIDI file for the heart beat and set the
+number of voices to 1 (parser option -n 1).  The parsed file will only use
+voice 0.  Next, you parse the MIDI file containing your music.  Using the '-x
+1' option you tell the parser to start with voice 1, so that the new parsed
+file will not use voice 0.  Use the '-n' option again to specify the number
+of voices.  Now that you have two parsed MIDI files you can merge them
+together to one file using the merge utility.
+
+
+
+Q: My controller changes don't effect the right channels.
+
+A: The parser does not use the 'parse.cnf' file for controller changes
+(including pitch bend).  The channel number in your controller change has to
+be set to the number of the Jaguar patch you want to effect, which is the 4th
+parameter of a line in the 'parse.cnf' file.
+
+
+
+Q: I have a voice table with more then 8 voices, but I can't hear voices >8.
+
+A: The event format for music only allows eight voices.  So the maximum
+number of voices being used by the parser is 8.  On the other hand, sound
+effects can be put into the voice table above voice 8.
+
+
+
+Q: My sound effects sound strange.
+
+A: If they are FM sounds and use ratio mode, check if you calculate the
+frequency.  Do not use 68000 pre-decrement instructions [move.l -(a0), -(a1)]
+to copy your data into the voice table (DSP RAM).  A few 68000 instructions
+have an address word swap problem.  Another one of these instructions is
+'clr.l'.
+
+
+
+Q: How do I protect my sound effects from the music?
+
+A: Use the '-n' option of the parser to set the number of voices.  The
+remaining voices of your voice table can then be used for sound effects.  For
+example, your music uses 5 voices and your voice table is set up for 8
+voices.  Voices 5, 6, and 7 can be used for sound effects.
+
+Q: What does the message 'Warning: Channel x not specified in PARSE.CNF.
+Event dropped' generated by the parser mean?
+
+A: In the 'parse.cnf' file you have to specify how the parser should
+translate MIDI channels to Jaguar patch numbers.  It also allows you to
+specify a note range for a channel.  So depending on the note, a MIDI channel
+could be translated to a different Jaguar patch.  Anyway, the message means
+that a MIDI channel used in a Note On event was not specified.  For testing
+purposes you can override the event dropping by using the '-k' option.
+Channel 'x' will then be translated to patch 'x'.
+
+
+
+Q: I have problems with my parsed MIDI files.
+
+A: Reparse them using the '-d' (debug) option.  The parser will include
+additional information in the '.out' file which will help you finding the
+problem.
+
+
+
+Q: The loops in my MIDI files don't work correctly.
+
+A: Remember, the maximum number for loop count is 15 times.  Any number
+higher than that specified in your controller will lead to infinite looping.
+If you want infinite looping though, please use a loop count of 127 to be
+consistent.  In order for the looping to work correctly, controller 13 has to
+be followed by controller 14 immediately.  Check your '.out' file to make
+sure there are no other events in-between.  Also, they have to be in the
+exact order, first controller 13 and then controller 14.
+
+
+
+Q: What is the difference between VOLUME and UEBERVOLUME
+
+A: VOLUME only effects the music which is played by the score player.
+UEBERVOLUME effects all voices, including sound effects.  For VOLUME please
+keep in mind that only new Note On events are effected.  If you change VOLUME
+and have long sustaining notes already turned on, they will continue to play
+with their original volume.  UEBERVOLUME effects the volume right before it
+goes to the DAC.  Here is a small flow chart:
+
+Note On:
+
+	V1= Velocity of Note * Volume in Patch
+			|
+		V1 = VOLUME * V1
+			|
+	V1 gets written into the voice table
+			|
+		V1 = V1* UEBERVOLUME
+			|
+		    Out to DAC
+
+Sound Effect:
+
+	V1 = Volume gets directly written into voice table
+			|
+		V1 = V1 * UEBERVOLUME
+			|
+		    Out to DAC
+
+
+
+Q: What is the maximum volume factor in a patch?
+
+A: Assuming you have a velocity of 127 and MIDIVOLUME & UEBERVOLUME are both
+set to $7fff (= max.), then the maximum volume multiplier value you can put
+into a patch is $3ff.  This will result in a volume of $7edc.  Please keep in
+mind that the sum of all turned on voices' volume must not exceed $7fff.
+
+	 VOICE VOLUME =  (VELOCITY * 64) * (MIDIVOLUME / 32767)  *
+		(PATCH_VOLUME / 256)  *  (UEBERVOLUME / 32767)	
+
+
+
+
+
+
+Jaguar Sound & Music Utilities  -- Documentation & changes log
+--------------------------------------------------------------
+March 24. 1995
+--------------
+
+
+FULSYN Jaguar Synthesizer
+-------------------------
+
+    v2.55, January 26, 1995
+    -----------------------
+    There was a problem in the controller changes (pan, volume, pitch bend).
+    They were always only effect patch #1.  This has been fixed.  Pitch bend
+    had an additional problem.  It does a correct right shift now for non
+    sampler modules.
+
+
+    v2.54, January 11, 1995
+    -----------------------
+    The infinite looping in the score player did not work in version 2.53.
+    This got fixed.
+
+
+    v2.53, December 5, 1994
+    -----------------------
+    There is a new sampler module which has been especially designed for
+    sound effects.  This sampler is a one shot, no looping, non interpolated
+    sampler.  The sample will only sound exact at its original pitch.  The
+    advantage is that it is very fast.  It uses only 12 to 13 time units.
+    The sampler is a 16 bit compressed sampler and it is mend for one shot
+    samples like sound effects and percussion instruments.
+
+    The new module looks like this:
+
+	Offset (longs)    Description
+	------            -------------
+	  0               Voice Type (48) [16 bit compressed one shot]
+
+	  1               Volume
+
+	  2               Pointer to sample.
+
+	  3               Pitch (only multiples of $1000 (* for patches)
+                          will sound exact, other pitches might add noise.
+
+	  6               Reset to zero.	
+
+	  8               End of sample.			
+
+	  19              Pan value.	
+
+    The maximum loop count has been reduced to 15.  For details see the notes
+    on the PARSE utility.
+
+    BUG FIXES --- A problem in the WaveTable module got fixed.  It is now
+    possible to use the WaveTable module from the score player.
+
+
+
+    v2.5
+    ----
+    NEW FEATURES --- There is a new volume parameter called UEBERVOLUME
+    (overall volume).  The MIDI VOLUME parameter works on a 'note on' basis.
+    That means, only newly turned on notes will be effected by a change of
+    VOLUME.  Sustaining notes will continue to play with their 'old' volume.
+    UEBERVOLUME instead affects all voices immediately because it gets
+    applied right before the sounds are written to the DAC.  UEBERVOLUME gets
+    initialized to zero.  In order to hear something it has to be set to a
+    nonzero value.
+	
+    CHANGES --- In order to make the example of the music driver simpler,
+    many of the files changed.  The idea was to cut down the number of files
+    a user has to edit.  'Test.s' has been split into 'driver.s' and
+    'synth.s'.  'Driver.s' does the Fulsyn initalization and does NOT have to
+    be edited.  'Synth.s' contains the patches, samples, the voice table (*),
+    user waveforms (*), envelopes (*) and wave table instructions (*) (*=
+    used to be in 'tables.das').  The samples don't have to be added to the
+    makefile anymore since the new 'incbin' command of MAC is used to include
+    them into 'synth.s' (please make sure that you use the latest versions of
+    the tools).  There is another file called 'synth.cnf' to configure which
+    synth modules will be used.  Also, the global VOLUME and SCLK are defined
+    there.  Note that the 'makefile' still has to be edited when more than
+    one MIDI file is used (using of the 'merge' utility).
+
+    BUG FIXES --- Unfortunately there were problems with the Sampler/Envelope
+    module.  Because of that, the format of the envelope had to be changed.
+
+	Old Format			New Format
+	----------			----------
+	[ $1                   ]        [ $10000               *]
+        [ $1                   ]        [ $1                   *]
+	[slope (in 15.16)      ]	[slope (in 15.15)       ]
+	[destination (in 15.16)]	[destination (in 15)    ]
+	[slope                 ]	[slope                  ]
+	[destination           ]        [destination            ]
+	...                             ...
+	[ $0                   ]        [ $0                    ]
+	[ $7FFFFFFE            ]        [ $20000                ]
+
+    *= The first slope/destination pair has to be always set to $10000/$1.
+
+    If you have already created enevlopes you have to update them.  This can
+    be done by using a text editor or by remaking them using the SndTool.
+    The initial slope has to be set to $10000.  The last destination has to
+    be changed to $20000.  All other slopes have to be shifted by 1.  All
+    other destinations have o be shifted by 16.
+
+    Example:
+
+	Old Envelope:
+ 	.dc.l   $00000001, $00000001, $00019659, $75300000
+        .dc.l   $FFFF679F, $3A980000, $FFFFFFFE, $3A980000
+        .dc.l   $00000000, $7FFFFFFE
+
+	New Envelope:
+ 	.dc.l   $00010000, $00000001, $0000CB2C, $00007530
+        .dc.l   $FFFFB3CF, $00003A98, $FFFFFFFF, $00003A98
+        .dc.l   $00000000, $20000
+
+    Also, two change have to be applied to the patch.  The initial slope has
+    to be set to $10000 instead of $1 and the release slope has to be shifted
+    right by one.
+
+	Old Patch:
+        .dc.l   $0000002C       ; Compressed Sample/Envelope
+        .dc.l   $80000400       ; Loop Flag / Volume ($400 -> times 4.00)
+        .dc.l   string          ; Ptr to sample
+        .dc.l   $00001000       ; Pitch (no change)
+        .dc.l   $004D8500       ; End of loop
+        .dc.l   $00338400       ; Loop negth
+        .dc.l   $00000000       ; Reset to zero
+        .dc.l   $00000000       ; Reset to zereo
+        .dc.l   $004D8500       ; End of sample
+        .dc.l   strenv          ; Ptr to envelope
+        .dc.l   $FFFD8139       ; Release slope    [ -> shift right by 1 (asr)]
+        .dc.l   $00000001       ; Current value (set to 1)
+        .dc.l   $00000001       ; Current slope (set to 1)   [-> set to $10000]
+        .dc.l   $00000001       ; Current destination (set to 1)
+        .dc.l   $00000000
+        .dc.l   $00000000
+        .dc.l   $00000000
+        .dc.l   $00000000
+        .dc.l   $00000000
+        .dc.l   $00003FFF       ; Pan
+
+	New Patch:
+        .dc.l   $0000002C       ; Compressed Sample/Envelope
+        .dc.l   $80000800       ; Loop Flag / Volume ($800 -> times 8.00)
+        .dc.l   string          ; Ptr to sample
+        .dc.l   $00001000       ; Pitch (no change)
+        .dc.l   $004D8500       ; End of loop
+        .dc.l   $00338400       ; Loop negth
+        .dc.l   $00000000       ; Reset to zero
+        .dc.l   $00000000       ; Reset to zereo
+        .dc.l   $004D8500       ; End of sample
+        .dc.l   strenv          ; Ptr to envelope
+        .dc.l   $FFFEC09C       ; Release slope (got right shifted by 1 (asr))
+        .dc.l   $00000001       ; Current value (set to 1)
+        .dc.l   $00010000       ; Current slope (set to $10000)
+        .dc.l   $00000001       ; Current destination (set to 1)
+        .dc.l   $00000000
+        .dc.l   $00000000
+        .dc.l   $00000000
+        .dc.l   $00000000
+        .dc.l   $00000000
+        .dc.l   $00003FFF       ; Pan
+
+
+
+    v2.2, August 4, 1994
+    --------------------
+    DIFFERENCES -- The most important difference to earlier versions is that
+    the complex FM module has been removed.  This was done to keep Fulsyn at
+    the same size while adding three new modules.
+
+    Also, the way volume is handled in the patch table is different.  Since
+    Fulsyn now supports MIDI volume control the velocity is multiplied by the
+    value in the patch table.  The value is in 23 bit integer and 8 bit
+    fractional format (so $100 is 1.0).  All other differences are mainly new
+    features.
+
+    Check your old Fulsyn on how it handled the patch table.  In earlier
+    versions it was hard coded at $40000.  Newer versions use a pointer
+    called `PATCHLOC'.
+
+    NEW SUPPORTED MIDI COMMANDS --- The MIDI parser and Fulsyn now support
+    the following MIDI controller changes:
+
+	- Main Volume (control number 7)
+	- Pan (control number 10)
+	- Pitch Bend (channel voice message $En)
+
+    For further information about these MIDI commands refer to the general
+    MIDI documentation.  There is no extra work involved in using these
+    commands.  The MIDI parser automatically translates them into Fulsyn
+    events.
+
+    NEW EVENT TYPE:
+
+	010 CONTROLLER CHANGE:    010V|VVPP|PPPF|CCCC|CNNN|NNNN|NNNN|NNNN
+
+	V|VV = voice number
+	PP|PPP = Patch Number
+	F = Flag to change the base patch
+	CCCC|C = Controller code (0-31)
+	NNN|NNNN|NNNN|NNNN = value
+
+    Controllers are:
+
+	Volume		 7
+	Pitch Bend	 9
+	Pan		10
+
+
+    NEW SYNTH TYPES --- There are two new synth types: SIMPMOD2 and SAMPLER2.
+    Both use a new type of envelope.  SIMPMOD2 is a wave form module while
+    SAMPLER2 is a sampler module using a volume envelope.  The SAMPLER2 comes
+    in two versions, one for uncompressed and one for compressed samples.
+
+    Envelope description:
+
+    The new envelope for the waveform and sampler modules is a basic
+    slope-destination, time envelope.
+
+    The Amplitude information is about the current point and the Time is the
+    amount of time it takes to get from the previous point's amplitude to
+    this point's amplitude.
+
+    Sample envelope:
+
+	dc.l		$10000		; slope 0 (this is to prevent spikes)[updated]
+	dc.l		$1		; dest. 0 (this is to prevent spikes)
+	dc.l		99859		; slope 1 (in 15.15 format) [updated]
+	dc.l		2097152000	; dest. 1 (in 15.15 format)
+	dc.l		-99859		; slope 2
+	dc.l		1		; dest. 2
+	dc.l		49929		; slope 3
+	dc.l		2097152000	; dest. 3
+	dc.l		0		; slope 4
+	dc.l		$20000		; dest. 4 - sustain point [updated]
+
+
+    In the SNDTOOL: You can add points by pressing 1 while in the envelope
+    window and delete points by pressing 4.  To move from point to point hold
+    down C and move the joypad.
+
+    The two parameters that are available to the user are: 	
+
+			Amplitude (0-32767)
+			Time (0~2,000,000,000) ms
+
+    The points can be moved forward and backward in time, or up and down in
+    amplitude by using the joypad.
+
+    The information ( Amplitude, and Time ) about each point are updated as
+    the points are moved.
+
+
+
+    WAVEFORM 2 MODULE
+
+	OFFSET (longs)  Description
+        ------          -----------
+	0		Voice type (36)
+	
+	1		Pointer to Waveform. Must be on 512 byte
+			boundary. For performance it should be in
+			internal DSP memory.
+	
+	2		Release slope. This is a 15.15 number.
+
+	3		Reset to zero.
+
+	4		Pitch given as the step size, in samples as a
+			15.15 number.
+
+	5		Pointer to envelope (slope-dest. envelope).
+			Must be on long (32 bit) boundary. For
+			performance it should be in internal DSP memory.
+
+	6		Loop flag is the high bit, the rest is the
+			volume as a 23.8 number. (in the patch table.
+			In the voice table the volume is a 15 bit number).
+
+	7		Current value (set to 1).
+
+	8		Current slope (set to $10000).
+
+	9		Current destination (set to 1).
+
+	19		Pan Value. 0 is full right, $3fff is balanced,
+			$7fff is full left.
+
+
+    SAMPLER/ENVELOPE MODULE
+
+	OFFSET (longs)	Description
+        ------          -----------
+	0		Voice type (40, 16 bit; 44, 16 bit compressed)
+
+	1		High bit is the loop flag. The low 15 bits
+			are the volume as a 23.8 number (in the
+			patch table. In the voice table the volume
+			is a 15 bit number).
+
+	2		Pointer to Sample Must be on a word (sample
+			size) boundary outside of internal DSP memory.
+
+	3		Pitch. Given as the size of a step in samples
+			as a 23.8 number.
+
+	4		End of loop in samples as a 23.8 number.
+
+	5		Loop length in samples. This is a 23.8 number.
+
+	6		Reset to zero.
+
+	8		End of sample. This is a 23.8 number.
+
+	9		Pointer to envelope (slope-dest. envelope).
+
+	10		Release slope. This is a 15.15 number.
+	
+	11		Current value (set to 1).
+
+	12		Current slope (set to $10000).
+
+	13		Current destination (set to 1).
+
+	19		Pan Value. 0 is full right, $3fff is balanced,
+			$7fff is full left.
+
+
+
+Jaguar Sound Tool (FULSYN Patch Editor)
+---------------------------------------
+
+    v1.62, January 26, 1995
+    -----------------------
+    The following problems got fixed:
+
+    * Loading non-looping AIFF samples
+
+    * When doing a 'SAVE PATCH' there is an additional button in the dialog
+    box ('R-PATCH') which will save FM ratio mode patches in a different
+    format.
+
+
+    v1.60, January 11, 1995
+    -----------------------
+    The wave table module reset the 'loop to' back to 0 each time it was
+    entered.  That has been fixed.
+
+    The calculation of the frequency of FM modules in ratio mode when saved
+    as a sound effect (ASCII - Save Patch Function) was wrong.  This has been
+    fixed.  Also, there is no more header in the saved ASCII files since it
+    wasn't used anyway.
+
+
+    v1.58, December 5, 1994
+    -----------------------
+    The following problems got fixed:
+
+    - stuck notes using the MIDI interface
+
+    - clicking at the end of loaded samples (especially AIFF)
+
+    - saving WaveTable instructions
+
+    - WaveTable User Interface:
+
+	+ 'C' Button changes the current instruction
+
+	+ '#' Button appends new instruction after current instruction
+
+	This will speed up writing WaveTable code.  After creating an
+	instruction you don't have to go back to the command box to get it
+	into the list of instructions.  Sorry, no MIDI support for WaveTable
+	yet.
+
+	- 8 bit sampler works again (including MIDI support)
+
+    - PATCH (ASCII) Saving:
+
+	A dialog box appears now which will ask you if you want to save the
+	patch as a sound effect or as a patch.  Sound effects have the voice
+	table pitch as well as the voice table volume.  Patches get saved
+	with a pitch of $1000 and a volume of $100.  Also, the frequencies of
+	FM patches when in ratio mode are different.  That's because the
+	Synth's MIDI player does the ratio calculation for the patch while
+	sound effects already have to have the calculated frequency.
+
+
+    v1.32, September 1, 1994
+    ------------------------
+    This version of the SndTool adds real time MIDI.  A hardware MIDI
+    interface which connects to the Alpine board is required.  Contact Atari
+    developer support to get more information about this inferface.
+    Currently the following modules of the SndTool have support for real time
+    MIDI:
+
+	- FM Simple
+	- FM Envelope
+	- Waveform/Envelope
+	- Sampler/Envelope
+	- 16 bit Sampler
+
+    ENVELOPES --- The internal handling of the envelopes has been updated.
+    There is now room for 8 envelopes in DSP RAM, so one envelope per voice.
+    Each voice can select one out of 8 envelopes.  Because of that
+    slope/dest.  and x envelopes don't have to share the same memory anymore.
+    So in total there are 8 slope/dest.  envelopes and 8 x envelopes.
+
+
+    v1.31, September 1, 1994
+    ------------------------
+    The SoundTool has been changed to work with the updated envelope of the
+    Sampler/Envelope module.  It is also able of loading files created with
+    older versions of the SoundTool.  If you used version 1.25 or 1.26 you
+    need a utility called 'LOADFIX' to convert them to a newer format.
+
+    NOTE: If you are using FM modules and set the frequency mode to 'Ratio'
+    your patch will only play correctly when played throguh the Fulsyn MIDI
+    driver.  If you use the patch as a sound effect and write the data
+    yourself into the voice table you have to recalculate the frequency in
+    order to achieve 'Ratio' mode.
+
+	t1 = pitch * freq.integer_part
+
+	t2 = pitch * (freq.fractional_part >> 5) / 2048
+	
+	freq = t1 + t2				(now in ratio mode )
+
+
+    v1.27, July 28, 1994
+    --------------------
+
+    NEW SYNTH MODULE --- There is a new synth module: SAMPLER/ENV.
+    SAMPLER/ENV is a sampler module using a volume envelope.  It uses a new
+    type of envelope.  Envelope description:
+
+    The new envelope for the waveform and sampler modules is a basic
+    slope-destination, time envelope.
+
+    The Amplitude information is about the current point and the Time is the
+    amount of time it takes to get from the previous point's amplitude to
+    this point's amplitude.
+
+    Sample envelope:
+
+	dc.l		$10000		; slope 0 (this is to prevent spikes)
+	dc.l		1		; dest. 0 (this is to prevent spikes)
+	dc.l		99859		; slope 1 (in 15.15 format)
+	dc.l		2097152000	; dest. 1 (in 15.15 format)
+	dc.l		-99859		; slope 2
+	dc.l		1		; dest. 2
+	dc.l		49929		; slope 3
+	dc.l		2097152000	; dest. 3
+	dc.l		0		; slope 4
+	dc.l		$20000		; dest. 4 - sustain point
+
+
+    USER INTERFACE --- You can add points by pressing 1 while in the envelope
+    window and delete points by pressing 4.  To move from point to point hold
+    down C and move the joypad.
+
+    The two parameters that are available to the user are: 	
+
+		Amplitude (0-32767)
+		Time (0~2,000,000,000) ms
+
+    The points can be moved forward and backward in time, or up and down in
+    amplitude.
+
+    The information ( Amplitude and Time ) of each point are updated as the
+    points are moved.
+
+    The user interface for the envelope in FM/ENV and WAVEFORM was also
+    changed to match the user interface in SAMPLER/ENV.  Of course, there it
+    is not possible to change the time of a point.  Only the y coordinate of
+    a point can be changed.
+
+    There are still only five envelopes to be used.  So if you create one in
+    the SAMPLER/ENV module it will look different in the FM/ENV or WAVEFORM
+    module.  So assign some envelopes to be used with SAMPLER/ENV and others
+    to be used with FM/ENV or WAVEFORM.
+
+   WAVE TABLE -- Since the new Fulsyn needs more space the number of
+    wavetable instructions had to be cut back.  There can be 29 sustain and
+    29 release instructions.
+
+
+
+Jaguar Music Driver
+-------------------
+
+    v1.1, March 24, 1995
+    --------------------
+    Older versions of the DRIVER.S file used the 68000 to write to the
+    D_FLAGS DSP register with the intention of shutting down the DSP.
+    However, as has been said elsewhere, this is not reliable.  There is a
+    new version of DRIVER.S now included with the Jaguar Synth & Music driver
+    distribution which no longer does this.
+
+    Please check your synth driver code to make sure it does NOT contain a
+    line reading like:
+
+	move.l	#0, D_CTRL
+
+    The most likely location for this is at the top of the DRIVER.S file.
+    This is an attempt to turn off the DSP, which does not work properly
+    anywhere but from DSP code.  Look into the new version of the "driver.s"
+    file for example code on how to shutdown and restart the synth.
+
+
+    v1.0, September 1, 1994
+    -----------------------
+    The loading of the SYNTH code into the DSP has changed.  At the beginnig
+    of the FULSYN code is a little header with the start of the FULSYN code
+    and its length.  The header is accessible through a label called
+    'SYN_COPY'.  Here is some example code for loading FULSYN:
+
+        move.l  #SYN_COPY,a0	; FULSYN header in RAM
+        move.l  (a0)+,a1	; start address = start of DSP RAM
+        move.l  (a0)+,d1	; length of FULSYN
+        asr.l   #2,d1		; in longs
+	subq.l	#1,d1		; for dbra
+     translop:
+        move.l  (a0)+,(a1)+	; transfer code/data
+        dbra    d1,translop
+
+    The same applies to the table (voice table, envelopes, user waveforms)
+    which used to be in 'tables.das' and is now in a file called 'synth.s'.
+
+
+
+PARSE Utility
+-------------
+
+
+    v7.75, June 5, 1995
+    -------------------
+    Problems concerning MIDI volume information not being handled
+    correctly were fixed.
+
+
+    v7.74, March 23, 1995
+    ---------------------
+    Problems concerning pitch bend and looping got fixed.
+
+
+    v7.71, January 26, 1995
+    -----------------------
+    Older versions of PARSE required that the channels on which 'loop'
+    controller changes happened had to be defined in 'PARSE.CNF'.  This is
+    not true anymore.
+
+    Pitch bend controller changes updated automatically the patch.  This is
+    also not true anymore.  If you still want this to happen, turn on the
+    '-p' option.
+
+
+    v7.68, December 8, 1994
+    -----------------------
+    For a controller change, PARSE **DOES NOT** look into the PARSE.CNF table
+    for patch translations.  In a MIDI file you have to specify the JAGUAR
+    PATCH number of the patch you want to affect.  Let's assume you specify a
+    translation in PARSE.CNF for MIDI channel 4 to patch 2.  If you now want
+    to change the pan value of this patch via MIDI controller change, the
+    parameter of the controller change is 2 (and NOT 4).
+
+    The maximum loop count has been reduced to 15.  The MIDI player of the
+    synth updates the loop count directly in the score.  That leads to the
+    problem that if you have an infinite loop at the end, your loops in the
+    middle of the MIDI score will work properly only once (the next time
+    through, the loop count is destroyed).  To fix that, the upper four bits
+    of the loop count are used as a backup of the loop count.  The loop count
+    gets restored once it hits zero.  If you need loop counts bigger than 15,
+    nest your loops.  A loop value of 127 (parameter of controller change)
+    means loop forever.
+
+    The music driver now understands the new JUMP WITH COUNT event:
+
+	011F|DDDD|DDDD|DDDD|BBBB|CCCC
+
+		CCCC is the loop count
+		BBBB is the backup of the loop count
+		DDDD|DDDD|DDDD is the number of phrases to jump
+		F is the flag for infinite looping
+
+    The parser has been updated to support this new event format.
+
+    Patches not specified in PARSE.CNF will be dropped.  The Parser will
+    print out a warning message if an event occurs which uses a non specified
+    patch.  The event will be dropped.  The '-k' option can be used to
+    override the event dropping.  Nevertheless, a warning will be printed.
+
+
+    v7.5x, Oct. 26, 1994
+    --------------------
+    Earlier versions of PARSE did not always create a controller change
+    event for updating the patch.  This has been fixed.
+
+    There is also more error checking on loops now.
+
+    The PARSE utility now _requires_ a PARSE.CNF file.  A default one is
+    supplied in the JAGUAR\BIN directory.  This can be overridden by having
+    a project-specific version of PARSE.CNF in your local directory when
+    you run PARSE.
+
+
+    v7.5, Sept. 13, 1994
+    ---------------------
+    A debug option ('-d') was added.  This options adds a comment with
+    additional information about the event to each line of the output file.
+
+    Also, the voice allocation scheme has been changed.  The parse now keeps
+    track off which note was turned off the longest time ago and will use
+    that for the next note on.
+
+
+    v7.31, August 8, 1994
+    ---------------------
+    New Features: The parser supports these new 'fulsyn' features:
+
+	- MIDI Volume Control (controller #7)
+	- MIDI Pan Control    (controller #10) 	
+	- MIDI Pitch Bend
+
+    New Command Line Options: This is a complete list of the parser's command
+    line options:
+
+	-q		Quite Mode, no output of messages onto the screen.
+
+	-o filename	Name of the output file, default is 'test.out'.
+
+	-n x		Set the number of voices to be used to 'x'.
+
+	-x y		Add offset 'y' to the used voices. Voices lower than
+			'y' will not be used.
+
+	-z s		Set down scaling factor for the MIDI volume command
+			to 's'. This is useful to avoid an overflow of the
+			volume. The default is `256'.
+
+    Usage: parse [-q] [-o name] [-n x] [-x x] [-z x] midifile
+
+    Example: parse -q -o play.out -n 4 -x 2 -z 128 play.mid
+
+
+
+MERGE Utility
+-------------
+
+    v1.25, March 24, 1995
+    ---------------------
+    Two or more loop targets at one location (timestamp) caused problems.
+    This has been fixed.
+
+    v1.24, January 26, 1995
+    -----------------------
+    Merge now supports nested loops.  It also keeps better track of loops
+    which have the same loop number in different MIDI files.
+
+    Merge supports the new event format for 'jump on count' (loops).
+
+
+    v1.2, Sept. 13. 1994
+    --------------------
+    There was a problem with loops which contained fewer than three events.
+    This has been fixed.
+
+    Usage:	merge outputfile file1 file2 ...
+
+
+    v1.0, August 2, 1994
+    --------------------
+    Merge is used to merge output files of the MIDI parser which use
+    different voice offsets.  An example:
+
+    Three MIDI files (`ma.mid', `mb.mid', `mc.mid') have been parsed using
+    the PARSE tool.  The parsed files are `ma.out', `mb.out' and `mc.out'.
+    The `ma.out' file uses voices 0 and 1 (offset = 0, # voices = 2),
+    `mb.out' uses voices 2, 3, 4 (offset = 2, # voices = 3) and `mc.out' uses
+    voices 5 and 6 (offset = 5, # voices = 2).  These three files can then be
+    merged into one file using `merge.ttp':
+
+    merge mall.out ma.out mb.out mc.out
+
+    Note: Loop targets will be updated by MERGE.
+
+    Usage: merge outfile file1 file2 ...
+
+
+
+XNOTES Utility
+--------------
+
+    v1.0, March 24, 1994
+    -----------------------
+    This utility creates NOTES.CNF files (used by the MIDI parser to create
+    specific frequency values for different music notes) for different
+    SCLOCK values.  The computation for this is:
+
+	SCLOCK = SYSTEM_CLOCK / (2 * (N + 1))
+
+    For example, if the sample rate is 20776 Hz, then:
+
+	20776 * 32[bits in two 16 bit samples] = 26590906 HZ / (2 * (N + 1))
+
+    so N is:
+
+	N = 26590906 Hz / ( 2 * (20776 * 32)) - 1
+	N = 19
+
+    For a sampling rate of 15.390 KHz, N would be 26.
+
+
+    Usage: xnotes [-i] [-v] [-o name] N
+
+	-i	interactive mode, ask for N
+	-v	print version number
+	-o 	output file name
+	 N	clock divisor
+
+
+
+
+MKAIFF Utility
+--------------
+
+    v1.0, September 1, 1994
+    -----------------------
+    This tool converts a raw sample file into an AIFF file.  (i.e.  it puts a
+    standard AIFF wrapper on the raw data found in the file.)
+
+    Usage:   mkaif filename.raw
+    Output:  filename.aif
+
+
+
+STRIPAIF Utility
+----------------
+
+    v1.0, September 1, 1994
+    -----------------------
+    This tool converts an AIFF file into a raw sample.
+
+    Usage:   stripaif filename.aif
+    Output:  filename.raw
+
+
+
+MONO Utility
+------------
+
+    v1.0, September 1, 1994
+    -----------------------
+    This tool converts a stereo sample sound file (RAW/AVR/AIFF) into a mono
+    sample.
+
+    Usage: mono inputfile outputfile
+
+
+
+WAVEFM Utility
+--------------
+
+    v1.0, September 1, 1994
+    -----------------------
+    This tool converts a wave form in an AIFF file into a raw wave form.
+
+    Usage:   wavefm filename
+    Output:  filename.wfm
+
+
+
+SNDCMP Utility
+--------------
+
+    v1.0, September 1, 1994
+    -----------------------
+    Compresses a raw 16 bit sample to 8 bit using the sqrt{16 bit value}
+    method.
+
+    Usage:   sndcmp filename.raw
+    Output:  filename.cmp
+
+
+
+UNCMP Utility
+------------
+
+    v1.0, September 1, 1994
+    -----------------------
+    Uncompresses compressed samples.
+
+    Usage:  uncmp filename.cmp
+    Output:  filename.raw
+

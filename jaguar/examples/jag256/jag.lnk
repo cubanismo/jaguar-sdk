@@ -1,0 +1,8 @@
+-e
+-a 4000 x x
+-o jag
+-rq
+
+startup.o
+jag.o
+

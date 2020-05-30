@@ -1,0 +1,115 @@
+Jaguar Developer Technical Notes
+--------------------------------
+Item: JDEV0005
+Date: August 25, 1995
+Re:   Jaguar CD Mastering
+
+Keep in mind that CD Writers are evolving and will not neccesarily work
+correctly out of the box.  It’s likely you will have to fiddle around
+with your system before things work correctly.
+
+You absolutely must adhere to the CD layout described in the “Jaguar
+CD-ROM” chapter of the Jaguar Developer’s documentation.  This is not a
+suggestion, it is a requirement.  Failure to follow this format will
+cause your program to fail on a production system, even if it does work
+on a developer model Jaguar CD player.  Remember to always use the
+proper track header and tailer and keep in mind that the boot code is
+always the first track of the second session.
+
+All tracks of a Jaguar CD are written in “CD-DA” format using
+Motorola-style byte ordering.  The frame size is 2352 bytes with an
+“audio” sub-code.  Overall, the Atari Jaguar CD standard is very close
+to what Sony, Phillips, and Microsoft named “CD Plus” (Phillips Blue
+Book proposal 3/95).
+
+1.  Different combinations of CD Writer and CD mastering software have a
+different approaches to handing small files.  Tracks smaller than 1
+megabyte in length should be padded with zeroes at the end (after the
+track tailer) to increase their size to 1 megabyte.  Otherwise the
+information can get garbled.
+
+2.  Some combinations of CD Writer and CD mastering software have been
+known to insert a leading word (two bytes) with a value of zero in front
+of each track.  This causes Jaguar to fail to read the data on a long
+boundary.  At a minimum, this means your program cannot boot.  A simple
+and proven workaround is to insert another dummy word of zero at the
+start of the track file, before the Atari track header.
+
+3.  Some writer/software combinations have been known to perform
+byte-swapping on the date before writing it to the CD.  This renders the
+CD useless for Jaguar, unless you’ve previously byte-swapped your data
+to account for this.  This may be configurable in your CD mastering
+software.
+
+Here is a current list of Writer/Software/BIOS combinations that have
+been tried by Atari, including the problems noted and the required
+workarounds (if available):
+
+CD Writer/BIOS Version Combinations:
+------------------------------------
+A — Phillips CDD522, BIOS v1.00		
+B — Phillips CDD522, BIOS v1.06		
+C — Plasmon RF4100 BIOS v1.28		
+D — Yamaha CDR100 BIOS v1.06		
+E — Yamaha CDR100 BIOS v1.09		
+					
+CD Mastering Software
+---------------------
+1 — WinOnCD Pro 2.13
+2 — WinOnCD ToGo 1.3
+3 — Easy CD Pro & MM 3.0
+4 — WinOnCD Pro 2.13, w/ WR_YAM.DLL 4/5/95
+5 — WinOnCD ToGo 1.3, w/ WR_YAM.DLL 4/5/95
+6 — disComposer V2.0beta
+7 — WinOnCD Pro 2.13, w/ WR_YAM.DLL 6/7/95
+8 — WinOnCD ToGo 1.3, w/ WR_YAM.DLL 6/7/95
+
+-------------------------------------------------------------
+CD Writer|CD	   |Inserts| Does |
+& BIOS   |Mastering|Garbage| Byte |
+version	 |Software |Word   | Swap | Other Problems
+-------------------------------------------------------------
+   A	     1        No     No**    OK
+   B	     1        Yes    No**    OK (with padding word)
+   B	     2        Yes    No**    OK (with padding word)
+   B	     3        Yes    No	     OK (with padding word)
+   C	     1        Yes    No**    OK (with padding word)
+   D	     4        Yes    Yes***  unusable for Jaguar
+   E	     5        Yes    Yes***  unusable for Jaguar
+   E	     7        Yes    No**    OK (with padding word)
+   E	     8        Yes    No**    OK (with padding word)
+   D	     3        Yes    Yes     OK*
+   E	     3        Yes    Yes     OK*
+   D	     6        Yes    Yes     OK*
+-------------------------------------------------------------
+* = Inconvenient, because must byte-swap data before writing.
+** = May be controlled via software
+*** = Does not do it consistently
+-------------------------------------------------------------
+
+The currently most recommended approach is to cancel out the word
+mis-alignment by adding another padding word at the beginning of the
+file and to use one of the combinations of hard and software marked in
+bold.
+
+Technical Support and driver updates of the most commonly used CD Writer
+Software can be found in the CD Vendor B Forum on Compuserve (GO
+CDVENB).  More specifically:
+
+WinOnCD (CeQuadrat) Peter Hoepfner, Internet: 100073.450@compuserve.com
+EZ-D Pro (Incat Systems) Mike Wright, Internet: 71612.1236@compuserve.com
+
+Atari has not tried all possible combinations of CD writer, writer BIOS
+versions, and CD mastering software.  Anything not listed in this table
+should considered as unexplored territory as far as Jaguar is concerned,
+so be careful.
+
+The safest way to find out what REALLY happens on writing a CD is: Burn
+a sample CD with a track containing the standard track header at the
+beginning.  Now use the Jaguar to read the track back into memory with
+CD_init and CD_read.  Finally, look in the buffer for the 16 longwords
+of ‘ATRI’ from the track header.  They should be readable, not
+byte-swapped (i.e.  ‘ATRI’ not ‘TAIR’) and should be found in memory a
+longword boundary.  If this is not the case, then you will have to apply
+an appropriate workaround as outlined above.
+

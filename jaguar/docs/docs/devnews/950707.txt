@@ -1,0 +1,141 @@
+============================================================================
+Jaguar Developer Weekly            July 7, 1995                  Vol.1, No.3
+============================================================================
+
+Normen is on Vacation
+---------------------
+Atari's Jaguar Developer Support Manager Normen Kowalewski is on vacation
+until July 18.  While he is absent, please contact Mike Fulton with any
+questions or problems you may have.  You may call Mike at (408) 745-8821, fax
+him at (408) 745-2088, or send email to mfulton@atari.com.
+
+
+
+New BBS Number
+--------------
+In order to improve reliability, the Atari Software Development BBS will be
+getting a new phone line soon.  This will be a direct line that doesn't go
+through the rest of Atari's phone system, so there should be fewer
+noise-related modem connection problems.
+
+The new number for the BBS will be (408) 541-9164.  But remember this number
+is not active yet!  The number will also be posted on the BBS itself at least
+a week in advance of the change, as well as in future issues of the Jaguar
+Developer Weekly.
+
+
+
+Tool Updates
+------------
+The Jaguar Developers Kit tools and related files listed below have been
+updated in the last few weeks.  You can download the latest versions from the
+Atari Software Development BBS or from the Jaguar Developer library in the
+Atari Gaming forum on Compuserve.
+
+Jaguar Artwork Viewer — July 7, 1995.  This new version has a few new
+features and improved transfer reliability.  Download ARTWORK.ZIP.
+
+Jaguar Graphics Tool — July 7, 1995.  The previous version of this archive
+was missing the VBRUN300.DLL Visual Basic runtime library needed by the
+program.  Many people already have this library installed for other programs
+they use, but in case you're one of the people that don't, this update will
+fix the problem.  Download ARTWORK.ZIP.
+
+Jaguar Cinepak Utility — July 7, 1995.  A couple of small cosmetic glitches
+have been fixed and the program now displays an error message warning you if
+the QuickTime movie you are trying to convert does not use Cinepak for the
+video compression.  Download JAGMAC.SEA using MacBinary on the Macintosh, or
+download to your PC and use a MacBinary-intelligent utility to transfer the
+file to your Macintosh.  Once you get the file to the Mac, JAGMAC.SEA is a
+self-extracting archive.
+
+WDB Debugger — June 30, 1995.  A problem was fixed where all your breakpoints
+being cleared when one was reached.  Also fixed is a problem loading and
+executing script files from the command line.
+
+CD Boot Emulator — June 23, 1995.  This is the CD Boot emulator described in
+the article later in this issue.  Download CDROM.ZIP.
+
+New 3D Library — June 13, 1995.  This is a new 3D Graphics library similar to
+the original Jaguar 3D library, but faster and with greater flexibility.
+Comes with a new utility for converting Autodesk 3D Studio object files into
+Jaguar 3D library format.  Download JAGLIB.ZIP for the complete package.
+
+
+
+MIDI Add-on Board
+-----------------
+After last issue's report regarding the a fix for the MIDI Add-On board, a
+few of you have asked "What is a MIDI Add-On board?" In case you've missed
+hearing about it before now, this is a small circuit board that attaches to
+your Alpine ROMulator board.  The Alpine has a serial port that is normally
+unused, but with the proper connector and the MIDI Add-on board, it can be
+used as a MIDI port by the Jaguar Sound Tool so that you can preview your
+MIDI music tracks directly on the Jaguar using the Jaguar Synth, allowing you
+to streamline the process of fine-tuning your music for the Jaguar.
+
+Your Alpine board may need modifications before it can be used with the MIDI
+Add-on board.  For more info, please contact Jaguar Developer Support.
+
+
+
+Developer Kit Archive Roadmap
+-----------------------------
+The tools, sample source code, libraries, and other components of the Jaguar
+Developers Kit are updated frequently.  To keep track of what's new, see the
+file ROADMAP.TXT that is posted online on the Atari Software Development BBS
+and in the Jaguar Developer library in the Atari Gaming forum on Compuserve.
+This file is updated and reposted whenever any of the standard distribution
+archives from the Jaguar Developer's kit is updated.
+
+
+
+CD Boot ROM Emulator For Alpine
+-------------------------------
+Atari now has a new CD Boot ROM emulator that loads into the Alpine board and
+emulates the boot process of the Jaguar CD, loading the boot code from the CD
+(or the CD emulator running on a Falcon030) and executing it in the same
+fashion as if you had created a bootable CD disc.  You can even boot directly
+from the CD Emulator!
+
+The CD Boot Emulator program is available online in the CDROM.ZIP archive.
+See the enclosed documentation for details about how to use it.
+
+
+
+If you've missed previous issues...
+-----------------------------------
+The Jaguar Developer Weekly is been faxed out to hundreds of developers each
+week.  If you've just downloaded this issue from Compuserve or the Atari
+Software Development BBS, and haven't received a fax before, it's possible
+that we may not have a current fax number for you.  Just in case, please
+contact us with your current address, telephone and fax numbers.
+
+
+
+Delivery Via EMAIL
+------------------
+Those developers who request the Jaguar Developer Weekly via the Internet
+will receive a ZIP archive each week containing an ASCII text file with the
+text of the issue, as well as monochrome TIF files with the exact image of
+one page each.  Because we will occasionally have some graphics to go along
+with the articles, simple text EMAIL alone won't work.  You can load the TIF
+files into a graphics viewer to read online or print them out.  (This method
+should be one that most people can handle, but if you have alternative
+suggestions, please let us hear them!)
+
+Please keep in mind that Internet mail should be faster and more reliable
+than fax.  To subscribe, please send EMAIL with the text "subscribe Jaguar
+Developer Weekly" to "mfulton@atari.com" and we'll add you to the EMAIL list.
+Compuserve users, don't forget that you can send and receive mail via the
+Internet too!  You can send a message to "Internet:mfulton@atari.com" to
+subscribe!
+
+
+
+Correction
+----------
+The Tool Updates articles in the two previous issues both refered to the
+ARTTOOL.ZIP file when the actual filename was ARTWORK.ZIP.  We appologize for
+any inconvenience this may have caused.
+

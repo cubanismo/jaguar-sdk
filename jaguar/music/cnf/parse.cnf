@@ -1,0 +1,12 @@
+*
+* parse.cnf
+* channel: pitchrange_a - pitchrange_b patch pitch_offset
+*
+* n = number_of_channels_to_be_used
+* (default is 8)
+
+n = 8
+*
+* 0:	0 - 0	0	 89
+* 0:	1 - 1	1	 0
+* 0:	2 - 2	24	 64
