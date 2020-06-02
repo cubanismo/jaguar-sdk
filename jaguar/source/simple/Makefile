@@ -1,35 +1,22 @@
 #====================================================================
 # Makefile      SIMPLE
 #====================================================================
-#====================================================================
-#       Macro & Assembler flags
-#====================================================================
 
-STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -l -e -a $(STADDR) x 4000
-
-#====================================================================
-#       Default Rules
-#====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $<
-
-.SUFFIXES:      .ot .gas
-
-.gas.ot:
-	mac $(MACFLAGS) -dmac=1 -o$*.ot $*.gas
+include $(JAGSDK)/tools/build/jagdefs.mk
 
 .SUFFIXES:      .oj .das
 
 .das.oj:
-	mac $(MACFLAGS) -dmac=1 -o$*.oj $*.das
+	$(ASM) $(ASMFLAGS) -dmac=1 -o$*.oj $*.das
 
 #====================================================================
 #       EXECUTABLES
 #====================================================================
 
-simple.cof: simple.o simpsyn.oj
-	aln $(ALNFLAGS) simple.o simpsyn.oj
+OBJS = simple.o simpsyn.oj
+PROGS = simple.cof
+
+simple.cof: $(OBJS)
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS)
+
+include $(JAGSDK)/tools/build/jagrules.mk

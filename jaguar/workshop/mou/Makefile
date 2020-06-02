@@ -1,28 +1,17 @@
-#====================================================================
-#       Macro & Assembler flags
-#====================================================================
-
-STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -v -v -e -g -l -rd -a $(STADDR) x 4000
-
-#====================================================================
-#       Default Rules
-#====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $*
+include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
 #       EXECUTABLES
 #====================================================================
 
-OBJ = mou_init.o mou_list.o
+OBJS = mou_init.o mou_list.o
+PROGS = mou.cof
  
-mou.cof: $(OBJ)
-	aln $(ALNFLAGS) -o mou.cof $(OBJ) -i ..\\data\\jaguar.bin jagbits
+mou.cof: $(OBJS) ../data/jaguar.bin
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS) -i ../data/jaguar.bin jagbits
 
 mou_init.o: mou_init.s mou.inc
 
 mou_list.o: mou_list.s mou.inc
+
+include $(JAGSDK)/tools/build/jagrules.mk

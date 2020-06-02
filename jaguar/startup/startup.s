@@ -67,8 +67,8 @@ BMP_HEIGHT  	.equ    60     			; Height in Pixels
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	.macro license_logo
-	.incbin "/jaguar/startup/lt_box.rgb"	; "Licensed To Atari Corp."
-;	.incbin "/jaguar/startup/lb_box.rgb"	; "Licensed By Atari Corp."
+	.incbin "lt_box.rgb"			; "Licensed To Atari Corp."
+;	.incbin "lb_box.rgb"			; "Licensed By Atari Corp."
 	.endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

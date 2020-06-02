@@ -1,30 +1,19 @@
-#====================================================================
-#       Macro & Assembler flags
-#====================================================================
-
-STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -v -v -e -g -l -rd -a $(STADDR) x 4000
-
-#====================================================================
-#       Default Rules
-#====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $<
+include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
 #       EXECUTABLES
 #====================================================================
 
-OBJ = gpu_init.o gpu_list.o gpu_hndl.o
+OBJS = gpu_init.o gpu_list.o gpu_hndl.o
+PROGS = gpuint.cof
  
-gpuint.cof: $(OBJ)
-	aln $(ALNFLAGS) -o gpuint.cof $(OBJ) -i ..\\data\\jaguar.bin jagbits
+gpuint.cof: $(OBJS) ../data/jaguar.bin
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS) -i ../data/jaguar.bin jagbits
 
 gpu_init.o: gpu_init.s gpuint.inc
 
 gpu_list.o: gpu_list.s gpuint.inc
 
 gpu_hndl.o: gpu_hndl.s gpuint.inc
+
+include $(JAGSDK)/tools/build/jagrules.mk

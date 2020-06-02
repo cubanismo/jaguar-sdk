@@ -66,9 +66,9 @@ BMP_HEIGHT  	.equ    48    			; Height in Pixels
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	.macro license_logo
-	.incbin "/jaguar/source/sample.rgb"	; "Jaguar Developer Kit Sample"
-;	.incbin "/jaguar/startup/lt_box.rgb"	; "Licensed To Atari Corp."
-;	.incbin "/jaguar/startup/lb_box.rgb"	; "Licensed By Atari Corp."
+	.incbin "../../source/sample.rgb"	; "Jaguar Developer Kit Sample"
+;	.incbin "../..//startup/lt_box.rgb"	; "Licensed To Atari Corp."
+;	.incbin "../..//startup/lb_box.rgb"	; "Licensed By Atari Corp."
 	.endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

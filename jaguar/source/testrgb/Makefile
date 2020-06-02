@@ -1,29 +1,17 @@
-#====================================================================
-#       Macro & Assembler flags
-#====================================================================
-
-STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -w -v -v -e -rd -g -l -a $(STADDR) x 4000
-
-#====================================================================
-#       Default Rules
-#====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $<
+include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
 #       EXECUTABLES
 #====================================================================
 
-OBJ = startup.o testrgb.o test.o
+OBJS = startup.o testrgb.o test.o
+PROGS = testrgb.cof
  
-testrgb.cof: $(OBJ)
-	aln $(ALNFLAGS) -o testrgb.cof $(OBJ)
+testrgb.cof: $(OBJS)
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS)
 
 #############################################################################
 
-startup.o: startup.s \jaguar\source\sample.rgb
+startup.o: startup.s $(JAGSDK)/jaguar/source/sample.rgb
 
+include $(JAGSDK)/tools/build/jagrules.mk

@@ -1,19 +1,9 @@
+include $(JAGSDK)/tools/build/jagdefs.mk
 
-STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -v -v -e -g -l -a $(STADDR) x 4000
-
-#====================================================================
-
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $<
-
-#====================================================================
-
-OBJ =   rdbmsg.o
+OBJS = rdbmsg.o
+PROGS = rdbmsg.cof
  
-rdbmsg.cof: $(OBJ)
-	aln $(ALNFLAGS) $(OBJ)
+rdbmsg.cof: $(OBJS)
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS) 
 
+include $(JAGSDK)/tools/build/jagrules.mk

@@ -1,27 +1,14 @@
-#====================================================================
-#       Macro & Assembler flags
-#====================================================================
-
-STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -v -v -e -g -l -rd -a $(STADDR) x 4000
-
-#====================================================================
-#       Default Rules
-#====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $*
+include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
 #       EXECUTABLES
 #====================================================================
 
-OBJ = cpk_init.o cpk_list.o cpk_blit.o cpk_loop.o crytable.o font.o
+OBJS = cpk_init.o cpk_list.o cpk_blit.o cpk_loop.o crytable.o font.o
+PROGS = crypick.cof
  
-crypick.cof: $(OBJ)
-	aln $(ALNFLAGS) -o crypick.cof $(OBJ)
+crypick.cof: $(OBJS)
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS)
 
 cpk_init.o: cpk_init.s crypick.inc
 
@@ -34,3 +21,5 @@ cpk_loop.o: cpk_loop.s
 crytable.o: crytable.s
 
 font.o: font.s
+
+include $(JAGSDK)/tools/build/jagrules.mk

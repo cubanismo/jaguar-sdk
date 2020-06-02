@@ -1,28 +1,14 @@
-
-#====================================================================
-#       Macro & Assembler flags
-#====================================================================
-
-STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -v -v -e -g -l -rd -a $(STADDR) x 4000
-
-#====================================================================
-#       Default Rules
-#====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $<
+include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
 #       EXECUTABLES
 #====================================================================
 
-OBJ = mov_init.o mov_list.o mov_move.o
+OBJS = mov_init.o mov_list.o mov_move.o
+PROGS = move.cof
  
-move.cof: $(OBJ)
-	aln $(ALNFLAGS) -o move.cof $(OBJ) -i ..\\data\\jaguar.bin jagbits
+move.cof: $(OBJS) ../data/jaguar.bin
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS) -i ../data/jaguar.bin jagbits
 
 mov_init.o: mov_init.s move.inc
 
@@ -30,3 +16,4 @@ mov_list.o: mov_list.s move.inc
 
 mov_move.o: mov_move.s move.inc
 
+include $(JAGSDK)/tools/build/jagrules.mk

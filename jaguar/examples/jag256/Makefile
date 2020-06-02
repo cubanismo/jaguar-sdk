@@ -1,33 +1,16 @@
+include $(JAGSDK)/tools/build/jagdefs.mk
+
 JCP=~/jaguar/bin/jcp
 
-OFILES = \
+OBJS = \
 startup.o \
 jag.o
+PROGS = jag256.cof
 
-jag : $(OFILES)
-	aln -c jag.lnk 
+jag256.cof : $(OBJS)
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS)
 
-GAS2OBJ = mac -fb -g $?
-C2OBJ = /usr/local/m68k-aout/m68k-aout/bin/gcc -mc68000 -Wall -DJAGUAR -O2 -c -o $@ $?
+go:	$(PROGS)
+	$(JCP) $(PROGS)
 
-#
-# 68k jaguar specific asm files
-#
-
-startup.o : startup.s
-	$(GAS2OBJ)
-
-#
-# 68k jaguar specific C files
-#	
-jag.o : jag.c
-	$(C2OBJ)
-
-go:	jag.cof
-	$(JCP) jag.cof
-
-clean :
-	rm *.o
-	rm *.cof
-
-
+include $(JAGSDK)/tools/build/jagrules.mk

@@ -1,30 +1,30 @@
+include $(JAGSDK)/tools/build/jagdefs.mk
+
 #====================================================================
 #       Macro & Assembler flags
 #====================================================================
 
-STADDR = 802000 x 4000
-MACFLAGS = -fb -g -rq
-ALNFLAGS = -v -v -l -e -rq -g -a $(STADDR)
+# Override ASMFLAGS and LINKFLAGS to use quad-phrase alignment. (Why?)
+ASMFLAGS += -rq
+LINKFLAGS = -e -g -l -rq -a $(STADDR) x $(BSSADDR) $(VERBOSE)
 
 #====================================================================
 #       Default Rules
 #====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $<
 
 .SUFFIXES:	.o .das
 
 .das.o:
-	mac $(MACFLAGS) $*.das
+	$(ASM) $(ASMFLAGS) $*.das
 
 #====================================================================
 #       EXECUTABLES
 #====================================================================
 
-OBJ = startup.o qdemo.o demo.o qpanner.o joypad.o
+OBJS = startup.o qdemo.o demo.o qpanner.o joypad.o
+PROGS = qdemo.cof
  
-qdemo.cof: $(OBJ)
-	aln $(ALNFLAGS) -o qdemo.cof $(OBJ)  -c qdemo.lnk
+qdemo.cof: $(OBJS) qsound.ot valogo16.pic copter.snd phaser.snd mix3.snd ../source/sample.rgb
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS)  -c qdemo.lnk
 
+include $(JAGSDK)/tools/build/jagrules.mk
