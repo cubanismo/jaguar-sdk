@@ -1,0 +1,161 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+	echo ""
+	echo "Usage: rjcp <host> <jcp parameters>"
+	echo ""
+	echo "  The jcp command must be in the user's path on the remote host"
+	echo "  and be suid root."
+	echo ""
+	echo "  Examples:"
+	echo ""
+	echo "  # Upload game.j64 to flash bank 2 using jcp on remotehost"
+	echo "  $ rjcp remotehost -2 -f game.j64"
+	echo ""
+	echo "  # Reset the jaguar using jcp on the machine at 192.168.0.2,"
+	echo "  # logging in as the user 'foo'"
+	echo "  $ rjcp foo@192.168.0.2 -r"
+	echo ""
+	exit
+fi
+
+HOST=$1
+shift
+
+RESET=
+FLASH=
+WORDFLASH=
+ERASEFLASH=
+NOBOOT=
+BOOTADDRESS=
+OVERRIDE=
+HEADERSKIP=
+HEADERSKIPCOUNT=
+CONSOLE=
+SERIAL=
+UPGRADE=
+OLDUPGRADE=
+FORCEUPGRADE=
+TWO=
+SIX=
+EXTCONSOLE=
+EXTCONSOLEPATH=
+QUIET=
+REMOVE=
+
+while [ -n "$1" ]; do
+	case "$1" in
+	-r)
+		RESET=-r
+		shift
+		;;
+	-f)
+		FLASH=-f
+		shift
+		;;
+	-wf)
+		WORDFLASH=-wf
+		shift
+		;;
+	-ef)
+		ERASEFALSH=-ef
+		shift
+		;;
+	-n)
+		NOBOOT=-n
+		shift
+		;;
+	-b)
+		BOOTADDRESS=-b
+		shift
+		;;
+	-o)
+		OVERRIDE=-o
+		shift
+		;;
+	-h)
+		HEADERSKIP=-h
+		HEADERSKIPCOUNT=$2
+		shift
+		shift
+		;;
+	-c)
+		CONSOLE=-c
+		shift
+		;;
+	-d)
+		echo "dump flash is not yet supported"
+		exit
+		;;
+	-s)
+		SERIAL=-s
+		shift
+		;;
+	-u)
+		UPGRADE=-u
+		shift
+		;;
+	-!u)
+		OLDUPGRADE=-!u
+		shift
+		;;
+	-fu)
+		FORCEUPGRADE=-fu
+		shift
+		;;
+	-2)
+		TWO=-2
+		shift
+		;;
+	-6)
+		SIX=-6
+		shift
+		;;
+	-x)
+		EXTCONSOLE=-x
+		EXTCONSOLEPATH="$2"
+		shift
+		shift
+		# Need to actually transfer the external console or something?
+		echo "external console is not yet supported"
+		exit
+		;;
+	-q)
+		QUIET=-q
+		shift
+		;;
+	*)
+		if [ -n "$FILE" ]; then
+			if [ -n "$ADDRESS" ]; then
+				echo "Invalid parameter: $1"
+				exit
+			fi
+
+			ADDRESS=$1
+		else
+			if [ -n "$BOOTADDRESS" ]; then
+				if [ -n "$ADDRESS" ]; then
+					echo "Invalid parameter: $1"
+					exit
+				fi
+
+				ADDRESS=$1
+			else
+				FILE="$1"
+			fi
+		fi
+		shift
+		;;
+	esac
+done
+
+TEMPFILE=
+if [ -n "$FILE" ]; then
+	FILESUFFIX="`echo -n "$FILE"|rev|cut -d '.' -f 1 |rev`"
+	TEMPFILE="`ssh $HOST mktemp /tmp/rjcp.XXXXXXXX.$FILESUFFIX`"
+	echo "Remote filename: $TEMPFILE"
+	REMOVE="rm $TEMPFILE"
+	scp "$FILE" "$HOST:$TEMPFILE"
+fi
+# Use -o LogLevel=QUIET to suppress "Connection closed" message.
+ssh -o LogLevel=QUIET $HOST -t bash -l -c "'jcp \$@; $REMOVE'" bash $RESET $FLASH $WORDFLASH $ERASEFLASH $NOBOOT $BOOTADDRESS $OVERRIDE $HEADERSKIP $HEADERSKIPCOUNT $CONSOLE $SERIAL $UPGRADE $OLDUPGRADE $FORCEUPGRADE $TWO $SIX $EXTCONSOLE $EXTCONSOLEPATH $QUIET $TEMPFILE $ADDRESS
