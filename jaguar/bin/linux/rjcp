@@ -151,8 +151,16 @@ done
 
 TEMPFILE=
 if [ -n "$FILE" ]; then
-	FILESUFFIX="`echo -n "$FILE"|rev|cut -d '.' -f 1 |rev`"
-	TEMPFILE="`ssh $HOST mktemp /tmp/rjcp.XXXXXXXX.$FILESUFFIX`"
+	BASENAME="`basename "$FILE"`"
+	FILESUFFIX="`echo -n "$BASENAME"|rev|cut -d '.' -f 1 |rev`"
+	if [ "$FILESUFFIX" = "$BASENAME" ]; then
+		# No '.' found.  The file has no extension.
+		FILESUFFIX=""
+	else
+		FILESUFFIX=".$FILESUFFIX"
+	fi
+		
+	TEMPFILE="`ssh $HOST mktemp /tmp/rjcp.XXXXXXXX$FILESUFFIX`"
 	echo "Remote filename: $TEMPFILE"
 	REMOVE="rm $TEMPFILE"
 	scp "$FILE" "$HOST:$TEMPFILE"
