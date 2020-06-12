@@ -2,44 +2,32 @@
 #       Makefile for Cinepak sample programs
 #====================================================================
 
-#====================================================================
-#       Macro & Assembler flags
-#====================================================================
-
-STADDR = 4000
-ALNFLAGS = -l -rq -e -g -a $(STADDR) x x
-MACFLAGS = -fb -rq
-
-#====================================================================
-#       Default Rules
-#====================================================================
-
-.SUFFIXES: .o .s
-
-.s.o:
-	mac $(MACFLAGS) $*
+include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
 #       EXECUTABLES
 #====================================================================
 
-cpkdemo.cof: startup.o player.o intserv.o utils.o clear.o\
-		 makelist.o scalvars.o tocread.o dspcode.o grotate.o\
-                 gpustart.o
-	aln $(ALNFLAGS) -o cpkdemo.cof -c cpkdemo.lnk
+OBJS = startup.o player.o intserv.o utils.o clear.o makelist.o \
+	scalvars.o tocread.o dspcode.o grotate.o gpustart.o
+
+PROGS = cpkdemo.cof
+
+CINEPAK = ../decomp/gpucode.og ../decomp/codec.o
+
+cpkdemo.cof: $(OBJS) $(CINEPAK)
+	$(LINK) $(LINKFLAGS) -o $@ $^
 
 startup.o: startup.s
-player.o: player.s player.inc memory.inc makefile
-intserv.o: intserv.s makefile
-utils.o: utils.s player.inc memory.inc makefile
-clear.o: clear.s player.inc memory.inc makefile
-makelist.o: makelist.s player.inc memory.inc makefile
-scalvars.o: scalvars.s player.inc memory.inc makefile
-tocread.o: tocread.s makefile
-dspcode.o: dspcode.s makefile
-gpustart.o: gpustart.s makefile
-grotate.o: grotate.s makefile
+player.o: player.s player.inc memory.inc Makefile
+intserv.o: intserv.s Makefile
+utils.o: utils.s player.inc memory.inc Makefile
+clear.o: clear.s player.inc memory.inc Makefile
+makelist.o: makelist.s player.inc memory.inc Makefile
+scalvars.o: scalvars.s player.inc memory.inc Makefile
+tocread.o: tocread.s Makefile
+dspcode.o: dspcode.s Makefile
+gpustart.o: gpustart.s Makefile
+grotate.o: grotate.s Makefile
 
-#====================================================================
-#       EOF
-#====================================================================
+include $(JAGSDK)/tools/build/jagrules.mk
