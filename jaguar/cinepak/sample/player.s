@@ -56,12 +56,6 @@ ClearROM:
 
 	move.l	#$70007,G_END		; Set Motorola mode in Tom
 	move.l	#$70007,D_END		; Set Motorola mode in Jerry
-
-	clr.l	d0
-	move.l	d0,mediaOffset		; Clear mediaOffset
-	move	d0,CRYmovie		; Clear CRYmovie
-	move	d0,playPhase		; Clear playPhase
-	move	d0,catchUp		; Clear catchUp
     
 ;   Initialize the environment.
 
@@ -101,6 +95,13 @@ WaitGPU:
 	beq.s	WaitGPU 		; Loop until GPU has set it
 
 ;   Enable DSP interrupt in GPU and tell Jerry to pass interrupts along to Tom.
+
+LoopTrk:
+	clr.l	d0
+	move.l	d0,mediaOffset		; Clear mediaOffset
+	move	d0,CRYmovie		; Clear CRYmovie
+	move	d0,playPhase		; Clear playPhase
+	move	d0,catchUp		; Clear catchUp
 
     .if ^^defined USE_CDROM 
 	move.l	#FILM_BASE,a0		; Where to put CD-ROM data
@@ -441,8 +442,13 @@ Done:
 	jsr	CD_stop 		; Stop the drive
     .endif
 
+    .if ^^defined ENDLESS_LOOP
+	bsr Clear
+	jmp LoopTrk
+    .else
 	move.l	#NORMAL_END,d0		; Load completion flag
 	illegal 			; Trap
+    .endif
 
 ;------------------------------------------------------------------------------
 

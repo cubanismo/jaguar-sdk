@@ -5,7 +5,6 @@
 include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
-# Delete option '-dUSE_CDROM' to run from DRAM
 # For DRAM execution of film file use the following commands:
 #
 # aread player.abs
@@ -21,7 +20,8 @@ include $(JAGSDK)/tools/build/jagdefs.mk
 #
 #====================================================================
 
-ASMFLAGS += -dUSE_CDROM
+ASMFLAGS += -dUSE_CDROM     # Comment out to play movie from DRAM
+#ASMFLAGS += -dENDLESS_LOOP # Uncomment to play movie in endless loop
 
 #====================================================================
 #       Default Rules
