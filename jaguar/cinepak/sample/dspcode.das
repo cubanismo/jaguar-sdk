@@ -24,11 +24,11 @@ DSP_S:
 	include "jaguar.inc"
 	list
 
-	xdef	    DSP_ARGS
-	xdef	    DSP_ENTR
-	xdef	    DSP_LOAD
-	xdef	    DSP_STOP
-	xdef	    AUDIO_DRIFT
+	.extern	    DSP_ARGS
+	.extern	    DSP_ENTR
+	.extern	    DSP_LOAD
+	.extern	    DSP_STOP
+	.extern	    AUDIO_DRIFT
 
 ;------------------------------------------------------------------------------
 ;   Register utilization:
