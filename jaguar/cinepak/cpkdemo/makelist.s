@@ -12,7 +12,7 @@
 		.include	"memory.inc"
 		.include	"player.inc"
 ; Globals
-		.globl		InitLister
+		.globl		InitMoviList
 		.globl		movilist
 		.globl		listcopy
 		.globl		x_pos
@@ -40,7 +40,7 @@
 		.text
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; InitLister: Initialize Object List Processor List
+; InitMoviList: Initialize Object List Processor List
 ;
 ;  Registers: d1.l/d0.l - Phrase being built
 ;             d2.l	 - Address of STOP object in destination buffer
@@ -50,7 +50,7 @@
 ;             a0.l      - Roving object list pointer
 ;             a1.l      - Bitmap pointer
 		
-InitLister:
+InitMoviList:
 		movem.l	d1-d5/a0-a1,-(sp)	; Save registers
 			
 		move.l	#movilist-(2*8),a0

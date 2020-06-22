@@ -72,7 +72,7 @@ _start:
 ; Initialize the environment.
 		bsr     Clear			; Clear display buffers
 		bsr	InitVars		; Do at program start
-		bsr     InitLister          	; Set up the object list
+		bsr     InitMoviList          	; Set up the object list
 
 		clr.w	hasinited
 
@@ -685,7 +685,7 @@ doingangles:	dc.w	0	; Angles Enabled
 
 		.extern Clear           ; Clear display memory
 		.extern VideoIni        ; Initialize video timing
-		.extern InitLister      ; Initialize object list
+		.extern InitMoviList    ; Initialize object list
 		.extern IntInit         ; Interrupt init & service
 		.extern	runframes	; # of frames since start (SDS)
 
