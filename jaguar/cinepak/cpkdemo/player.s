@@ -62,6 +62,9 @@
 		.include    'jaguar.inc'
 		.include    'cd.inc'
 		.include    'player.inc'
+	.if ^^defined USE_SKUNK
+		.include    'skunk.inc'
+	.endif
 		.list
 
 START_SESS  	.equ    1
@@ -70,6 +73,18 @@ START_TRACK 	.equ    1
 _start:
 
 ; Initialize the environment.
+	.if ^^defined SKUNK_CONSOLE
+		jsr	skunkRESET
+		jsr	skunkNOP
+		jsr	skunkNOP
+		move.l	#HELLO_MSG,a0
+		jsr	skunkCONSOLEWRITE
+	.endif
+
+	.if ^^defined USE_SKUNK
+		move	#$1865,MEMCON1		; Skunk is 16-bit ROM, CD is 32-bit
+	.endif
+
 		bsr     Clear			; Clear display buffers
 		bsr	InitVars		; Do at program start
 		bsr     InitMoviList          	; Set up the object list
@@ -78,8 +93,34 @@ _start:
 
 		jsr 	CD_setup            	; Initialize CD-ROM system
 
+	.if ^^defined SKUNK_CONSOLE
+		move	#$187B,MEMCON1
+		move.l	#CD_SETUP_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif
+
 		move    #$3,d0              	; CD-ROM, double-speed
 		jsr 	CD_mode             	; Set CD-ROM speed
+
+	.if ^^defined SKUNK_CONSOLE
+		move	#$187B,MEMCON1
+		move.l	#CD_MODE_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif
+
+	.if ^^defined USE_SKUNK
+		move	#$2C00,a0		; Manually get TOC when using skunk
+		jsr	CD_getoc
+
+	.if ^^defined SKUNK_CONSOLE
+		move	#$187B,MEMCON1
+		move.l	#CD_TOC_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif ; defined SKUNK_CONSOLE
+	.endif ; defined USE_SKUNK
 
 		bsr 	LoadDSP			; Download the DSP code
 		bsr	LoadGPU         	; Download the GPU code
@@ -195,6 +236,13 @@ CopyCT:
 
 		bsr	IntInit			; Switch from startup screen
 		move.w	#1,hasinited
+
+	.if ^^defined SKUNK_CONSOLE
+		move	#$187B,MEMCON1
+		move.l	#DONE_INIT_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif
 doneinit:
 		lea 	$10(a5),a5          	; Frame description
 		move.l  $8(a5),d0           	; cType
@@ -349,6 +397,13 @@ WaitForTick:
 		clr 	time+4
 
 ChunkLoop:
+	.if ^^defined SKUNK_CONSOLE_VERBOSE
+		move	#$187B,MEMCON1
+		move.l	#CHUNK_LOOP_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif
+
 		move.l  $c(a3),d5           	; Number of samples
 		move.l  a3,d4
 		add.l   4(a3),d4            	; Base of sample data
@@ -426,9 +481,22 @@ DisplayFrame:
 		tst.l   d0              	; Did we get an error?
 		beq.s   StartDecomp         	; No, continue  
 
+	.if ^^defined SKUNK_CONSOLE
+		move	#$187B,MEMCON1
+		move.l	#PREDEC_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif
 		move.l  #PREDEC_ERR,fatal       ; Load error flag
 		jmp 	CheckCDPlay		; Ignore Error
 StartDecomp:
+	.if ^^defined SKUNK_CONSOLE_VERBOSE
+		move	#$187B,MEMCON1
+		move.l	#PREDEC_DONE_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif
+
 		move.l  #1,-(a7)            	; Return value      
 		move.l  #CINEPAK_DATA,-(a7)     ; c
 		move.l  d4,-(a7)            	; (Ptr)data
@@ -442,8 +510,25 @@ StartDecomp:
 		lea 	$10(a7),a7      	; Balance stack
 		move.l  (a7)+,d0        	; Pop return value
 
-		; ^ Ignore Error ^
+	.if ^^defined SKUNK_CONSOLE
+		tst.l	d0			; Did we get an error?
+		beq.s   DoBufBlit         	; No, continue
+
+		move	#$187B,MEMCON1
+		move.l	#DEC_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif
+
+		; After logging error, ignore it and continue.
 DoBufBlit:
+	.if ^^defined SKUNK_CONSOLE_VERBOSE
+		move	#$187B,MEMCON1
+		move.l	#PRE_BLIT_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif
+
 		move.l  #SCREEN_BASE+$8,d0  	; Choose screen to blit to
 		move.l	#SCREEN_BASE+$10,d1
 
@@ -514,6 +599,13 @@ phraseblit:
 
 		move.l  d0,scrbuf       	; store it for op vframe
 		bchg.b  #0,blitScreen       	; Switch screen
+
+	.if ^^defined SKUNK_CONSOLE_VERBOSE
+		move	#$187B,MEMCON1
+		move.l	#POST_BLIT_MSG,a0
+		jsr	skunkCONSOLEWRITE
+		move	#$1865,MEMCON1
+	.endif
 CheckCDPlay:
 		cmpi    #0,playPhase        	; Phase 0?
 		bne.s   Check1          	; No, check phase 1
@@ -666,6 +758,32 @@ blitStep:	dc.l	0	; Blit A1/A2_STEP value (precomputed)
 reflect:        dc.w    0   	; Reflection (high byte)
 fixtearing:     dc.w    0   	; Tearing fix (high byte)
 doingangles:	dc.w	0	; Angles Enabled
+	.if ^^defined SKUNK_CONSOLE
+		.long
+HELLO_MSG:	dc.b	'Welcome to the skunk console!',13,10,0
+		.long
+CD_SETUP_MSG:	dc.b	'Set up the CDROM',13,10,0
+		.long
+CD_MODE_MSG:	dc.b	'Set the CDROM mode',13,10,0
+		.long
+CD_TOC_MSG:	dc.b	'Read the CD table of contents',13,10,0
+		.long
+DONE_INIT_MSG:	dc.b	'Finished initialization',13,10,0
+		.long
+PREDEC_MSG:	dc.b	'Error in Cinepak pre-decode routine',13,10,0
+		.long
+DEC_MSG:	dc.b	'Error in Cinepak decode routine',13,10,0
+	.endif	; ^^defined SKUNK_CONSOLE
+	.if ^^defined SKUNK_CONSOLE_VERBOSE
+		.long
+PRE_BLIT_MSG:	dc.b	'Getting ready to blit',13,10,0
+		.long
+POST_BLIT_MSG:	dc.b	'Done with phrase blit',13,10,0
+		.long
+PREDEC_DONE_MSG:	dc.b	'Done with pre-decompress function',13,10,0
+		.long
+CHUNK_LOOP_MSG:	dc.b	'Entering chunk loop',13,10,0
+	.endif	; ^^defined SKUNK_CONSOLE_VERBOSE
 
 ;------------------------------------------------------------------------------
 ;   Declare externals and globals.

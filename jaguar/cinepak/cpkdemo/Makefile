@@ -5,7 +5,7 @@
 include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
-#       EXECUTABLES
+#       Objects
 #====================================================================
 
 OBJS = startup.o player.o intserv.o utils.o clear.o makelist.o \
@@ -14,6 +14,24 @@ OBJS = startup.o player.o intserv.o utils.o clear.o makelist.o \
 PROGS = cpkdemo.cof
 
 CINEPAK = ../decomp/gpucode.og ../decomp/codec.o
+
+#====================================================================
+#       Skunk Library
+#====================================================================
+
+# Uncomment if running from Skunkboard.  Must be after defining OBJS
+#include $(JAGSDK)/jaguar/skunk/skunk.mk
+
+# Uncomment to use Skunkboard console messages
+#ASMFLAGS += -dSKUNK_CONSOLE
+
+# Uncomment to use verbose Skunkboard console messages.  These
+# interfere with playback, but are useful when debugging.
+#ASMFLAGS += -dSKUNK_CONSOLE_VERBOSE
+
+#====================================================================
+#       EXECUTABLES
+#====================================================================
 
 cpkdemo.cof: $(OBJS) $(CINEPAK)
 	$(LINK) $(LINKFLAGS) -o $@ $^
