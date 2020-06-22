@@ -8,14 +8,18 @@ STADDR = 4000
 # BSS follows directly after text and data sections
 BSSADDR = x
 
-ASMFLAGS = -fb -g
+# Default alignment is double-phrase.  This can be overriden on the
+# make command line, or before including this fragment in a Makefile.
+ALIGN ?= d
+
+ASMFLAGS = -fb -g -r$(ALIGN)
 # Link flags:
 #  -e  - Output using COF file format
 #  -g  - Output source level debugging (where supported)
 #  -l  - Add local symbols
-#  -rd - Align sections to double phrase (16 byte) boundaries
+#  -r<N> - Align sections to requested boundaries
 #  -a  - Absolute section addresses
-LINKFLAGS = -e -g -l -rd -a $(STADDR) x $(BSSADDR)
+LINKFLAGS = -e -g -l -r$(ALIGN) -a $(STADDR) x $(BSSADDR)
 
 # Enable additional logging if requested on the command line.
 V ?= 0
