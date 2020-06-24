@@ -40,7 +40,8 @@ OBJS = player.o utils.o clear.o vidinit.o lister.o intserv.o dspcode.o
 
 PROGS = player.cof
 
-CINEPAK = ../decomp/gpucode.og ../decomp/codec.o
+CPK_DIR = $(JAGSDK)/jaguar/cinepak
+CINEPAK = $(CPK_DIR)/decomp/gpucode.og $(CPK_DIR)/decomp/codec.o
 
 player.cof: $(OBJS) $(CINEPAK)
 	$(LINK) $(LINKFLAGS) -o $@ $^

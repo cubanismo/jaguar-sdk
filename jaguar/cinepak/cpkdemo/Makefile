@@ -13,7 +13,8 @@ OBJS = startup.o player.o intserv.o utils.o clear.o makelist.o \
 
 PROGS = cpkdemo.cof
 
-CINEPAK = ../decomp/gpucode.og ../decomp/codec.o
+CPK_DIR = $(JAGSDK)/jaguar/cinepak
+CINEPAK = $(CPK_DIR)/decomp/gpucode.og $(CPK_DIR)/decomp/codec.o
 
 #====================================================================
 #       Skunk Library
