@@ -6,6 +6,7 @@
 *.rom
 *.j64
 *.jag
+*.bin
 *~
 .*.swp
 
@@ -14,6 +15,8 @@
 !/jaguar/cdboot/cdboot.rom
 !/jaguar/nvramsim/nvmsim.rom
 !/jaguar/bin/maketoc.cof
+!/jaguar/bin/regdump.bin
+!/jaguar/workshop/data/jaguar.bin
 !/jaguar/cinepak/decomp/codec.o
 !/jaguar/cinepak/decomp/codec_a.o
 
