@@ -1,6 +1,6 @@
 diff -rudN binutils-2.16.1/bfd/archive.c binutils-2.16.1-fixed/bfd/archive.c
 --- binutils-2.16.1/bfd/archive.c	2005-03-03 03:40:56.000000000 -0800
-+++ binutils-2.16.1-fixed/bfd/archive.c	2020-04-15 11:01:28.804637700 -0700
++++ binutils-2.16.1-fixed/bfd/archive.c	2020-06-23 23:02:00.612145915 -0700
 @@ -1319,6 +1319,7 @@
    struct stat status;
    struct areltdata *ared;
@@ -93,7 +93,7 @@ diff -rudN binutils-2.16.1/bfd/archive.c binutils-2.16.1-fixed/bfd/archive.c
    for (i = 0; i < sizeof (struct ar_hdr); i++)
 diff -rudN binutils-2.16.1/gas/config/tc-m68k.c binutils-2.16.1-fixed/gas/config/tc-m68k.c
 --- binutils-2.16.1/gas/config/tc-m68k.c	2005-03-22 07:31:48.000000000 -0800
-+++ binutils-2.16.1-fixed/gas/config/tc-m68k.c	2020-04-15 23:51:50.604433076 -0700
++++ binutils-2.16.1-fixed/gas/config/tc-m68k.c	2020-06-23 23:02:00.612145915 -0700
 @@ -384,7 +384,7 @@
      { mcfisa_a|mcfhwdiv|mcfisa_b|mcfemac|mcfusp|cfloat,	mcf5480, "548x", 0 },
      /* Aliases (effectively, so far as gas is concerned) for the above
@@ -103,3 +103,15 @@ diff -rudN binutils-2.16.1/gas/config/tc-m68k.c binutils-2.16.1-fixed/gas/config
      { m68000,						m68000,	"68008", 1 },
      { m68000,						m68000,	"68302", 1 },
      { m68000,						m68000,	"68306", 1 },
+diff -rudN binutils-2.16.1/ld/ld.texinfo binutils-2.16.1-fixed/ld/ld.texinfo
+--- binutils-2.16.1/ld/ld.texinfo	2005-06-12 11:35:45.000000000 -0700
++++ binutils-2.16.1-fixed/ld/ld.texinfo	2020-06-23 23:02:17.763400430 -0700
+@@ -1589,7 +1589,7 @@
+ 
+ @kindex --version-script=@var{version-scriptfile}
+ @cindex version script, symbol versions
+-@itemx --version-script=@var{version-scriptfile}
++@item --version-script=@var{version-scriptfile}
+ Specify the name of a version script to the linker.  This is typically
+ used when creating shared libraries to specify additional information
+ about the version hierarchy for the library being created.  This option
