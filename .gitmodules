@@ -7,3 +7,6 @@
 [submodule "tools/src/lo_inp"]
 	path = tools/src/lo_inp
 	url = https://github.com/cubanismo/lo_inp
+[submodule "tools/src/3dsconv"]
+	path = tools/src/3dsconv
+	url = https://github.com/cubanismo/3dsconv
