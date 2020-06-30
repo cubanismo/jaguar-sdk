@@ -19,36 +19,44 @@ material	.equr	r10
 
 bfcull:
 	move	PC,bfculladdr
+	addqt	#4,bfculladdr
+
 	; we come here when a face has been backface culled; in that case, we don't need
 	; to re-load the registers above
 	subq	#1,tricount
+
+	; set matrix address
+	store	campos,(g_mtxa)
+
 	jump	MI,(endloop)
 	nop
 
 ;
 ; do backface culling
 ;
-	; set matrix address
-	store	campos,(g_mtxa)
-
 	; get polygon plane equation for backface clipping
 	load	(tri),xy			; get plane equation (X and Y)
 	addqt	#4,tri
 	load	(tri),zd			; get plane equation (Z and D)
 	addqt	#4,tri
+	load	(tri),material			; get material
+	addqt	#4,tri
 	rorq	#16,xy				; put into proper format for mmult
 	rorq	#16,zd				; (also makes sure the load is done)
-	nop
+	move	material,subr			; make "subr" equal to the count
 	mmult	xy,temp2			; find dot product of camera position and plane equation
 	cmpq	#1,temp2			; if positive, we have to display this triangle
-	load	(tri),material			; get material
 	jr	PL,.noremove
-	addqt	#4,tri
+	nop
 		shlq	#8,material		; strip flags
 		shrq	#22,material		; now material = number of points in polygon, times 4
 		jump	(bfculladdr)
 		add	material,tri		; skip 3 points (4 byte each)
 .noremove:
+
+.if (^^defined PROFILING)
+	ADDTIME	OUTRLP
+.endif
 
 .equrundef	xy
 .equrundef	zd
@@ -63,10 +71,9 @@ xtexwidth	.equr	r8,1		; texture width
 xtexheight	.equr	r9,1		; texture height
 ;material	.equr	r10,1		; material (defined earlier)
 
-	move	material,subr		; make "subr" equal to the count
 	movei	#materialtable,temp1
 	shlq	#16,material		; strip count from "material"
-	load	(temp1),temp1
+	load	(temp1),temp1		; load address of material table
 	shrq	#13,material		; and multiply material by 8 (== sizeof(Material))
 	shlq	#8,subr			; strip flags from count
 	add	material,temp1		; now temp1 points at the material
@@ -110,7 +117,8 @@ xtexheight	.equr	r9,1		; texture height
 	shlq	#16,xtexheight
 	shrq	#16,xtexwidth
 	shrq	#16,xtexheight
-.endif
+
+.endif	; TEXTURES
 
 ;*
 ; copy the polygon's points into GPU RAM
@@ -127,7 +135,13 @@ xtexheight	.equr	r9,1		; texture height
 
 	load	(tri),temp2			; get first point index from DRAM
 
+	movei	#_GPUTLights,temp0
 	movei	#$ff,andclips
+	moveta	temp0,altlmodel
+
+endloop		.equr	r22,1		; end of lighting calculation loop
+
+	movei	#endlightloop,endloop
 
 	move	PC,return
 	moveq	#0,orclips
@@ -137,8 +151,12 @@ xtexheight	.equr	r9,1		; texture height
 
 	.include	"loadxpt.inc"
 
-; loadxpt.inc was responsible for loading the next point from DRAM
+; loadxpt.inc is responsible for loading the next point index from DRAM into temp2
 
 	subq	#1,subr
 	jump	NE,(return)			; jumps if subr != 0
 	nop
+
+.if (^^defined PROFILING)
+	ADDTIME	DATALD
+.endif

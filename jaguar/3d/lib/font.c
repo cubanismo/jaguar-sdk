@@ -337,7 +337,7 @@ FNTexpand( int x, int y, unsigned char *str, unsigned short *dest, long blitflag
  */
 
 /* macro for converting PIXEL1 widths to PIXEL8 widths */
-#define divby8(x) ( ((x)&0x7e00) - 0x1800 )
+#define divby8(x) ( ((x)&0x7e00l) - 0x1800 )
 
 long
 FNTstr( int x, int y, char *_str, void *dest, long blitflags, FNThead *fnt, unsigned fgcolor, unsigned bgcolor )

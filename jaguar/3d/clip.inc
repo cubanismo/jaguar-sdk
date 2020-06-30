@@ -8,6 +8,10 @@
 ; when we are clipping against the front viewing plane.
 ;******************************************************************
 
+.if (^^defined PROFILING)
+	ADDTIME	OUTRLP
+.endif
+
 ;
 ; trivial reject test: if andclips != 0, all points are on the "outside" of one of the clipping planes (trivial reject)
 ;
@@ -56,14 +60,9 @@ thisplane	.equr	r4
 		nop
 .nomoreclips:
 
-;
-; if we clipped the polygon away completely, then give up
-;
-	load	(pgon),temp0
-	movefa	altskip,temp1
-	cmpq	#3,temp0				; less than 3 points?
-	jump	MI,(temp1)
-	nop
+.if (^^defined PROFILING)
+	ADDTIME	CLIPPING
+.endif
 
 ;*
 ; perspective transform
@@ -81,9 +80,16 @@ X		.equr	r13,1
 Y		.equr	r14,1
 Z		.equr	r15,1
 
+;
+; if we clipped the polygon away completely, then give up
+;
+
 	move	pgon,pt
-	load	(pgon),vertsrem	; get number of points in polygon
 	addqt	#4,pt
+	load	(pgon),vertsrem	; get number of points in polygon
+	movefa	altskip,temp1
+	cmpq	#3,vertsrem	; fewer than 3 points left?
+	jump	MI,(temp1)
 	subqt	#1,vertsrem	; prepare for dbra loop
 
 ;
@@ -169,3 +175,6 @@ Z		.equr	r15,1
 	.equrundef	Y
 	.equrundef	Z
 
+.if (^^defined PROFILING)
+	ADDTIME	PERSPECTIVE
+.endif

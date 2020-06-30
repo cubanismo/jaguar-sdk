@@ -69,7 +69,8 @@ typedef struct renderer {
  */
 typedef struct model {
 	N3DObjdata *data;
-	int initx, inity, initz;
+	short initx, inity, initz;
+	short reserved;		/* pads structure to a longword boundary */
 } MODEL;
 
 /****************************************************************
@@ -81,7 +82,7 @@ extern void VIDsync(void);			/* waits for a vertical blank interrupt */
 extern void mkMatrix(Matrix *, struct angles *); /* builds a matrix */
 extern void GPUload(long *);			/* loads a package into the GPU */
 extern void GPUrun(void (*)());			/* runs a GPU program */
-extern void sprintf(char *, const char *, ...);	/* you know what this does */
+extern int sprintf(char *, const char *, ...);	/* you know what this does */
 
 /* NOTE: clock() is useful only for debugging; it works on
  * current developer consoles, but may fail on production
@@ -100,6 +101,9 @@ extern long _timestamp;
 /* long-aligned parameter block for the GPU */
 extern long params[];
 
+/* timing information */
+extern long proftime[];
+
 /* the 2 screen buffers */
 extern short DISPBUF0[], DISPBUF1[];
 #define DATA1 ((char *)DISPBUF0)
@@ -109,14 +113,17 @@ extern short DISPBUF0[], DISPBUF1[];
 extern FNThead usefnt[];
 
 /* 3D object data */
-extern N3DObjdata ship1data, globedata, castledata, radardata;
+extern N3DObjdata ship1data, globedata, radardata, torusdata, knightdata, robotdata, castledata, cubedata;
 
 /****************************************************************
  *	External GPU references					*
  ****************************************************************/
 
-extern long gstexcode[], texcode[], gourcode[], wfcode[], flattexcode[];
-extern void gstexenter(), texenter(), gourenter(), wfenter(), flattexenter();
+extern long wfcode[], gourcode[], gourphrcode[],
+	texcode[], flattexcode[], gstexcode[];
+
+extern void wfenter(), gourenter(), gourphrenter(),
+	texenter(), flattexenter(), gstexenter();
 
 /****************************************************************
  *	Initialized Data					*
@@ -126,19 +133,25 @@ extern void gstexenter(), texenter(), gourenter(), wfenter(), flattexenter();
 RENDERER rend[] = {
 	{"Wire Frames", wfcode, wfenter, 0},
 	{"Gouraud Only", gourcode, gourenter, 0},
-	{"Plain Textures", texcode, texenter, 0},
-	{"Flat Shaded Textures", flattexcode, flattexenter, 1},
+	{"Phrase Mode Gouraud", gourphrcode, gourphrenter, 0},
+	{"Unshaded Textures", texcode, texenter, 0},
+	{"Flat Shaded Textures", flattexcode, flattexenter, 0},
 	{"Gouraud Shaded Textures", gstexcode, gstexenter, 1},
 };
 #define maxrenderer (sizeof(rend)/sizeof(RENDERER))
 
 /* models we can draw */
 MODEL models[] = {
-	{ &globedata, 0, 0, 400 },
-	{ &ship1data, 0, 0, 1500 },
-	{ &castledata, 0, 0, 6000 },
-	{ &radardata, 0, 0, 256 },
+	{ &globedata, 0, 0, 400, 0 },
+	{ &ship1data, 0, 0, 1500, 0 },
+	{ &torusdata, 0, 0, 2024, 0 },
+	{ &knightdata, 0, 0, 600, 0 },
+	{ &robotdata, 0, 0, 800, 0 },
+	{ &radardata, 0, 0, 256, 0 },
+	{ &castledata, 0, 0, 6000, 0 },
+	{ &cubedata, 0, 0, 800, 0 },
 };
+
 #define maxmodel (sizeof(models)/sizeof(MODEL))
 
 /* object list for first screen */
@@ -199,9 +212,6 @@ Lightmodel lightm = {
 /****************************************************************
  *	Global variables					*
  ****************************************************************/
-
-/* flag for whether or not the option key was held down */
-int  option_key;
 
 /* flag for current texture state */
 int texturestate;
@@ -365,7 +375,6 @@ main()
 	int curmodel;			/* current model in use (index into table) */
 	char buf[256];			/* scratch buffer for sprintf */
 
-
 	/* build packed versions of the two object lists */
 	/* (output is double buffered)			 */
 	OLbldto(buf1_olist, packed_olist1);
@@ -384,8 +393,8 @@ main()
 
 
 	drawbuf = 0;			/* draw on buffer 1, while displaying buffer 2 */
-	currender = maxrenderer - 1;	/* render package to use (Gourand Shaded Textures) */
-	curmodel = 0;			/* model to draw */
+	currender = 0;			/* initial render package to use */
+	curmodel = 0;			/* initial model to draw */
 
 	/* initialize the test object */
 	memset(&testobj, 0, sizeof(testobj));
@@ -393,6 +402,7 @@ main()
 	objangles.xpos = models[curmodel].initx;	/* get initial position */
 	objangles.ypos = models[curmodel].inity;
 	objangles.zpos = models[curmodel].initz;
+
 	/* no rotation, initially */
 	objangles.alpha = objangles.beta = objangles.gamma = 0;
 
@@ -441,7 +451,6 @@ main()
 		N3Drender(curwindow, &testobj, &cammatrix, &lightm, &rend[currender]);
 		time = clock() - time;
 
-
 		/* Pring some statistics into the draw buffer (curwindow) */
 		/* FNTstr draws text; see font.c for details */
 		FNTstr(20, 0, rend[currender].name, curwindow->data, curwindow->blitflags, usefnt, 0x7fff, 0 );
@@ -449,19 +458,18 @@ main()
 		sprintf(buf, "%d faces/%d fps", testobj.data->numpolys, (int)framespersecond);
 		FNTstr(20, 12, buf, curwindow->data, curwindow->blitflags, usefnt, 0x27ff, 0 );
 
-		sprintf(buf, "%08lx draw time", time);
-		FNTstr(20, 24, buf, curwindow->data, curwindow->blitflags, usefnt, 0xf0ff, 0 );
-
-
 		/* there are MHZ * 100 ticks in a second, and drawing 1 poly takes
 		 * (time/testobj.data->numpolys) ticks,
 		 * so the throughput is 100*MHZ/(time/testobj->data.numpolys)
 		 */
 		sprintf(buf, "%ld polys/sec", 100L * ( (MHZ * testobj.data->numpolys)/time) );
-		FNTstr(20, 36, buf, curwindow->data, curwindow->blitflags, usefnt, 0x27ff, 0 );
+		FNTstr(20, 24, buf, curwindow->data, curwindow->blitflags, usefnt, 0x27ff, 0 );
 
 
-		/* read the joypad */
+		/* timing statistics */
+		sprintf(buf, "%08lx draw time", time);
+		FNTstr(20, 36, buf, curwindow->data, curwindow->blitflags, usefnt, 0xf0ff, 0 );
+
 		/* buts will contain all buttons currently pressed */
 		/* shotbuts will contain the ones that are pressed now, but weren't
 		   pressed last time JOYget() was called

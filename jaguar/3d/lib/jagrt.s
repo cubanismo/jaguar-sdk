@@ -54,14 +54,13 @@ start::
 ; end of program
 	illegal
 
+___main::
+	rts
 
 _abort::
 	link	a6,#0
 	illegal
 	unlk	a6
-
-__main::	; This is where GCC wants to init the C runtime
-___main::	; This is where GCC wants to init the C runtime
 	rts
 
 	.bss

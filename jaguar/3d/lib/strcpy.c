@@ -12,11 +12,11 @@ strcpy(dst, src)
 char *dst;
 const char *src;
 {
-register char *dscan = dst;
-register const char *sscan = src;
+	register char *dscan = dst;
+	register const char *sscan = src;
 
+	if (!sscan) sscan = "";
 	while ((*dscan++ = *sscan++) != '\0')
 		continue;
-
 	return(dst);
 }

@@ -1,0 +1,170 @@
+Source Code for the New 3D Library
+----------------------------------
+Sept. 14, 1995
+
+
+PLEASE NOTE: THIS IS A PRELIMINARY VERSION OF THE
+LIBRARY, AND AS SUCH IS STILL SUBJECT TO CHANGE
+
+
+
+There are five renderers provided with the C demo
+code. These are found in:
+
+(1) Wire Frame Renderer 	-- wfrend.s
+(2) Gouraud Only (no textures)	-- gourrend.s
+(2) Gouraud Only, phrase mode	-- gourphr.s
+(3) Plain Textures		-- texrend.s
+(4) "Flat" Shaded Textures	-- flattex.s
+(5) Gouraud Shaded Textures	-- gstex.s
+
+
+Each renderer includes a variety of .inc files.
+There are four basic modules:
+
+init	-- initializes global variables
+load	-- loads points from RAM, transforms them (if
+	   necessary), and stores them in our internal
+	   format
+clip	-- does a perspective transform, and clips polys
+	   to the screen. The perspective transform is
+	   done here rather than in 'load' because
+	   clipping to the front view plane must be done
+	   in world coordinates, not screen coordinates.
+draw	-- draws the polygons
+
+
+init.inc
+	Initializes global variables.
+
+load.inc
+ loadxpt.inc
+
+	Loads faces and points. Does backface
+	culling. Transforms and lights points
+	(as needed), and calculates clip codes.
+	Stores vertices into GPU RAM in
+	internal format.
+
+	loadxpt.inc is an inline subroutine
+	to load and transform 1 point, and
+	save it to GPU RAM.
+
+clip.inc
+ clibsubs.inc
+
+	Does trivial accept/reject processing, and
+	if necessary clips polygons to the canonical
+	viewing pyramid. After clipping is done in
+	3D space, does the perspective transformation
+	and projects to 3D space.
+
+	clipsubs.inc contains the subroutines necessary
+	for clipping a polygon to a single plane.
+
+drawpoly.inc
+  gourdraw.inc
+  texdraw.inc
+  texdraw1.inc
+  texdraw2.inc
+
+	Draws a polygon onto screen. This is done
+	by decomposing polygons into triangles
+	(increments for gouraud shading and texture
+	mapping can be calculated once per triangle,
+	saving up to 3 divides per scan line).
+
+	dotri.inc renders a single triangle.
+
+	gourdraw.inc and texdraw*.inc contain routines
+	for setting up (untextured) gouraud shaded
+	triangles, and texture mapped triangles, and
+	for rendering trapezoids. The different texdraw.inc
+	files do different kinds of shading on the triangles.
+
+
+Any of the modules can be replaced relatively easily. For
+example, the wire frame renderer replaces the draw module
+and its subroutines with a single file, wfdraw.inc, for
+drawing a polygon in wire frames.
+
+
+Some Quirks and Optimizations
+-----------------------------
+
+Init
+----
+init.inc sets up the transformation matrix from object space
+to camera space. The transformation also includes a scale,
+so that the viewing pyramid becomes the "canonical" view
+volume, z > MINZ AND x < z < -x AND y < z < -y. This volume
+can be clipped to very easily. When the perspective transformation
+takes place, the scaling is undone so that the proper
+viewing rectangle is drawn to.
+
+
+Load
+----
+All points are initially marked as untransformed. As points are
+needed for rendering, they are checked in the tpoints[] array
+to see if a transformed version exists. If so, this is used;
+if not, the point is transformed and lit, and then saved into
+tpoints[]. The advantage of this approach is that vertices
+which only appear in faces which are backface culled do not need
+to be transformed at all.
+
+Backface culling and lighting are done in object space. This means
+that face and vertex normals never need to be transformed. The
+disadvantage is that the object->world space transformation must
+be isometric (i.e. scaling of objects is not supported).
+
+
+Clip
+----
+Clipping is done in 3D space, *before* the perspective transformation.
+This has the following benefits:
+
+	(1) clipping to the front viewing plane (Z=MINZ) must be done
+	before perspective transformation for correct results
+
+	(2) Quantities which do not interpolate linearly in screen
+	space (e.g. texture coordinates) are clipped more accurately
+	when done before perspective transformation
+
+The major disadvantage of this approach is speed: each point must be
+perspective-transformed every time it is used, rather than just once
+per point.
+
+
+Draw
+----
+Shaded texture mapping is done with a 2 (or 3 pass blit). Basically,
+data is copied from external RAM to GPU RAM, and then back out
+to external RAM. This is done to work around a blitter bug (Z
+buffering and source shading can't be used together). Gouraud
+shaded texture mapping adds an extra blit to do the shading.
+
+Another blitter bug prevents phrase mode Z buffered writes from
+working correctly unless the source and destination pixels have
+the same alignment within a phrase. (If they do not have the
+same alignment, sometimes the fractional parts of the computed
+Z values are used instead of the integer parts). Since GPU RAM
+can only be read/written on longword boundaries, it is very
+difficult to work around this bug while keeping the buffer
+in GPU RAM. 4 solutions are:
+
+(1) Use pixel modes for all writes. This is much slower.
+(2) Put the buffer in DRAM. This is much slower.
+(3) Put the buffer in the color lookup table. This works well,
+    but restricts polygons to having at most 256 pixels per
+    line. Also, if the color lookup table is in use, or
+    if the RELEASE bit is set on objects, this method will not
+    work.
+(4) Punt and assume that Z is constant throughout a line. In this
+    case, the integer and fractional parts of the Z value can be
+    made identical, so that the blitter bug won't matter and
+    the GPU buffer can always be written to at a long word boundary.
+
+Option (3) is set in the texdraw2.inc module by default; this
+can easily be changed into option (2) by changing the DATABUF
+define.

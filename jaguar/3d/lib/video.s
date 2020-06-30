@@ -201,7 +201,7 @@ InitVBint:
 		ori.w	#1,d0
 		move.w	d0,VI
 
-		move.w	#$303,d0		; Enable video and GPU interrupts
+		move.w	#$303,INT1		; Enable video and GPU interrupts
 
 		move.w	sr,d0
 		and.w	#$F8FF,d0		; Lower the 68k IPL to allow interrupts

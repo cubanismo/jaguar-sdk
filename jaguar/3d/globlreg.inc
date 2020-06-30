@@ -42,3 +42,4 @@ cam		.equr	r30,1		; pointer to output bitmap data
 altmatrl	.equr	r3,0		; temporary storage for material
 altskip		.equr	r4,0		; address of "skipface" routine
 altgmtxa	.equr	r5,0		; address of G_MTXA
+altlmodel	.equr	r6,0		; address of lighting model

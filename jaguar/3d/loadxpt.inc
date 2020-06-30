@@ -48,7 +48,7 @@ bright		.equr	r18,1		; brightness of light source
 countr		.equr	r19,1		; counter
 uv		.equr	r20,1
 lmodel		.equr	r21,1
-endloop		.equr	r22,1
+;;;endloop		.equr	r22,1		; defined in load.inc
 
 _loadxpoint:
 	; temp2 has point index (high word) and UV coordinates (low word)
@@ -74,11 +74,20 @@ _loadxpoint:
 ;
 ; save the colori,texwidth,and texheight registers
 ;
+.if (^^defined PROFILING)
+	moveta	temp1,atemp1
+	moveta	temp2,atemp2
+	ADDTIME	DATALD
+	movefa	atemp2,temp2
+	movefa	atemp1,temp1
+.endif
+
 	moveta	xcolori,atemp0
 .if TEXTURES
 	moveta	xtexwidth,atemp1
 	moveta	xtexheight,atemp2
 .endif
+
 ;
 ; here we have to transform the point, and do lighting calculations for it
 ;
@@ -98,7 +107,7 @@ _loadxpoint:
 ;
 ; walk through the lighting model
 ;
-	movei	#_GPUTLights,lmodel
+	movefa	altlmodel,lmodel
 	load	(lmodel),countr		; get number of lights (low word) & ambient light (high word)
 	addqt	#4,lmodel
 	move	countr,basei		; get base intensity
@@ -107,7 +116,6 @@ _loadxpoint:
 	shrq	#16,countr
 loopbr	.equr	clipcodes			; temporary re-use of register
 
-	movei	#.endlightloop,endloop
 	move	PC,loopbr
 	addqt	#4,loopbr
 
@@ -164,7 +172,7 @@ loopbr	.equr	clipcodes			; temporary re-use of register
 			shrq	#13,temp1
 			jump	(loopbr)
 			add	temp1,basei
-.endlightloop:
+endlightloop:
 	.equrundef	loopbr
 
 	; saturate base intensity to $ffff
@@ -241,6 +249,14 @@ loopbr	.equr	clipcodes			; temporary re-use of register
 .if TEXTURES
 	movefa	atemp1,xtexwidth
 	movefa	atemp2,xtexheight
+.endif
+
+.if (^^defined PROFILING)
+	moveta	temp1,atemp1
+	moveta	temp2,atemp2
+	ADDTIME	TRANSFORM
+	movefa	atemp2,temp2
+	movefa	atemp1,temp1
 .endif
 
 setxpoint:

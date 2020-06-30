@@ -14,4 +14,4 @@ all: $(PROGS)
 
 .PHONY: clean
 clean:
-	rm -f $(OBJS) $(PROGS)
+	rm -f $(OBJS) $(PROGS) $(GENERATED)

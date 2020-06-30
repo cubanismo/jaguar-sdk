@@ -42,6 +42,7 @@ a1fpix_addr	.equr	r15,1		; address of A1_FPIXEL
 bcmd_val	.equr	r16,1		; value for B_CMD
 inc_val		.equr	r17,1		; value for A1_INC
 finc_val	.equr	r18,1		; value for A1_FINC
+outrloop	.equr	r19,1		; outer loop address
 
 	.globl	drawpoly
 drawpoly:
@@ -69,14 +70,6 @@ drawpoly:
 	jr	EQ,.bwait1
 	nop
 
-	movefa	destaddr,temp0
-	movei	#A1_BASE,temp2
-	store	temp0,(temp2)
-	movefa	destflags,temp1
-	addqt	#4,temp2
-	movei	#XADDINC,temp0
-	or	temp0,temp1
-	store	temp1,(temp2)
 	movei	#B_PATD,temp2
 	store	color,(temp2)
 
@@ -99,6 +92,8 @@ drawpoly:
 	move	start,left
 	subqt	#SIZEOF_XPOINT,right
 
+	move	PC,outrloop
+	addqt	#4,outrloop
 polyloop:
 	load	(right),sx
 	load	(left),ex
@@ -188,8 +183,7 @@ polyloop:
 	move	left,right
 	addqt	#SIZEOF_XPOINT,left
 	cmp	left,end
-	movei	#polyloop,temp0
-	jump	NE,(temp0)
+	jump	NE,(outrloop)
 	nop
 
 donedraw:
@@ -204,3 +198,21 @@ donedraw:
 	.equrundef	end
 	.equrundef	left
 	.equrundef	right
+
+	.equrundef	color
+	.equrundef	sx
+	.equrundef	sy
+	.equrundef	ex
+	.equrundef	ey
+	.equrundef	linelen
+	.equrundef	bcount_addr
+	.equrundef	bcmd_addr
+	.equrundef	a1inc_addr
+	.equrundef	a1finc_addr
+	.equrundef	a1pix_addr
+	.equrundef	a1fpix_addr
+	.equrundef	bcmd_val
+	.equrundef	inc_val
+	.equrundef	finc_val
+	.equrundef	outrloop
+

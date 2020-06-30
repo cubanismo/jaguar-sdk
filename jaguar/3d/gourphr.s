@@ -1,5 +1,5 @@
 ;*****************************************************************
-; WIRE FRAME RENDERER
+; 3D POLYGON RENDERER
 ;
 ; Copyright 1995 Atari Corporation. All Rights Reserved.
 ;
@@ -18,11 +18,13 @@
 ;
 ; configuration info
 ;
-WIREFRAME	=	1
-;
-; we don't draw textures, obviously!
-;
+; can we draw textures (0 if no, 1 if yes)
 TEXTURES	=	0
+;
+; if we do textures, how do we shade them?
+; (0 = no shading, 1 = flat shading, 2 = gouraud shading)
+;
+TEXSHADE	=	0
 ;
 ; Maximum number of polygon sides supported
 ;
@@ -46,7 +48,7 @@ PERSP_SHIFT	=	2
 
 	.include 	'jaguar.inc'
 ;
-; GPU code for doing wire frame polygon rendering
+; GPU code for doing polygon rendering
 ;
 SIZEOF_POLYGON	equ	(1+(6*(POLYSIDES+5)))		; polygon size in longs: 1 long for num. points, + 6 longs per point
 							; make sure to allow 1 point per clipping plane for clipping
@@ -55,21 +57,21 @@ SIZEOF_XPOINT	equ	24		; Xpoint size in bytes
 
 	.extern	_params
 
-	.globl	_wfcode
+	.globl	_gourphrcode
 	.data
-_wfcode:
+_gourphrcode:
 	.dc.l	startblit, endblit-startblit
 
 	.gpu
 	.include 	"globlreg.inc"
-	.include	"trapregs.inc"
+	.include	"polyregs.inc"
 
 	.org	G_RAM
 
 startblit:
 
-	.globl	_wfenter
-_wfenter:
+	.globl	_gourphrenter
+_gourphrenter:
 
 ;
 ; GPU triangle renderer
@@ -107,28 +109,6 @@ _wfenter:
 	jump	(temp0)
 	addqt	#6,return
 
-	movefa	bcmd_ptr,temp0
-.bwait0:
-	load	(temp0),temp1
-	btst	#0,temp1
-	jr	EQ,.bwait0
-	nop
-
-;
-; set up register window A1 to point at the screen
-;
-	movefa	destaddr,temp0
-	movei	#A1_BASE,temp2
-	store	temp0,(temp2)
-	movefa	destflags,temp1
-	addqt	#4,temp2
-	movei	#XADDINC,temp0
-	or	temp0,temp1
-	store	temp1,(temp2)
-
-	move	PC,return
-	addqt	#4,return
-
 ;***********************************************************************
 ; main loop goes here
 ; it is assumed that "return" points to "triloop"
@@ -155,7 +135,7 @@ skipface:
 ; here's where we render the polygon
 ;******************************************************************
 	movei	#curmaterial,altpgon
-	.include "wfdraw.inc"
+	.include "drawpoly.inc"
 
 	movei	#triloop,return		; main loop expects its address in "return"
 	jump	(return)		; branch to the main loop
@@ -166,7 +146,6 @@ skipface:
 
 endtriloop:
 gpudone:
-
 
 ;
 ; now kill the GPU
@@ -182,6 +161,19 @@ gpudone:
 
 
 	.include	"clipsubs.inc"
+
+.if TEXTURES
+.if TEXSHADE = 2
+	.include	"texdraw2.inc"
+.else
+.if TEXSHADE = 1
+	.include	"texdraw1.inc"
+.else
+	.include	"texdraw.inc"
+.endif
+.endif
+.endif
+	.include	"phrdraw.inc"
 
 	.equrundef	thisplane
 

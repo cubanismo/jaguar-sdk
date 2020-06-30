@@ -1,0 +1,22 @@
+Controls for the demo:
+
+A	=	Move model towards -Z
+B	=	Move model slowly towards -Z
+C	=	Move model towards +Z
+
+up,down,
+left,right,
+1,3	=	Rotate model
+
+2,8	=	Move model in Y direction
+4,6	=	Move model in X direction
+
+0+any of the above
+	=	Move camera instead of model
+
+
+
+Option	=	Next model
+
+#	=	Next renderer
+*	=	Previous renderer

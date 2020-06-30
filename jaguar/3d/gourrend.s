@@ -64,7 +64,7 @@ _gourcode:
 
 	.gpu
 	.include 	"globlreg.inc"
-	.include	"trapregs.inc"
+	.include	"polyregs.inc"
 
 	.org	G_RAM
 
@@ -130,11 +130,12 @@ skipface:
 ; Clipping and perspective transformation code goes here
 ;***********************************************************************
 	.include	"clip.inc"
+
 ;******************************************************************
 ; here's where we render the polygon
 ;******************************************************************
 	movei	#curmaterial,altpgon
-	.include "draw.inc"
+	.include "drawpoly.inc"
 
 	movei	#triloop,return		; main loop expects its address in "return"
 	jump	(return)		; branch to the main loop
@@ -145,7 +146,6 @@ skipface:
 
 endtriloop:
 gpudone:
-
 
 ;
 ; now kill the GPU
@@ -162,14 +162,18 @@ gpudone:
 
 	.include	"clipsubs.inc"
 
-	.include	"gourdraw.inc"
 .if TEXTURES
-.if TEXSHADE
+.if TEXSHADE = 2
 	.include	"texdraw2.inc"
+.else
+.if TEXSHADE = 1
+	.include	"texdraw1.inc"
 .else
 	.include	"texdraw.inc"
 .endif
 .endif
+.endif
+	.include	"gourdraw.inc"
 
 	.equrundef	thisplane
 

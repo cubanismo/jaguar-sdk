@@ -64,7 +64,7 @@ _texcode:
 
 	.gpu
 	.include 	"globlreg.inc"
-	.include	"trapregs.inc"
+	.include	"polyregs.inc"
 
 	.org	G_RAM
 
@@ -134,7 +134,7 @@ skipface:
 ; here's where we render the polygon
 ;******************************************************************
 	movei	#curmaterial,altpgon
-	.include "draw.inc"
+	.include "drawpoly.inc"
 
 	movei	#triloop,return		; main loop expects its address in "return"
 	jump	(return)		; branch to the main loop
@@ -162,7 +162,6 @@ gpudone:
 
 	.include	"clipsubs.inc"
 
-	.include	"gourdraw.inc"
 .if TEXTURES
 .if TEXSHADE = 2
 	.include	"texdraw2.inc"
@@ -174,6 +173,8 @@ gpudone:
 .endif
 .endif
 .endif
+	.include	"gourdraw.inc"
+
 	.equrundef	thisplane
 
 	.long

@@ -1,6 +1,6 @@
 ;***********************************************************************
-; Initialization code for triangle renderer.
-; This code runs once per call to _TRIrender. It reads the parameters
+; Initialization code for polygon renderer.
+; This code runs once per call to _N3D render. It reads the parameters
 ; passed in by the 68K, and sets up all necessary global variables.
 ;
 ; Parameters are passed in the global array "params", as follows:
@@ -89,6 +89,62 @@ matlist		.equr	r8,1				; pointer to material list
 	.equrundef	ptcount
 	.equrundef	points
 	.equrundef	matlist
+
+;
+;
+; set up constant registers for the trapezoid renderer
+;
+	movei	#A1_PIXEL,temp1
+	movei	#A2_PIXEL,temp2
+	moveta	temp1,a1_ptr
+	moveta	temp2,a2_ptr
+	movei	#B_Z3,temp1
+	movei	#B_CMD,temp2
+	moveta	temp1,bz3_ptr
+	moveta	temp2,bcmd_ptr
+;
+; make sure the blitter is free
+;
+.bwait:
+	load	(temp2),temp0
+	btst	#0,temp0
+	jr	EQ,.bwait
+	nop
+
+;
+; zero out the clipping rectangle
+;
+	moveq	#0,temp0
+	movei	#A1_CLIP,temp1
+	store	temp0,(temp1)
+;
+; clear the point transformation array
+; (actually, set it all to 1's)
+; there are "numpoints" elements in the array,
+; each 16 bytes long
+;
+	moveq	#0,temp0
+	movefa	a1_ptr,temp2
+	store	temp0,(temp2)		; A1_PIXEL = 0
+	subqt	#(A1_PIXEL-A1_BASE),temp2
+	movei	#gtpoints,temp1
+	load	(temp1),temp1
+	movei	#(PIXEL8|WID16|PITCH1|XADDPHR),temp0		; flags for the blit
+	store	temp1,(temp2)		; A1_BASE = tpoints
+	addqt	#4,temp2
+	store	temp0,(temp2)		; A1_FLAGS = temp0
+	movei	#A1_STEP,temp2
+	movei	#$0001FFF0,temp0
+	store	temp0,(temp2)		; A1_STEP = -16 in X, 1 in Y
+	movei	#gnumpoints,temp1
+	load	(temp1),temp1
+	shlq	#16,temp1		; number of lines is = to the number of points
+	bset	#4,temp1		; number of "pixels" per line is 16
+	movei	#B_COUNT,temp2
+	store	temp1,(temp2)
+	subqt	#(B_COUNT-B_CMD),temp2
+	movei	#LFU_ONE|UPDA1,temp1
+	store	temp1,(temp2)
 
 ;*
 ; set up the various transformation matrices
@@ -606,63 +662,7 @@ one	.equr	r21,1
 
 ;
 ; initialize other fixed registers for rendering
-;
-;
-; set up constant registers for the trapezoid renderer
-;
-	movei	#A1_PIXEL,temp1
-	movei	#A2_PIXEL,temp2
-	moveta	temp1,a1_ptr
-	moveta	temp2,a2_ptr
-	movei	#B_Z3,temp1
-	movei	#B_CMD,temp2
-	moveta	temp1,bz3_ptr
-	moveta	temp2,bcmd_ptr
-;
-; make sure the blitter is free
-;
-.bwait:
-	load	(temp2),temp0
-	btst	#0,temp0
-	jr	EQ,.bwait
-	nop
-
-;
-; zero out the clipping rectangle
-;
-	moveq	#0,temp0
-	movei	#A1_CLIP,temp1
-	store	temp0,(temp1)
-;
-; clear the point transformation array
-; (actually, set it all to 1's)
-; there are "numpoints" elements in the array,
-; each 16 bytes long
-;
-	moveq	#0,temp0
-	movefa	a1_ptr,temp2
-	store	temp0,(temp2)		; A1_PIXEL = 0
-	subqt	#(A1_PIXEL-A1_BASE),temp2
-	movei	#gtpoints,temp1
-	load	(temp1),temp1
-	movei	#(PIXEL8|WID16|PITCH1|XADDPHR),temp0		; flags for the blit
-	store	temp1,(temp2)		; A1_BASE = tpoints
-	addqt	#4,temp2
-	store	temp0,(temp2)		; A1_FLAGS = temp0
-	movei	#A1_STEP,temp2
-	movei	#$0001FFF0,temp0
-	store	temp0,(temp2)		; A1_STEP = -16 in X, 1 in Y
-	movei	#gnumpoints,temp1
-	load	(temp1),temp1
-	shlq	#16,temp1		; number of lines is = to the number of points
-	bset	#4,temp1		; number of "pixels" per line is 16
-	movei	#B_COUNT,temp2
-	store	temp1,(temp2)
-	subqt	#(B_COUNT-B_CMD),temp2
-	movei	#LFU_ONE|UPDA1,temp1
-	store	temp1,(temp2)
-;
-; return to caller
+; here
 ;
 	jump	(return)
 	nop

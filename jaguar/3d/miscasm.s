@@ -17,11 +17,29 @@ _DISPBUF1:
 	.ds.w	3*320*240
 
 
-	.long
-	.globl	_params
+; space for passing parameters
 
 	.long
+	.globl	_params
 _params:
+	.ds.l	32
+
+; ram buffer for Gouraud shaded texture mapping;
+; use this if the CLUT is unavailable
+
+	.globl	_rambuf
+	.phrase
+_rambuf:
+	.ds.w	324
+
+
+;
+; array for holding profiling information
+; not currently used
+;
+	.globl	_proftime
+	.long
+_proftime:
 	.ds.l	32
 
 	.data
