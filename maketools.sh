@@ -27,6 +27,16 @@ make
 strip --strip-unneeded lo_inp
 cp lo_inp  "${TARGET_DIR}/bin"
 
+cd "${SRC_DIR}/3dsconv"
+make
+strip --strip-unneeded 3dsconv
+cp 3dsconv  "${TARGET_DIR}/bin"
+
+cd "${SRC_DIR}/tga2cry"
+make
+strip --strip-unneeded tga2cry tgainfo
+cp tga2cry tgainfo  "${TARGET_DIR}/bin"
+
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
 
