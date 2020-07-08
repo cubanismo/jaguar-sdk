@@ -1,0 +1,43 @@
+#!/bin/sh
+
+if [ -z "$1" -o "$1" = "-h" ]; then
+  echo "Usage: dosemu_helper <dos_sdk_cmd> [args]"
+  exit
+fi
+
+if [ ! -x "`which dosemu`" ]; then
+  echo "You must install dosemu to use the DOS-only Jaguar SDK programs."
+  echo "Additionally, mahy programs will fail if you don't configure dosemu"
+  echo "to use full x86 emulation.  To do so, add this line to ~/.dosemurc:"
+  echo ""
+  echo "  \$_cpu_emu = \"full\""
+  echo ""
+  exit
+fi
+
+# First parameter is the DOS SDK program to run
+JAGEXE="$1"
+shift
+
+# Remaining parameters are passed on to the dos program, but we must
+# Fix up their paths to use backlashes rather than forward slashes first.
+#while [ $# -gt 0 ]; do
+#  if [ -e "$1" ]; then
+#    ARG="`echo "$1"|sed -e 's:/:\\\\:g'`"
+#  else
+#    ARG="$1"
+#  fi
+#
+#  POSITIONAL="${POSITIONAL} \"${ARG}\""
+#  shift
+#done
+#eval "set -- ${POSITIONAL}"
+
+# Convert the current working directory and Jaguar SDK location to DOS paths
+CWD_DOS="`pwd|sed -e 's:/:\\\\:g'`"
+JAGSDK_DOS="`echo "${JAGSDK}"|sed -e 's:/:\\\\:g'`"
+
+# Kick it off
+dosemu -quiet -dumb  <<EndOfDOSInput
+lredir m: linux\\fs/set PATH=m:${JAGSDK_DOS}\\jaguar\\bin\\dos;%PATH%m:cd ${CWD_DOS}${JAGEXE} $@exitemu
+EndOfDOSInput

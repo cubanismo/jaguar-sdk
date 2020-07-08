@@ -1,0 +1,2 @@
+#!/bin/sh
+dosemu_helper loadfix.exe $@
