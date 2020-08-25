@@ -13,3 +13,6 @@
 [submodule "tools/src/tga2cry"]
 	path = tools/src/tga2cry
 	url = https://github.com/cubanismo/tga2cry
+[submodule "tools/src/pc_jagcrypt"]
+	path = tools/src/pc_jagcrypt
+	url = https://github.com/cubanismo/pc_jagcrypt.git

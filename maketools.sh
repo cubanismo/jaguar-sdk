@@ -37,6 +37,12 @@ make
 strip --strip-unneeded tga2cry tgainfo
 cp tga2cry tgainfo  "${TARGET_DIR}/bin"
 
+cd "${SRC_DIR}/pc_jagcrypt"
+make
+# Jagcrypt is stripped in its own Makefile, and potentially then
+# compressed using UPX, so don't attempt to re-strip it here.
+cp jagcrypt "${TARGET_DIR}/bin"
+
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
 
