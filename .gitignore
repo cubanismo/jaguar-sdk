@@ -9,6 +9,7 @@
 *.bin
 *~
 .*.swp
+virtualjaguar.log
 
 # Allow some special case binary-only things through the above filter.
 !/jaguar/blitter/blitcook.cof
