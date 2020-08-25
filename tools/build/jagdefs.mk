@@ -39,6 +39,7 @@ LINK = rln
 
 # Use gcc to build C files
 CFLAGS ?= -O2
+CINCLUDES = -I$(JAGSDK)/jaguar/include
 CDEFS = -DJAGUAR
 CC = m68k-aout-gcc
 

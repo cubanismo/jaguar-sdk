@@ -10,7 +10,7 @@ all: $(PROGS)
 	$(ASM) $(ASMFLAGS) $<
 
 .c.o:
-	$(CC) $(CDEFS) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CDEFS) $(CINCLUDES) $(CFLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean:
