@@ -1,21 +1,4 @@
-#====================================================================
-#       Macro & Assembler flags
-#====================================================================
-
-STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -w -v -v -e -rd -g -l -a $(STADDR) x 4000
-
-#====================================================================
-#       Default Rules
-#====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $<
-
-#.tga.rgb:
-#    dorgb $*.rgb $<
+include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
 #       EXECUTABLES
@@ -23,16 +6,22 @@ ALNFLAGS = -w -v -v -e -rd -g -l -a $(STADDR) x 4000
 
 PICTURES = fish.bpg patrick.bpg
 
+GENERATED += $(PICTURES)
+
 #############################################################################
 # if using CRY mode screen, then must include 'rgb2cry.o' in list of object
 # module files.
 
-OBJ = startup.o test.o bpeg.o
- 
-testbpeg.cof: $(OBJ)
-	aln $(ALNFLAGS) -o testbpeg.cof $(OBJ) -c testbpeg.lnk
+OBJS = startup.o test.o bpeg.o
+PROGS = testbpeg.cof
 
-#############################################################################
+testbpeg.cof: $(OBJS) $(PICTURES)
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS) \
+		-i fish.bpg fish_jpg -i patrick.bpg pat_jpg
+
+#====================================================================
+#       DEPENDENCIES
+#====================================================================
 
 fish.bpg: fish.tga
 	cbpeg -quality 25 fish.tga fish.bpg
@@ -40,5 +29,6 @@ fish.bpg: fish.tga
 patrick.bpg: patrick.tga
 	cbpeg -quality 75 patrick.tga patrick.bpg
 
-startup.o: startup.s \jaguar\source\sample.rgb
+startup.o: startup.s $(JAGSDK)/jaguar/source/sample.rgb
 
+include $(JAGSDK)/tools/build/jagrules.mk

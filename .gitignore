@@ -1,12 +1,13 @@
 # By default, ignore object files, vim swap files, and Jaguar programs of
 # various types
-*.o
 *.abs
+*.bin
+*.bpg
 *.cof
-*.rom
 *.j64
 *.jag
-*.bin
+*.o
+*.rom
 *~
 .*.swp
 virtualjaguar.log
@@ -20,6 +21,12 @@ virtualjaguar.log
 !/jaguar/workshop/data/jaguar.bin
 !/jaguar/cinepak/decomp/codec.o
 !/jaguar/cinepak/decomp/codec_a.o
+!/jaguar/bpeg/pics/goldrgb.bpg
+!/jaguar/bpeg/pics/whitergb.bpg
+!/jaguar/bpeg/pics/beachrgb.bpg
+!/jaguar/bpeg/pics/greenrgb.bpg
+!/jaguar/bpeg/pics/chicargb.bpg
+!/jaguar/bpeg/pics/plainrgb.bpg
 
 # Ignore all the tools built from source
 /tools/bin
