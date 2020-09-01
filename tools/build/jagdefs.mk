@@ -37,6 +37,11 @@ LINKFLAGS += $(VERBOSE)
 ASM = rmac
 LINK = rln
 
+# Uncomment to use mac and/or aln (Original Atari/brainstorm assembler and
+# linker)
+#ASM = mac
+#LINK = aln
+
 # Use gcc to build C files
 CFLAGS ?= -O2
 CINCLUDES = -I$(JAGSDK)/jaguar/include
