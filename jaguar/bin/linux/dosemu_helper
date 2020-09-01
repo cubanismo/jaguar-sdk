@@ -7,8 +7,9 @@ fi
 
 if [ ! -x "`which dosemu`" ]; then
   echo "You must install dosemu to use the DOS-only Jaguar SDK programs."
-  echo "Additionally, mahy programs will fail if you don't configure dosemu"
-  echo "to use full x86 emulation.  To do so, add this line to ~/.dosemurc:"
+  echo "Additionally, many programs will fail if dosemu is not configured to"
+  echo "use full x86 emulation, which can be enabled by adding this line to"
+  echo "~/.dosemurc:"
   echo ""
   echo "  \$_cpu_emu = \"full\""
   echo ""
