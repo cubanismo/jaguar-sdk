@@ -2,15 +2,17 @@
 # Makefile	MUSIC DRIVER
 #============================================================================
 
-SYNTHPATH = /jaguar/music/fulsyn
+include $(JAGSDK)/tools/build/jagdefs.mk
+
+SYNTHPATH = $(JAGSDK)/jaguar/music/fulsyn
 
 #============================================================================
 # Use 'erase' and 'move' on MS-DOS
 # Use 'rm' and 'mv' on Atari w/ csh
 #============================================================================
 
-ERASE  = erase
-RENAME = move
+ERASE  = rm
+RENAME = mv
 
 #============================================================================
 #	MIDI FILE WITHOUT EXTENTION (!!)
@@ -23,27 +25,27 @@ MIDIFILE = iron
 # output file of the merged MIDI files (e.g. 'music'). For each of your 
 # MIDI files you have to add these lines to your makefile:
 #
-#   midifile.out:
-#	parse -q -x offset -n nr_of_voices -o midifile.out midifile.mid		
+#   midifile.ous:
+#	parse -q -x offset -n nr_of_voices -o midifile.ous midifile.mid
 #
 # To get the MIDI files merged, add:
 #
-#   $(MIDIFILE).out:
-#	merge $(MIDIFILE).out file1.out file2.out ...
+#   $(MIDIFILE).ous:
+#	merge $(MIDIFILE).ous file1.ous file2.ous ...
 #
 # Example using the MIDI files:
 #
 # MIDIFILE = music
 # 
-# a.out:
-#	parse -q -x 0 -n 2 -o a.out a.mid
-# b.out:
-#	parse -q -x 2 -n 3 -o b.out b.mid
-# c.out:
-#	parse -q -x 5 -n 2 -o c.out c.mid
+# a.ous:
+#	parse -q -x 0 -n 2 -o a.ous a.mid
+# b.ous:
+#	parse -q -x 2 -n 3 -o b.ous b.mid
+# c.ous:
+#	parse -q -x 5 -n 2 -o c.ous c.mid
 #
-# $(MIDIFILE).out:
-#	merge $(MIDIFILE).out a.out b.out c.out
+# $(MIDIFILE).ous:
+#	merge $(MIDIFILE).ous a.ous b.ous c.ous
 #
 
 #============================================================================
@@ -53,61 +55,49 @@ MIDIFILE = iron
 PARSERFLAGS = -q
 
 #============================================================================
-# Assembler & Linker flags
-#============================================================================
-
-MACFLAGS = -fb -rd -i$(SYNTHPATH);$(MACPATH)
-ALNFLAGS = -g -e -l -rd -a 4000 x x
-
-#============================================================================
 # Default Rules
 #============================================================================
 
 .SUFFIXES:	.o .mid
 
 .mid.o:
-	parse $(PARSERFLAGS) -o $*.out $*.mid
-	mac $(MACFLAGS) -o$*.o $*.out
-	$(ERASE) $*.out
+	parse $(PARSERFLAGS) -o $*.ous $*.mid
+	$(ASM) $(ASMFLAGS) -o$*.o $*.ous
+	$(ERASE) $*.ous
 
 #============================================================================
-.SUFFIXES:	.out .mid
+.SUFFIXES:     .ous .mid
 
 .mid.out:
-	parse $(PARSERFLAGS) -o $*.out $*.mid
+	parse $(PARSERFLAGS) -o $*.ous $*.mid
 
 #============================================================================
-.SUFFIXES:	.o .out
+.SUFFIXES:     .o .ous
 
-.out.o:
-	mac $(MACFLAGS) -o$*.o $*.out
-
-#============================================================================
-.SUFFIXES:	.o .s
-
-.s.o:
-	mac $(MACFLAGS) $<
+.ous.o:
+	$(ASM) $(ASMFLAGS) -o$*.o $*.ous
 
 #============================================================================
-.SUFFIXES:	.oj .das
+.SUFFIXES:	.o .das
 
-.das.oj:
-	mac $(MACFLAGS) -o$*.oj $*.das
+.das.o:
+	$(ASM) $(ASMFLAGS) -o$*.o $*.das
 
 #============================================================================
 
 SYNTH = $(SYNTHPATH)/fs02_55
-FULSYN	= $(SYNTH).oj
-OBJS	= startup.o driver.o synth.o $(MIDIFILE).o
-SCORE	= $(MIDIFILE).o
-EXEC	= test.cof
+FULSYN	= $(SYNTH).o
+OBJS	= startup.o driver.o synth.o $(MIDIFILE).o $(FULSYN)
+PROGS	= test.cof
+
+GENERATED += ironsnr1.ous ironsnr2.ous iron.ous
 
 #============================================================================
 #	EXECUTABLES
 #============================================================================
 
-$(EXEC): $(OBJS) $(FULSYN)
-	aln $(ALNFLAGS) -o $(EXEC) $(OBJS) $(FULSYN)
+test.cof: $(OBJS)
+	$(LINK) $(LINKFLAGS) -o $@ $^
 
 #============================================================================
 #	Dependencies
@@ -117,18 +107,17 @@ driver.o:		driver.s synth.cnf $(SYNTHPATH)/fulsyn.inc
 
 synth.o:		synth.s synth.cnf $(SYNTHPATH)/fulsyn.inc
 
-$(MIDIFILE).scr:	$(MIDIFILE).out parse.cnf
+$(MIDIFILE).ous:	$(MIDIFILE).ous parse.cnf
 
 $(FULSYN):		$(SYNTH).das synth.cnf $(SYNTHPATH)/fulsyn.inc
-	mac $(MACFLAGS) -o$*.oj $*.das
 
-ironsnr1.out:
-	parse -q -d -x 0 -n 6 -o ironsnr1.out ironsnr1.mid
+ironsnr1.ous:
+	parse -q -d -x 0 -n 6 -o ironsnr1.ous ironsnr1.mid
 
-ironsnr2.out:
-	parse -q -d -x 6 -n 1 -o ironsnr2.out ironsnr2.mid
+ironsnr2.ous:
+	parse -q -d -x 6 -n 1 -o ironsnr2.ous ironsnr2.mid
 
-$(MIDIFILE).out: ironsnr1.out ironsnr2.out
-	merge $(MIDIFILE).out ironsnr1.out ironsnr2.out
+$(MIDIFILE).ous: ironsnr1.ous ironsnr2.ous
+	merge $(MIDIFILE).ous ironsnr1.ous ironsnr2.ous
 
-
+include $(JAGSDK)/tools/build/jagrules.mk

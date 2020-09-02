@@ -48,46 +48,46 @@ patches::
 					; or delete patches!
 
 kick1:
-	.include 'patches\\kick.jaf'
+	.include 'patches/kick.jaf'
 	
 snare1:
-	.include 'patches\\snare.jaf'
+	.include 'patches/snare.jaf'
 	
 chh:
-	.include 'patches\\chh.jaf'
+	.include 'patches/chh.jaf'
 
 toms:
-	.include 'patches\\toms.jaf'
+	.include 'patches/toms.jaf'
 
 pbass1:
-	.include 'patches\\resbass1.jaf'
+	.include 'patches/resbass1.jaf'
 
 bassL:
-	.include 'patches\\sawblipl.jaf'
+	.include 'patches/sawblipl.jaf'
 	
 bassR:
-	.include 'patches\\sawblipr.jaf'
+	.include 'patches/sawblipr.jaf'
 	
 stix:
-	.include 'patches\\stix.jaf'
+	.include 'patches/stix.jaf'
 
 slap:
-	.include 'patches\\slap.jaf'
+	.include 'patches/slap.jaf'
 
 kick2:
-	.include 'patches\\kick2.jaf'
+	.include 'patches/kick2.jaf'
 
 snare2:
-	.include 'patches\\snare2.jaf'
+	.include 'patches/snare2.jaf'
 
 mgun:
-	.include 'patches\\mgun.jaf'
+	.include 'patches/mgun.jaf'
 
 step:
-	.include 'patches\\step.jaf'
+	.include 'patches/step.jaf'
 
 stepr:
-	.include 'patches\\stepr.jaf'
+	.include 'patches/stepr.jaf'
 
 	
 ;---------------------------------------------------------------------------
@@ -97,72 +97,72 @@ stepr:
 .even	
 s_kick:
 .even
-	.incbin 'patches\\kick.cmp'
+	.incbin 'patches/kick.cmp'
 
 .even
 s_snare:
 .even
-	.incbin 'patches\\snare.cmp'
+	.incbin 'patches/snare.cmp'
 
 .even
 s_chh:
 .even
-	.incbin 'patches\\chh.cmp'
+	.incbin 'patches/chh.cmp'
 
 .even
 s_toms:
 .even
-	.incbin 'patches\\toms.cmp'
+	.incbin 'patches/toms.cmp'
 	
 .even
 s_stix:
 .even
-	.incbin 'patches\\stix.cmp'
+	.incbin 'patches/stix.cmp'
 
 .even
 s_slap:
 .even
-	.incbin 'patches\\slap.cmp'
+	.incbin 'patches/slap.cmp'
 
 .even
 s_kick2:
 .even
-	.incbin 'patches\\kick2.cmp'
+	.incbin 'patches/kick2.cmp'
 	
 .even
 s_snare2:
 .even
-	.incbin 'patches\\snare2.cmp'
+	.incbin 'patches/snare2.cmp'
 
 .even
 s_mgun:
 .even
-	.incbin 'patches\\mgun.cmp'
+	.incbin 'patches/mgun.cmp'
 
 .even
 s_step:
 .even
-	.incbin 'patches\\step.cmp'
+	.incbin 'patches/step.cmp'
 
 .even
 s_stepr:
 .even
-	.incbin 'patches\\stepr.cmp'
+	.incbin 'patches/stepr.cmp'
 
 .even
 s_sawblipl:
 .even
-	.incbin 'patches\\sawblipl.cmp'
+	.incbin 'patches/sawblipl.cmp'
 	
 .even
 s_sawblipr:
 .even
-	.incbin 'patches\\sawblipr.cmp'
+	.incbin 'patches/sawblipr.cmp'
 	
 .even
 s_resbass1:
 .even
-	.incbin 'patches\\resbass1.cmp'
+	.incbin 'patches/resbass1.cmp'
 
 	.even
 ;---------------------------------------------------------------------------
