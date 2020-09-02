@@ -7,6 +7,7 @@
 *.j64
 *.jag
 *.o
+*.ous
 *.rom
 *~
 .*.swp

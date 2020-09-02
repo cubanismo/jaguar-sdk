@@ -53,19 +53,19 @@ patches::
 					; or delete patches!
 
 claps:
-	.include 'patches\\claps.jaf'
+	.include 'patches/claps.jaf'
 kick:	
-	.include 'patches\\kick.jaf'
+	.include 'patches/kick.jaf'
 chh:
-	.include 'patches\\chh.jaf'
+	.include 'patches/chh.jaf'
 ohh:
-	.include 'patches\\ohh.jaf'
+	.include 'patches/ohh.jaf'
 click:
-	.include 'patches\\click.jaf'
+	.include 'patches/click.jaf'
 pno1:
-	.include 'patches\\highpno1.jaf'
+	.include 'patches/highpno1.jaf'
 bass:
-	.include 'patches\\ebass9.jaf'
+	.include 'patches/ebass9.jaf'
 
 
 		
@@ -108,26 +108,26 @@ TABSSTART::					; DO NOT EDIT THIS LABEL
 ;---------------------------------------------------------------------------
 
 w_highpno1:
-	.include "patches\\highpno1.wfm"
+	.include "patches/highpno1.wfm"
 
 ;---------------------------------------------------------------------------
 ;	ENVELOPES
 ;---------------------------------------------------------------------------
 
 e_claps:
-	.include "patches\\claps.env"
+	.include "patches/claps.env"
 e_kick:	
-	.include "patches\\kick.env"
+	.include "patches/kick.env"
 e_chh:	
-	.include "patches\\chh.env"
+	.include "patches/chh.env"
 e_ohh:	
-	.include "patches\\ohh.env"
+	.include "patches/ohh.env"
 e_click:	
-	.include "patches\\click.env"
+	.include "patches/click.env"
 e_ebass9:
-	.include "patches\\ebass9.env"
+	.include "patches/ebass9.env"
 e_highpno1:
-	.include "patches\\highpno1.env"
+	.include "patches/highpno1.env"
 
 ;****************************************************************************
 ;**                        EDIT UP TO THIS POINT                           **

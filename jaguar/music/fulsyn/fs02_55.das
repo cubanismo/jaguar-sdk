@@ -25,20 +25,20 @@ SYN_COPY::
 ;______________________________________________________________________________
 	.DSP
 
-	XDEF    buffstart               ; small buffer for sample
-	XDEF    INTEREST                ; fct which fills up bufffer 
-	XDEF    SEMAPHORE               ; used to signal next sample tick
-	XDEF    TIMER_ADD               ; current time
-	XDEF    SCORE_ADD               ; pointer to score
-	XDEF    PATCHLOC                ; pointer to patches
-	XDEF    SYNTHEND                ; end of synth
-	XDEF    TMR1_ISR                ; (interrupt 2 - Timer 1)
-	XDEF    NOTE_OFF
-	XDEF    SHUTDOWN
-	XDEF    TIMELEFT                
-	XDEF    VOLUME                  ; MIDI VOLUME
-	XDEF    UEBERVOLUME             ; Global Volume
-	XDEF    VOL_ENV_TABLE           ; tables to envelopes
+	.globl  buffstart               ; small buffer for sample
+	.globl	INTEREST                ; fct which fills up bufffer
+	.globl  SEMAPHORE               ; used to signal next sample tick
+	.globl  TIMER_ADD               ; current time
+	.globl  SCORE_ADD               ; pointer to score
+	.globl  PATCHLOC                ; pointer to patches
+	.globl  SYNTHEND                ; end of synth
+	.globl  TMR1_ISR                ; (interrupt 2 - Timer 1)
+	.globl  NOTE_OFF
+	.globl  SHUTDOWN
+	.globl  TIMELEFT
+	.globl  VOLUME                  ; MIDI VOLUME
+	.globl  UEBERVOLUME             ; Global Volume
+	.globl  VOL_ENV_TABLE           ; tables to envelopes
 
 	.ORG    D_RAM                   ; start of DSP RAM
 FULSYN_S::
