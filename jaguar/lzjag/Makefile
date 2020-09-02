@@ -1,25 +1,15 @@
-#====================================================================
-#       Macro & Assembler flags
-#====================================================================
-
-STADDR = 802000
-MACFLAGS = -fb -g
-ALNFLAGS = -v -v -e -g -l -rd -a $(STADDR) x 4000
-
-#====================================================================
-#       Default Rules
-#====================================================================
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $*
+include $(JAGSDK)/tools/build/jagdefs.mk
 
 #====================================================================
 #       EXECUTABLES
 #====================================================================
 
-OBJ = testlzss.o delzjag.o
+OBJS = testlzss.o delzjag.o
+PROGS = testlzss.cof
  
-testlzss.cof: $(OBJ) makefile
-	aln $(ALNFLAGS) -o testlzss.cof -c testlzss.lnk
+testlzss.cof: $(OBJS)
+	$(LINK) $(LINKFLAGS) -o $@ $^ -i mou.lzj moucode
 
+*.o: Makefile
+
+include $(JAGSDK)/tools/build/jagrules.mk
