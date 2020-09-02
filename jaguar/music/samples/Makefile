@@ -68,7 +68,7 @@ PARSERFLAGS = -q
 #============================================================================
 .SUFFIXES:     .ous .mid
 
-.mid.out:
+.mid.ous:
 	parse $(PARSERFLAGS) -o $*.ous $*.mid
 
 #============================================================================
@@ -111,10 +111,10 @@ $(MIDIFILE).ous:	$(MIDIFILE).ous parse.cnf
 
 $(FULSYN):		$(SYNTH).das synth.cnf $(SYNTHPATH)/fulsyn.inc
 
-ironsnr1.ous:
+ironsnr1.ous:		ironsnr1.mid parse.cnf
 	parse -q -d -x 0 -n 6 -o ironsnr1.ous ironsnr1.mid
 
-ironsnr2.ous:
+ironsnr2.ous:		ironsnr2.mid parse.cnf
 	parse -q -d -x 6 -n 1 -o ironsnr2.ous ironsnr2.mid
 
 $(MIDIFILE).ous: ironsnr1.ous ironsnr2.ous
