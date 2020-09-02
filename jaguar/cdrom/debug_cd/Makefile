@@ -1,22 +1,17 @@
+# Use quad-phrase alignment
+ALIGN=q
 
-STADDR = 4000
-MACFLAGS = -fb -rq
-ALNFLAGS = -v -v -rq -e -a $(STADDR) x x
+include $(JAGSDK)/tools/build/jagdefs.mk
 
-#====================================================================
-
-.SUFFIXES:      .o .s
-
-.s.o:
-	mac $(MACFLAGS) $<
-
-#====================================================================
-
-all: maketoc.cof usetoc.cof
+OBJS = maketoc.o usetoc.o
+PROGS = maketoc.cof usetoc.cof
  
 maketoc.cof: maketoc.o
-	aln $(ALNFLAGS) -o maketoc.cof maketoc.o
+	$(LINK) $(LINKFLAGS) -o $@ $^
 
 usetoc.cof: usetoc.o
-	aln $(ALNFLAGS) -o usetoc.cof usetoc.o
+	$(LINK) $(LINKFLAGS) -o $@ $^
 
+*.o: Makefile
+
+include $(JAGSDK)/tools/build/jagrules.mk
