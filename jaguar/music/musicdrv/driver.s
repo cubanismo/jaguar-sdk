@@ -139,7 +139,9 @@ patchlop:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Now our music should be playing...
 
-	illegal				; We have nothing else to do, so DIE!
+.inf:
+	nop
+	bra .inf			; We have nothing else to do, so loop.
 
 
 ; ************************ END OF MAIN CODE ***********************

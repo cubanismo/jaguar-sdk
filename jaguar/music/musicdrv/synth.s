@@ -48,7 +48,7 @@ patches::
 					; or delete patches!
 
 ; Patch 0           
-	.include 'patches\\strlow.jaf'	; strlow patch
+	.include 'patches/strlow.jaf'	; strlow patch
 					; uses 's_strlow' sample
 					; and  'e_strlow' envelope
 
@@ -59,7 +59,7 @@ patches::
 
 s_strlow:
 	.even
-	.incbin	'patches\\strlow.cmp' ; string sample used in patch 0
+	.incbin	'patches/strlow.cmp' ; string sample used in patch 0
 				
 ;---------------------------------------------------------------------------
 ;                       +++ START OF DSP SECTION +++
@@ -103,7 +103,7 @@ TABSSTART::					; DO NOT EDIT THIS LABEL
 ;---------------------------------------------------------------------------
 
 e_strlow:
-	.include "patches\\strlow.env"	; envelope used in patch 0
+	.include "patches/strlow.env"	; envelope used in patch 0
 
 
 

@@ -66,7 +66,7 @@ BMP_HEIGHT  	.equ    48    			; Height in Pixels
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	.macro license_logo
-	.incbin "/jaguar/source/sample.rgb"	; "Jaguar Developer Kit Sample"
+	.incbin "../../source/sample.rgb"	; "Jaguar Developer Kit Sample"
 	.endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
