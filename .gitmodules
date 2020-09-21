@@ -16,3 +16,6 @@
 [submodule "tools/src/pc_jagcrypt"]
 	path = tools/src/pc_jagcrypt
 	url = https://github.com/cubanismo/pc_jagcrypt.git
+[submodule "tools/src/jcp"]
+	path = tools/src/jcp
+	url = https://github.com/cubanismo/skunkboard-jcp

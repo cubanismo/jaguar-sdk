@@ -12,36 +12,55 @@ echo "Building tools, Installing in: \"${TARGET_DIR}\""
 
 mkdir -p "${TARGET_DIR}/bin"
 
+echo "Building rmac..."
+
 cd "${SRC_DIR}/rmac"
 make
 strip --strip-unneeded rmac
 cp rmac  "${TARGET_DIR}/bin"
+
+echo "Building rln..."
 
 cd "${SRC_DIR}/rln"
 make
 strip --strip-unneeded rln
 cp rln  "${TARGET_DIR}/bin"
 
+echo "Building lo_inp..."
+
 cd "${SRC_DIR}/lo_inp"
 make
 strip --strip-unneeded lo_inp
 cp lo_inp  "${TARGET_DIR}/bin"
+
+echo "Building 3dsconv..."
 
 cd "${SRC_DIR}/3dsconv"
 make
 strip --strip-unneeded 3dsconv
 cp 3dsconv  "${TARGET_DIR}/bin"
 
+echo "Building tga2cry..."
+
 cd "${SRC_DIR}/tga2cry"
 make
 strip --strip-unneeded tga2cry tgainfo
 cp tga2cry tgainfo  "${TARGET_DIR}/bin"
+
+echo "Building pc_jagcrypt..."
 
 cd "${SRC_DIR}/pc_jagcrypt"
 make
 # Jagcrypt is stripped in its own Makefile, and potentially then
 # compressed using UPX, so don't attempt to re-strip it here.
 cp jagcrypt "${TARGET_DIR}/bin"
+
+echo "Building jcp..."
+
+cd "${SRC_DIR}/jcp/jcp"
+make
+strip --strip-unneeded jcp
+cp jcp "${TARGET_DIR}/bin"
 
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
