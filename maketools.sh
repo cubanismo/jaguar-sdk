@@ -62,6 +62,13 @@ make
 strip --strip-unneeded jcp
 cp jcp "${TARGET_DIR}/bin"
 
+echo "Building rmvjcp..."
+
+cd "${SRC_DIR}/rmvjcp/jcp"
+make
+strip --strip-unneeded jcp
+cp jcp "${TARGET_DIR}/bin/rmvjcp"
+
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
 

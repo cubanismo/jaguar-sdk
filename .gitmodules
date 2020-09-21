@@ -19,3 +19,6 @@
 [submodule "tools/src/jcp"]
 	path = tools/src/jcp
 	url = https://github.com/cubanismo/skunkboard-jcp
+[submodule "tools/src/rmvjcp"]
+	path = tools/src/rmvjcp
+	url = https://github.com/theRemovers/skunk_jcp
