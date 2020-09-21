@@ -4,6 +4,7 @@
 *.bin
 *.bpg
 *.cof
+*.cry
 *.j64
 *.jag
 *.o
