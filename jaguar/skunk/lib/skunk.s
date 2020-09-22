@@ -8,6 +8,7 @@
 ; Rev: 15 Feb 2009 - Make console close wait for PC acknowledgement
 ;					 Added bank switch helpers and 6MB mode handling
 ; Rev: 30 Jul 2009 - Fixed timeout loops from dbra to regular count so they aren't limited to 16-bits!
+; Rev: 21 Sep 2020 - Fixed skunkFILEREAD return value to fill entire d0 long word.
 ; 
 ; This file is licensed freely and may be used for any purpose, commercial or
 ; otherwise, without notice or compensation.
@@ -451,7 +452,7 @@ skunkFILEREAD::
 		; we have input - copy it into the user's buffer at a0
 		; The length must be less than or equal to d0, and d0
 		; should have been even, so we won't enforce the values here
-		move	d2,d0				; to return to the user
+		move.l	d2,d0				; to return to the user
 		beq		.nodata				; no data to copy?
 		
 		addq	#1,d2				; so we don't lose a byte
