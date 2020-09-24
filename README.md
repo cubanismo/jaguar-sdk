@@ -53,6 +53,19 @@ $ cd jaguar-sdk
 $ ./maketools.sh
 ````
 
+## Docker Image
+
+The SDK is also available as a docker image for those who prefer a ready-made environment. Assuming you have docker installed and configured on your system, you can fetch it using this command:
+
+    $ docker pull cubanismo/jaguar-sdk
+
+And then start an interactive session in it, mapping in a project in your home directory named 'MyJagProj' for building, build it, and exit, deleting the container and leaving you with a built project in your home directory.
+
+    $ docker run --rm -it -v ~/MyJagProj:/MyJagProj cubanismo/jaguar-sdk
+    # cd /MyJagProj
+    # make
+    # exit
+
 ## Usage/Examples
 
 Once you have the tools built, you're ready to go.  Just source the env.sh file to add everything to your path and set up some other environment variables used by some of the tools.  There should be no need to edit this file 99% of the time, but it does use some bash-isms to find itself on the filesystem, so if bash isn't your thing, edit it and hard-code the path to the SDK directory or replace the first few lines with something that works in your shell of choice.
@@ -89,7 +102,7 @@ $ lo_inp -8 jaghello.cof
 If you want something that works out a few more transistors, try the 3D demo:
 
 ````sh
-$ cd $(JAGSDK)/jaguar/3d
+$ cd ${JAGSDK}/jaguar/3d
 $ make
 $ jcp demo.cof
 ````
