@@ -2,13 +2,22 @@
 ;
 ;       JAGUAR.INC  Hardware Equates for JAGUAR System
 ;
-;       COPYRIGHT 1992-1994 Atari Computer Corporation
+;       COPYRIGHT 1992-1995 Atari Computer Corporation
 ;       UNAUTHORIZED REPRODUCTION, ADAPTATION, DISTRIBUTION,
 ;       PERFORMANCE OR DISPLAY OF THIS COMPUTER PROGRAM OR
 ;       THE ASSOCIATED AUDIOVISUAL WORK IS STRICTLY PROHIBITED.
 ;       ALL RIGHTS RESERVED.
 ;
-;      Last Modified: 9/19/94 - SDS
+; Revision History:
+; 9/19/94 - Consolidated several files into first master JAGUAR.INC (SDS)
+; 2/16/95 - MF
+; 4/24/95 - Added UART Error Control and Mask definitions (NBK)
+; 5/16/95 - Added Asynchronous Serial/DAC Synonyms (SDS)
+; 8/08/95 - Fixed two Blitter LFU Equates, added ProController equates,
+;           added blitter BLITMASK flag, removed MOD_MASK/DSPINT0,
+;           removed private hardware register definitions.
+; 9/26/20 - Restored MOD_MASK/DSPINT0/GPUINT0 and private hardware register
+;           definitions.
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -301,10 +310,10 @@ LFU_NSAD        EQU     $00400000       ; NOT Source AND Destination
 LFU_NOTS        EQU     $00600000       ; NOT Source
 LFU_SAND        EQU     $00800000       ; Source AND NOT Destination
 LFU_NOTD        EQU     $00A00000       ; NOT Destination
-LFU_N_SXORD     EQU     $00C00000       ; NOT (Source XOR Destination)
+LFU_SXORD       EQU     $00C00000       ; Source XOR Destination
 LFU_NSORND      EQU     $00E00000       ; NOT Source OR NOT Destination
 LFU_SAD         EQU     $01000000       ; Source AND Destination
-LFU_SXORD       EQU     $01200000       ; Source XOR Destination
+LFU_N_SXORD     EQU     $01200000       ; NOT (Source XOR Destination)
 LFU_D           EQU     $01400000       ; Destination
 LFU_NSORD       EQU     $01600000       ; NOT Source OR Destination
 LFU_S           EQU     $01800000       ; Source
@@ -315,7 +324,7 @@ LFU_ONE         EQU     $01E00000       ; All Ones
 ; These are some common combinations with less boolean names
 
 LFU_REPLACE     EQU     $01800000       ; Source REPLACEs destination
-LFU_XOR         EQU     $01200000       ; Source XOR with destination
+LFU_XOR         EQU     $00C00000       ; Source XOR with destination
 LFU_CLEAR       EQU     $00000000       ; CLEAR destination
 
 ;;;
@@ -395,6 +404,9 @@ WID2560         EQU     $00005A00       ; 1.01 X 2^11 (45<<9)
 WID3072         EQU     $00005C00       ; 1.10 X 2^11 (46<<9)
 WID3584         EQU     $00005E00       ; 1.11 X 2^11 (47<<9)
 
+; A2 Mask Enable Bit
+BLITMASK        EQU     $00008000
+
 ; X add control d16-d17
 ;       controls the update of the X pointer on each pass
 ;       round the inner loop
@@ -442,6 +454,61 @@ SMODE           EQU     BASE + $1A154   ; SSI Control
 
 L_I2S           EQU     BASE + $1A148   ; I2S Serial Interface
 R_I2S           EQU     BASE + $1A14C   ; I2S Serial Interface
+LTXD            EQU     BASE + $1A148   ; Synonyms
+RTXD            EQU     BASE + $1A14C
+LRXD            EQU     BASE + $1A148   ; Synonyms
+RRXD            EQU     BASE + $1A14C
+
+R_DAC           EQU     BASE + $1A148   ; Swapped on Purpose!
+L_DAC           EQU     BASE + $1A14C
+
+ASICLK          EQU     BASE + $10034   ; Asynchronous Clock Register
+ASICTRL         EQU     BASE + $10032   ; Asynchronous Control Register
+ASISTAT         EQU     BASE + $10032   ; Asynchronous Status Register
+ASIDATA         EQU     BASE + $10030   ; Asynchronous Data Register
+
+;================================================================
+; UART Definitions (new in this file as of 24-Apr-95)
+;================================================================
+
+; UART control register Masks
+; All unused bits in the control register need to be written as zeros !
+; With exception of U_CLRERR these are valid for read in ASISTAT, too
+
+U_MODD          equ     (1<<0)  ; selects odd parity
+U_MPAREN        equ     (1<<1)  ; enable parity
+U_MTXOPOL       equ     (1<<2)  ; transmit output polarity (if set: active low)
+U_MRXIPOL       equ     (1<<3)  ; receive input polarity (if set: invert input)
+U_MTINTEN       equ     (1<<4)  ; enable transmitter interrupts
+U_MRINTEN       equ     (1<<5)  ; enable reciever interrupts
+U_MCLRERR       equ     (1<<6)  ; clear error (only use if U_SERIN is 
+                                ; inactive otherwise the UART locks up.
+                                ; By default input is active low. This
+                                ; depends on U_MRXIPOL) 
+U_MTXBRK        equ     (1<<14) ; transmit break
+
+; UART control register (ONLY) bit numbers
+U_CLRERR        equ     6
+
+; UART control AND status register (SHARED) bit numbers 
+
+U_ODD           equ     0       ; selects odd parity
+U_PAREN         equ     1       ; enable parity
+U_TXOPOL        equ     2       ; transmit output polarity (if set: active low)
+U_RXIPOL        equ     3       ; receive input polarity (if set: invert input)
+U_TINTEN        equ     4       ; enable transmitter interrupts
+U_RINTEN        equ     5       ; enable reciever interrupts
+U_TXBRK         equ     14      ; transmit break
+
+; UART status register (ONLY) bit numbers
+
+U_ERR           equ     15      ; error condition exists
+U_SERIN         equ     13      ; state of UART1 Pin (serial input data)
+U_OE            equ     11      ; overrun error
+U_FE            equ     10      ; frame error
+U_PE            equ     9       ; parity error
+U_TBE           equ     8       ; transitter buffer empty
+U_RBF           equ     7       ; receiver buffer full
 
 ;;;
 ;;; Jerry Interrupt Control Flags
@@ -494,6 +561,12 @@ KEY_HASH        EQU     0
 KEY_9           EQU     1
 KEY_6           EQU     2
 KEY_3           EQU     3
+
+SHIFT_L         EQU     18              ; ProController Mappings
+SHIFT_R         EQU     2
+FIRE_Z          EQU     17
+FIRE_Y          EQU     5
+FIRE_X          EQU     1
 
 ANY_JOY         EQU     $00F00000       ; AND joyedge with this...
                                         ; joypad was pressed if result is not 0
@@ -656,18 +729,14 @@ BIG_INST        EQU     $00040004       ; Word program fetches are big-endian
 DIV_OFFSET      EQU     $00000001       ; Divide 16.16 values if set
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; The following EQU's will be removed from JAGUAR.INC in the next release
-;;; or two. For the most part, they are being removed because they are only
-;;; useful in Jaguar programming methods we do not recommend.
+;;; Atari claimed the below registers should never be messed with and
+;;; eventually removed them from later copies of jaguar.inc. However, there
+;;; are corner cases in which messing with them is necessary (E.g., fixing up
+;;; MEMCON1 to access the Jaguar CD's memory-mapped registers while booting
+;;; from a Skunkboard, programming custom high-resolution video modes, etc.),
+;;; so I've restored them. In general though, the point stands: Don't use
+;;; these if you don't know what you're doing.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-COMPAT          EQU     1
-
-                IF      COMPAT
-;;;
-;;; These registers should never be messed with so these EQUs will
-;;; be purged in the next revision of JAGUAR.INC. Please don't use them.
-;;;
 
 MEMCON1         EQU     BASE + 0        ; Memory Configuration Register One
 MEMCON2         EQU     BASE + 2        ; Memory Configuration Register Two
@@ -687,13 +756,6 @@ VEE             EQU     BASE + $4c      ; Vertical EQUalization End
 HEQ             EQU     BASE + $54      ; Horizontal EQUalization End
 TEST1           EQU     BASE + $56      ; Undocumented Register - DO NOT USE
 
-;;; These don't exist on the Jaguar Console so they are going away.
-R_DAC           EQU     BASE + $1A148   ; These are not connected in Jaguar
-L_DAC           EQU     BASE + $1A14C   ; so DO NOT USE!!!
-
-                ENDIF
-
 ;;;;;;;;;
 ;; EOF ;;
 ;;;;;;;;;
-
