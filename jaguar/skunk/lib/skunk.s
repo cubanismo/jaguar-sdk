@@ -447,6 +447,7 @@ skunkFILEREAD::
 .gotresp:		
 		; get the real value again
 		move.w	d1,(a1)				; write address
+		clr.l	d2				; Clear top word of d2
 		move.w	(a1),d2				; read data
 
 		; we have input - copy it into the user's buffer at a0
