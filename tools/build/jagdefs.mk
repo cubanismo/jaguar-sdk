@@ -16,10 +16,9 @@ ASMFLAGS = -fb -g -r$(ALIGN)
 # Link flags:
 #  -e  - Output using COF file format
 #  -g  - Output source level debugging (where supported)
-#  -l  - Add local symbols
 #  -r<N> - Align sections to requested boundaries
 #  -a  - Absolute section addresses
-LINKFLAGS = -e -g -l -r$(ALIGN) -a $(STADDR) x $(BSSADDR)
+LINKFLAGS = -e -g -r$(ALIGN) -a $(STADDR) x $(BSSADDR)
 
 # Enable additional logging if requested on the command line.
 V ?= 0
@@ -31,6 +30,7 @@ ifeq ($(V),2)
   VERBOSE += -v -v
 endif
 
+ASMFLAGS += $(VERBOSE)
 LINKFLAGS += $(VERBOSE)
 
 # Use rmac and rln as the assembler/linker respectively.
