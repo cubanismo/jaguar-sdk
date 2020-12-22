@@ -58,16 +58,18 @@ cp jagcrypt "${TARGET_DIR}/bin"
 echo "Building jcp..."
 
 cd "${SRC_DIR}/jcp/jcp"
-make
+make REMOVERS=0
 strip --strip-unneeded jcp
 cp jcp "${TARGET_DIR}/bin"
+make REMOVERS=0 clean
 
 echo "Building rmvjcp..."
 
-cd "${SRC_DIR}/rmvjcp/jcp"
-make
+cd "${SRC_DIR}/jcp/jcp"
+make REMOVERS=1
 strip --strip-unneeded jcp
 cp jcp "${TARGET_DIR}/bin/rmvjcp"
+make REMOVERS=1 clean
 
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
