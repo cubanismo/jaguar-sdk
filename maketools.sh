@@ -5,7 +5,8 @@ set -e
 SDK_DIR="`dirname "$0"`"
 SDK_DIR="`readlink -f "${SDK_DIR}"`"
 TARGET_DIR="${SDK_DIR}/tools"
-SRC_DIR="${SDK_DIR}/tools/src"
+SRC_PATH="tools/src"
+SRC_DIR="${SDK_DIR}/${SRC_PATH}"
 PATCH_DIR="${SDK_DIR}/tools/patches"
 
 echo "Building tools, Installing in: \"${TARGET_DIR}\""
@@ -14,14 +15,20 @@ mkdir -p "${TARGET_DIR}/bin"
 
 echo "Building rmac..."
 
+cd "${SDK_DIR}"
+git submodule update --checkout -- "${SRC_PATH}/rmac"
 cd "${SRC_DIR}/rmac"
+git am "${PATCH_DIR}/rmac-"*
 make
 strip --strip-unneeded rmac
 cp rmac  "${TARGET_DIR}/bin"
 
 echo "Building rln..."
 
+cd "${SDK_DIR}"
+git submodule update --checkout -- "${SRC_PATH}/rln"
 cd "${SRC_DIR}/rln"
+git am "${PATCH_DIR}/rln-"*
 make
 strip --strip-unneeded rln
 cp rln  "${TARGET_DIR}/bin"

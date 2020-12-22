@@ -1,0 +1,43 @@
+From 7e3a763fdd2d18a3ad3b44a9b86bbc5e0d8b4464 Mon Sep 17 00:00:00 2001
+From: James Jones <atari@theinnocuous.com>
+Date: Sun, 12 Apr 2020 18:06:08 -0700
+Subject: [PATCH] Ignore 56k-only keywords in non-56k modes
+
+Some code, namely the 3d library from Atari, uses
+some symbol names that are considered keywords in
+56k, namely "x" and "y". To accomodate this, don't
+tokenize 56k-only keywords as keywords when not in
+56k mode.
+
+The list of keywords that are 56k-only was taken
+from commit
+
+  30a208654896284b50e7b362e97d3e63ec717b96
+  Author: Shamus Hammons <jlhamm@acm.org>
+  Date:   Sat Jun 23 11:57:21 2018 -0500
+
+  Cleanup of codebase and initial commit of 56K assembler by ggn.
+---
+ token.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/token.c b/token.c
+index fa5af09..0d63715 100644
+--- a/token.c
++++ b/token.c
+@@ -1189,6 +1189,12 @@ DEBUG { printf("TokenizeLine: Calling fpop() from SRC_IFILE...\n"); }
+ 				j = -1;
+ 			}
+ 
++			// Make j = -1 if user tries to use a 56k keyword in !56k mode.
++			if (!dsp56001 && (((TOKEN)j >= KW_X0 && (TOKEN)j <= KW_M7) ||
++					  ((TOKEN)j >= KW_L && (TOKEN)j <= KW_BA))) {
++				j = -1;
++			}
++
+ 			// Make j = -1 if time, date etc with no preceeding ^^
+ 			// defined, referenced, streq, macdef, date and time
+ 			switch ((TOKEN)j)
+-- 
+2.17.1
+
