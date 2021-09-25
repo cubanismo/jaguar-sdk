@@ -266,6 +266,7 @@ skunkCONSOLEREAD::
 		move.w	#$4001,(a1)			; enter flash read-only mode
 
 		add.w	#$1000,d1			; switch to second buffer for reply
+		clr.l	d2					; Clear top word of d2
 .inploop2:	
 		; wait for a response - note no timeout here! Thus an interrupted
 		; input can hang the Jaguar. User input can be too slow to timeout.
@@ -447,7 +448,7 @@ skunkFILEREAD::
 .gotresp:		
 		; get the real value again
 		move.w	d1,(a1)				; write address
-		clr.l	d2				; Clear top word of d2
+		clr.l	d2					; Clear top word of d2
 		move.w	(a1),d2				; read data
 
 		; we have input - copy it into the user's buffer at a0
