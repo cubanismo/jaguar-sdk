@@ -36,7 +36,7 @@ _skunkCONSOLEREAD:
 		rts
 
 _skunkFILEOPEN:
-		move.w	8(sp),d0
+		move.l	8(sp),d0
 		move.l	4(sp),a0
 		jsr	skunkFILEOPEN
 		rts
