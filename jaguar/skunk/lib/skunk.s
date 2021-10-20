@@ -245,15 +245,10 @@ skunkCONSOLECLOSE::
 		movem.l (sp)+,d1/a1-a2		; Restore regs
 		rts
 
-; a0=skunkCONSOLEREAD(d0)
-; Reads text from the console keyboard and returns it at a0,
-; which is a buffer d0 bytes long. The maximum return is 4064 bytes.
-; Note the returned string is NOT necessarily NUL terminated,
-; so you can't just turn around and print it!
-skunkCONSOLEREAD::
-		movem.l	d0-d2/a0-a2,-(sp)
-		
-		bsr		setAddresses		; get HPI addresses into a1 & a2
+; setupConsRead - Call to prepare the state for a console read. Expects
+; setAddresses to have been called. Returns address of first buffer in d1 if
+; successful, 0 in d1 if it fails. No other registers touched.
+setupConsRead:
 		bsr		getBothBuffers		; wait for both buffers to free, return the first in d1
 		tst.l	d1
 		beq		.exit				; if we didn't get a buffer, return
@@ -265,23 +260,41 @@ skunkCONSOLEREAD::
 		add.w	#lenOff,d1			; get address of length flag
 		move.w	d1,(a1)				; set address
 		move.w	#4,(a2)				; write data
-		
-		move.w	#$4001,(a1)			; enter flash read-only mode
+.exit:
+		rts
 
-		add.w	#$1000,d1			; switch to second buffer for reply
-		clr.l	d2					; Clear top word of d2
-.inploop2:	
-		; wait for a response - note no timeout here! Thus an interrupted
-		; input can hang the Jaguar. User input can be too slow to timeout.
+; checkConsRead - Check if data has been read from the console by EZHost.
+; Expects setAddresses to have been called and flash read-only mode ($4001) to
+; be set.
+;
+; Registers:
+;  d1 [IN] - Must contain the address to second EZHost buffer's length field
+;  d2 [OUT] - Low word will be $FF00 if no input yet. Anything else in low word
+;             means input was received. NOTE: High word content is undefined!
+checkConsRead:
 		move.w	d1,(a1)				; write address
 		move.w	(a1),d2				; read data
 		andi.w	#$FF00,d2
-		cmp.w	#$FF00,d2			; test if used
-		beq .inploop2
+		rts
+
+; finiConsRead - Read back data read from the console by EZHost. Expects
+; setAddresses to have been called and flash read-only mode ($4001) to be set.
+; Upon return, HPI write mode ($4004) will have been set.
+;
+; Registers:
+;  a0 [IN] - Address of buffer to copy input to. NOTE: Clobbered!
+;  d0 [IN/OUT] - Length of buffer pointed to by a0, in bytes. NOTE: Clobbered!
+;  d1 [IN] - Must contain the address to second EZHost buffer's length field
+;  d2 - Clobbered.
+
+finiConsRead:
+		clr.l	d2					; Clear top word of d2
 
 		; get the true value again now that we're happy with it
 		move.w	d1,(a1)				; write address
 		move.w	(a1),d2				; read data
+
+		sub.w	#lenOff,d1			; get base address of buffer
 		
 		; we have input - copy it into the user's buffer at a0,
 		; but copy no more than d0 bytes. Since we will copy
@@ -296,7 +309,6 @@ skunkCONSOLEREAD::
 		ble		.nochange
 		move.l	d2,d0				; copy smaller value
 .nochange:
-		sub.w	#lenOff,d1			; get base address of buffer
 		move.w	d1,(a1)				; set address
 .cplp:
 		move.w	(a1),(a0)+			; write data
@@ -307,7 +319,32 @@ skunkCONSOLEREAD::
 		move.w	#$4004,(a1)			; enter HPI write mode
 		move.w	d1,(a1)				; set HPI write data address
 		move.w	#$0000,(a2)			; write data - this flags to the PC that we are done
+		rts
 
+; a0=skunkCONSOLEREAD(d0)
+; Reads text from the console keyboard and returns it at a0,
+; which is a buffer d0 bytes long. The maximum return is 4064 bytes.
+; Note the returned string is NOT necessarily NUL terminated,
+; so you can't just turn around and print it!
+skunkCONSOLEREAD::
+		movem.l	d0-d2/a0-a2,-(sp)
+
+		bsr		setAddresses		; get HPI addresses into a1 & a2
+		bsr		setupConsRead
+		tst.l	d1
+		beq		.exit				; if we didn't get a buffer, return
+		
+		move.w	#$4001,(a1)			; enter flash read-only mode
+
+		add.w	#$1000,d1			; switch to second buffer for reply
+.inploop2:	
+		; wait for a response - note no timeout here! Thus an interrupted
+		; input can hang the Jaguar. User input can be too slow to timeout.
+		bsr		checkConsRead
+		cmp.w	#$FF00,d2			; test if used
+		beq .inploop2
+
+		bsr		finiConsRead
 .exit:
 		bsr		restoreMode			; set correct flash mode
 		movem.l (sp)+,d0-d2/a0-a2	; Restore regs
