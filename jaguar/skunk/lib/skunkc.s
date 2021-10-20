@@ -4,6 +4,9 @@
 		.extern _skunkNOP
 		.extern _skunkCONSOLEWRITE
 		.extern _skunkCONSOLECLOSE
+		.extern _skunkCONSOLESETUPREAD
+		.extern _skunkCONSOLECHECKREAD
+		.extern _skunkCONSOLEFINISHREAD
 		.extern _skunkCONSOLEREAD
 		.extern _skunkFILEOPEN
 		.extern _skunkFILEWRITE
@@ -13,27 +16,33 @@
 .text
 
 _skunkRESET:
-		jsr	skunkRESET
-		rts
+		jmp	skunkRESET
 
 _skunkNOP:
-		jsr	skunkNOP
-		rts
+		jmp	skunkNOP
 
 _skunkCONSOLEWRITE:
 		move.l	4(sp), a0
-		jsr	skunkCONSOLEWRITE
-		rts
+		jmp	skunkCONSOLEWRITE
 
 _skunkCONSOLECLOSE:
-		jsr	skunkCONSOLECLOSE
-		rts
+		jmp	skunkCONSOLECLOSE
+
+_skunkCONSOLESETUPREAD:
+		jmp	skunkCONSOLESETUPREAD
+
+_skunkCONSOLECHECKREAD:
+		jmp	skunkCONSOLECHECKREAD
+
+_skunkCONSOLEFINISHREAD:
+		move.l	8(sp),d0
+		move.l	4(sp),a0
+		jmp	skunkCONSOLEFINISHREAD
 
 _skunkCONSOLEREAD:
 		move.l	8(sp),d0
 		move.l	4(sp),a0
-		jsr	skunkCONSOLEREAD
-		rts
+		jmp	skunkCONSOLEREAD
 
 _skunkFILEOPEN:
 		move.l	8(sp),d0
@@ -44,15 +53,12 @@ _skunkFILEOPEN:
 _skunkFILEWRITE:
 		move.l	8(sp),d0
 		move.l	4(sp),a0
-		jsr	skunkFILEWRITE
-		rts
+		jmp	skunkFILEWRITE
 
 _skunkFILEREAD:
 		move.l	8(sp),d0
 		move.l	4(sp),a0
-		jsr	skunkFILEREAD
-		rts
+		jmp	skunkFILEREAD
 
 _skunkFILECLOSE:
-		jsr	skunkFILECLOSE
-		rts
+		jmp	skunkFILECLOSE
