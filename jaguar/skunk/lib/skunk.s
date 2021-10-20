@@ -112,6 +112,9 @@
 		.long
 
 timeout	.equ	200000
+buf1	.equ	$1800
+buf2	.equ	$2800
+lenOff	.equ	$FEA
 
 ; skunkRESET()
 ; Resets the library, waits for the PC, and marks the console up or down
@@ -160,7 +163,7 @@ skunkNOP::
 		move.w #$ffff,(a2)			; write data
 		move.w #$0000,(a2)			; write data
 		
-		add.w	#$FEA,d1			; get address of length flag
+		add.w	#lenOff,d1			; get address of length flag
 		move.w	d1,(a1)				; set address
 		move.w	#4,(a2)				; write data
 		
@@ -202,7 +205,7 @@ skunkCONSOLEWRITE::
 		move.w (a0)+,(a2)			; write data
 		dbra	d0,.wrlp
 		
-		add.w	#$FEA,d1			; get address of length flag
+		add.w	#lenOff,d1			; get address of length flag
 		move.w	d1,(a1)				; set address
 		move.w	d2,(a2)				; write length (PC gets this buffer now)
 
@@ -227,7 +230,7 @@ skunkCONSOLECLOSE::
 		move.w #$ffff,(a2)			; write data
 		move.w #$0001,(a2)			; write data
 		
-		add.w	#$FEA,d1			; get address of length flag
+		add.w	#lenOff,d1			; get address of length flag
 		move.w	d1,(a1)				; set address
 		move.w	#4,(a2)				; write data
 		
@@ -259,7 +262,7 @@ skunkCONSOLEREAD::
 		move.w	#$ffff,(a2)			; write data
 		move.w	#$0002,(a2)			; write data
 		
-		add.w	#$FEA,d1			; get address of length flag
+		add.w	#lenOff,d1			; get address of length flag
 		move.w	d1,(a1)				; set address
 		move.w	#4,(a2)				; write data
 		
@@ -293,14 +296,14 @@ skunkCONSOLEREAD::
 		ble		.nochange
 		move.l	d2,d0				; copy smaller value
 .nochange:
-		sub.w	#$FEA,d1			; get base address of buffer
+		sub.w	#lenOff,d1			; get base address of buffer
 		move.w	d1,(a1)				; set address
 .cplp:
 		move.w	(a1),(a0)+			; write data
 		dbra	d0,.cplp
 
 		; now clear the buffer to acknowledge it and we're done			
-		add.w	#$FEA,d1			; go back up to the length field again			
+		add.w	#lenOff,d1			; go back up to the length field again			
 		move.w	#$4004,(a1)			; enter HPI write mode
 		move.w	d1,(a1)				; set HPI write data address
 		move.w	#$0000,(a2)			; write data - this flags to the PC that we are done
@@ -546,12 +549,12 @@ checkbuffer:
 		
 ; checkBuffer1 - test if buffer 1 is available (returns in d1)
 checkBuffer1:
-		move.l	#($1800+$FEA),d1
+		move.l	#(buf1+lenOff),d1
 		jmp		checkbuffer
 
 ; checkBuffer2 - test if buffer 2 is available (returns in d1)
 checkBuffer2:
-		move.l	#($2800+$FEA),d1
+		move.l	#(buf2+lenOff),d1
 		jmp		checkbuffer
 
 ; getBuffer - helper function to return either buffer when it's free in d1
