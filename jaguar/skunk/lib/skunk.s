@@ -65,6 +65,26 @@
 ; Instructs the console to close. No arguments.
 ; Expects the console is closed after the fact.
 ;
+; d0=skunkCONSOLESETUPREAD
+; Locks the EZHost buffers and requests console input from the host computer.
+; d0 will be non-zero on success, zero on failure. After a successful call, the
+; caller MUST call skunkCONSOLECHECKREAD until it returns success, then call
+; skunkCONSOLEFINISHREAD to complete the sequence. Other skunklib calls will
+; fail until the sequence is completed.
+;
+; d0=skunkCONSOLECHECKREAD
+; Must be called after a skunkCONSOLESETUPREAD call to determine if console
+; input is ready. Returns one in d0 if data is available, zero if not.
+;
+; a0=skunkCONSOLEFINISHREAD(d0)
+; Must be called after skunkCONSOLEREADSETUPREAD returns success and a
+; subsequent call to skunkCONSOLECHECKREAD indicates console input is now
+; availble. Reads text from the console keyboard and returns it at a0, which is
+; a buffer d0 bytes  long. The maximum return is 4064 bytes.
+; Note the returned string is NOT necessarily NUL terminated,
+; so you can't just turn around and print it!
+; Upon return, d0 will contain the number of bytes read.
+;
 ; a0=skunkCONSOLEREAD(d0)
 ; Reads text from the console keyboard and returns it at a0,
 ; which is a buffer d0 bytes long. The maximum return is 4064 bytes.
@@ -102,6 +122,9 @@
 	.extern skunkNOP
 	.extern skunkCONSOLEWRITE
 	.extern skunkCONSOLECLOSE
+	.extern	skunkCONSOLESETUPREAD
+	.extern	skunkCONSOLECHECKREAD
+	.extern	skunkCONSOLEFINISHREAD
 	.extern skunkCONSOLEREAD
 	.extern skunkFILEOPEN
 	.extern skunkFILEWRITE
@@ -283,9 +306,9 @@ checkConsRead:
 ;
 ; Registers:
 ;  a0 [IN] - Address of buffer to copy input to. NOTE: Clobbered!
-;  d0 [IN/OUT] - Length of buffer pointed to by a0, in bytes. NOTE: Clobbered!
+;  d0 [IN] - Length of buffer pointed to by a0, in bytes. NOTE: Clobbered!
 ;  d1 [IN] - Must contain the address to second EZHost buffer's length field
-;  d2 - Clobbered.
+;  d2 [OUT] - Number of bytes read.
 
 finiConsRead:
 		clr.l	d2					; Clear top word of d2
@@ -310,8 +333,10 @@ finiConsRead:
 		move.l	d2,d0				; copy smaller value
 .nochange:
 		move.w	d1,(a1)				; set address
+		clr.l	d2
 .cplp:
 		move.w	(a1),(a0)+			; write data
+		addq.w	#2,d2
 		dbra	d0,.cplp
 
 		; now clear the buffer to acknowledge it and we're done			
@@ -319,6 +344,66 @@ finiConsRead:
 		move.w	#$4004,(a1)			; enter HPI write mode
 		move.w	d1,(a1)				; set HPI write data address
 		move.w	#$0000,(a2)			; write data - this flags to the PC that we are done
+		rts
+
+; d0=skunkCONSOLESETUPREAD
+; Locks the EZHost buffers and requests console input from the host computer.
+; d0 will be non-zero on success, zero on failure. After a successful call, the
+; caller MUST call skunkCONSOLECHECKREAD until it returns success, then call
+; skunkCONSOLEFINISHREAD to complete the sequence. Other skunklib calls will
+; fail until the sequence is completed.
+skunkCONSOLESETUPREAD::
+		movem.l	d1/a1-a2,-(sp)
+
+		bsr		setAddresses		; get HPI addresses into a1 & a2
+		bsr		setupConsRead
+		move.l	d1, d0
+		bsr		restoreMode
+
+		movem.l (sp)+,d1/a1-a2
+		rts
+
+; d0=skunkCONSOLECHECKREAD
+; Must be called after a skunkCONSOLESETUPREAD call to determine if console
+; input is ready. Returns one in d0 if data is available, zero if not.
+skunkCONSOLECHECKREAD::
+		movem.l	d1-d2/a1-a2,-(sp)
+
+		bsr		setAddresses		; get HPI addresses into a1 & a2
+
+		moveq	#0, d0				; Assume data is not yet available
+		move.w	#$4001,(a1)			; enter flash read-only mode
+		move.w	#(buf2+lenOff),d1	; reply will come in second buffer
+		bsr		checkConsRead
+		cmp.w	#$FF00,d2			; test if used
+		beq		.nodata
+		moveq	#1, d0				; Return no data available
+
+.nodata:
+		bsr		restoreMode
+
+		movem.l (sp)+,d1-d2/a1-a2
+		rts
+
+; a0=skunkCONSOLEFINISHREAD(d0)
+; Must be called after skunkCONSOLEREADSETUPREAD returns success and a
+; subsequent call to skunkCONSOLECHECKREAD indicates console input is now
+; availble. Reads text from the console keyboard and returns it at a0, which is
+; a buffer d0 bytes  long. The maximum return is 4064 bytes.
+; Note the returned string is NOT necessarily NUL terminated,
+; so you can't just turn around and print it!
+; Upon return, d0 will contain the number of bytes read.
+skunkCONSOLEFINISHREAD::
+		movem.l	d1-d2/a0-a2,-(sp)
+
+		bsr		setAddresses		; get HPI addresses into a1 & a2
+		move.w	#$4001,(a1)			; enter flash read-only mode
+		move.w	#(buf2+lenOff),d1	; console input comes in second buffer
+		bsr		finiConsRead
+		move.l	d2,d0				; Return bytes read in d0
+		bsr		restoreMode
+
+		movem.l (sp)+,d1-d2/a0-a2
 		rts
 
 ; a0=skunkCONSOLEREAD(d0)
