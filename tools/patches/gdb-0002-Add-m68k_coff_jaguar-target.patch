@@ -1,0 +1,159 @@
+From 1850142bdcea765fa8cbff3e306ee34be87e084d Mon Sep 17 00:00:00 2001
+From: James Jones <atari@theinnocuous.com>
+Date: Sun, 5 Jun 2022 14:07:51 -0700
+Subject: [PATCH 2/4] Add m68k_coff_jaguar target
+
+Currently identical to m68k_coff target
+---
+ bfd/Makefile.am   |  2 ++
+ bfd/Makefile.in   |  3 +++
+ bfd/coff-jag68k.c | 26 ++++++++++++++++++++++++++
+ bfd/config.bfd    |  4 ++--
+ bfd/configure     |  1 +
+ bfd/configure.ac  |  1 +
+ bfd/targets.c     |  2 ++
+ 7 files changed, 37 insertions(+), 2 deletions(-)
+ create mode 100644 bfd/coff-jag68k.c
+
+diff --git a/bfd/Makefile.am b/bfd/Makefile.am
+index f727ebe..b86cd9b 100644
+--- a/bfd/Makefile.am
++++ b/bfd/Makefile.am
+@@ -292,6 +292,7 @@ BFD32_BACKENDS = \
+ 	coff-i386.lo \
+ 	coff-i860.lo \
+ 	coff-i960.lo \
++	coff-jag68k.lo \
+ 	coff-m68k.lo \
+ 	coff-m88k.lo \
+ 	coff-mips.lo \
+@@ -489,6 +490,7 @@ BFD32_BACKENDS_CFILES = \
+ 	coff-i386.c \
+ 	coff-i860.c \
+ 	coff-i960.c \
++	coff-jag68k.c \
+ 	coff-m68k.c \
+ 	coff-m88k.c \
+ 	coff-mips.c \
+diff --git a/bfd/Makefile.in b/bfd/Makefile.in
+index 4060823..27df095 100644
+--- a/bfd/Makefile.in
++++ b/bfd/Makefile.in
+@@ -626,6 +626,7 @@ BFD32_BACKENDS = \
+ 	coff-i386.lo \
+ 	coff-i860.lo \
+ 	coff-i960.lo \
++	coff-jag68k.lo \
+ 	coff-m68k.lo \
+ 	coff-m88k.lo \
+ 	coff-mips.lo \
+@@ -823,6 +824,7 @@ BFD32_BACKENDS_CFILES = \
+ 	coff-i386.c \
+ 	coff-i860.c \
+ 	coff-i960.c \
++	coff-jag68k.c \
+ 	coff-m68k.c \
+ 	coff-m88k.c \
+ 	coff-mips.c \
+@@ -1355,6 +1357,7 @@ distclean-compile:
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coff-i386.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coff-i860.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coff-i960.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coff-jag68k.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coff-m68k.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coff-m88k.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coff-mips.Plo@am__quote@
+diff --git a/bfd/coff-jag68k.c b/bfd/coff-jag68k.c
+new file mode 100644
+index 0000000..3c99501
+--- /dev/null
++++ b/bfd/coff-jag68k.c
+@@ -0,0 +1,26 @@
++/* BFD back-end for Atari Jaguar Motorola 68k COFF file
++   Copyright (C) 2022 James Jones
++   Written by James Jones <atari@theinnocuous.com>
++
++   This file is part of BFD, the Binary File Descriptor library.
++
++   This program is free software; you can redistribute it and/or modify
++   it under the terms of the GNU General Public License as published by
++   the Free Software Foundation; either version 3 of the License, or
++   (at your option) any later version.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program; if not, write to the Free Software
++   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
++   MA 02110-1301, USA.  */
++
++#define TARGET_SYM	m68k_coff_jaguar_vec
++#define TARGET_NAME	"coff-m68k-jaguar"
++#define STATIC_RELOCS
++
++#include "coff-m68k.c"
+diff --git a/bfd/config.bfd b/bfd/config.bfd
+index f04a993..9e76dff 100644
+--- a/bfd/config.bfd
++++ b/bfd/config.bfd
+@@ -987,8 +987,8 @@ case "${targ}" in
+     targ_selvecs="m68k_coff_vec ieee_vec"
+     ;;
+   m68*-*-coff* | m68*-*-sysv*)
+-    targ_defvec=m68k_coff_vec
+-    targ_selvecs="m68k_coff_vec m68k_versados_vec ieee_vec"
++    targ_defvec=m68k_coff_jaguar_vec
++    targ_selvecs="m68k_coff_vec m68k_coff_jaguar_vec m68k_versados_vec ieee_vec"
+     ;;
+   m68*-*-hpux*)
+     targ_defvec=m68k_aout_hp300hpux_vec
+diff --git a/bfd/configure b/bfd/configure
+index 32ee062..3676342 100755
+--- a/bfd/configure
++++ b/bfd/configure
+@@ -14440,6 +14440,7 @@ do
+     m68k_coff_vec)		 tb="$tb coff-m68k.lo $coff" ;;
+     m68k_coff_apollo_vec)	 tb="$tb coff-apollo.lo $coffgen" ;;
+     m68k_coff_aux_vec)		 tb="$tb coff-aux.lo coff-m68k.lo $coff" ;;
++    m68k_coff_jaguar_vec)	 tb="$tb coff-jag68k.lo $coff" ;;
+     m68k_coff_sysv_vec)		 tb="$tb coff-svm68k.lo $coff" ;;
+     m68k_coff_un_vec)		 tb="$tb coff-u68k.lo coff-m68k.lo $coff" ;;
+     m68k_elf32_vec)		 tb="$tb elf32-m68k.lo elf32.lo $elf" ;;
+diff --git a/bfd/configure.ac b/bfd/configure.ac
+index 2342f3f..d177057 100644
+--- a/bfd/configure.ac
++++ b/bfd/configure.ac
+@@ -522,6 +522,7 @@ do
+     m68k_coff_vec)		 tb="$tb coff-m68k.lo $coff" ;;
+     m68k_coff_apollo_vec)	 tb="$tb coff-apollo.lo $coffgen" ;;
+     m68k_coff_aux_vec)		 tb="$tb coff-aux.lo coff-m68k.lo $coff" ;;
++    m68k_coff_jaguar_vec)	 tb="$tb coff-jag68k.lo $coff" ;;
+     m68k_coff_sysv_vec)		 tb="$tb coff-svm68k.lo $coff" ;;
+     m68k_coff_un_vec)		 tb="$tb coff-u68k.lo coff-m68k.lo $coff" ;;
+     m68k_elf32_vec)		 tb="$tb elf32-m68k.lo elf32.lo $elf" ;;
+diff --git a/bfd/targets.c b/bfd/targets.c
+index 43102d4..e585599 100644
+--- a/bfd/targets.c
++++ b/bfd/targets.c
+@@ -726,6 +726,7 @@ extern const bfd_target m68k_aout_newsos3_vec;
+ extern const bfd_target m68k_coff_vec;
+ extern const bfd_target m68k_coff_apollo_vec;
+ extern const bfd_target m68k_coff_aux_vec;
++extern const bfd_target m68k_coff_jaguar_vec;
+ extern const bfd_target m68k_coff_sysv_vec;
+ extern const bfd_target m68k_coff_un_vec;
+ extern const bfd_target m68k_elf32_vec;
+@@ -1193,6 +1194,7 @@ static const bfd_target * const _bfd_target_vector[] =
+ 	&m68k_coff_apollo_vec,
+ 	&m68k_coff_aux_vec,
+ #endif
++	&m68k_coff_jaguar_vec,
+ 	&m68k_coff_sysv_vec,
+ 	&m68k_coff_un_vec,
+ 	&m68k_elf32_vec,
+-- 
+2.25.1
+

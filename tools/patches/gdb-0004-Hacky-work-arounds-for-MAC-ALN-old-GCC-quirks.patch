@@ -1,0 +1,271 @@
+From 9d8971afceb276e6304dc2a11b5767aef96d7d67 Mon Sep 17 00:00:00 2001
+From: James Jones <atari@theinnocuous.com>
+Date: Mon, 6 Jun 2022 01:31:37 -0700
+Subject: [PATCH 4/4] Hacky work-arounds for MAC, ALN, & old GCC quirks
+
+-Add file start offset to symbols that ALN doesn't
+ relocate properly when processing ALN-generated
+ files.
+
+-Treat ECOMM (end common block) symbols as RBRAC
+ (right bracket symbols) if there's no common
+ block active.
+
+-Don't offset various debug symbols' values by the
+ function start offset on ALN-generated files, as
+ ALN either doesn't use function-relative debug
+ symbol addresses.
+
+-MAC-generated line numbers are offset by -1 lines
+ in GDB but work fine in WDB/RDBJAG. GCC symbols
+ are offset by +1 lines in WDB/RDBJAG but work
+ fine in GDB. Perhaps a disagreement over whether
+ files start at line 0 or line 1? Whatever the
+ cause, work-around it in GDB by offsetting line
+ numbers that come from assembly files linked by
+ ALN (to approximate cases where MAC may be used)
+ by +1.
+---
+ gdb/dbxread.c   | 92 ++++++++++++++++++++++++++++++++++++++++++-------
+ gdb/stabsread.c |  6 ++--
+ gdb/stabsread.h |  2 +-
+ 3 files changed, 84 insertions(+), 16 deletions(-)
+
+diff --git a/gdb/dbxread.c b/gdb/dbxread.c
+index 599bccd..33ed141 100644
+--- a/gdb/dbxread.c
++++ b/gdb/dbxread.c
+@@ -183,6 +183,15 @@ repeated_header_complaint (const char *arg1, int arg2)
+ 	     arg1, arg2);
+ }
+ 
++static int is_jag68k(const bfd * abfd)
++{
++    if (!strcmp(abfd->xvec->name, "coff-m68k-jaguar")) {
++        return 1;
++    }
++
++    return 0;
++}
++
+ /* find_text_range --- find start and end of loadable code sections
+ 
+    The find_text_range function finds the shortest address range that
+@@ -1027,6 +1036,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
+   bfd *abfd;
+   int textlow_not_set;
+   int data_sect_index;
++  int is_aln;
+ 
+   /* Current partial symtab.  */
+   struct partial_symtab *pst;
+@@ -1077,6 +1087,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
+   next_symbol_text_func = dbx_next_symbol_text;
+   textlow_not_set = 1;
+   has_line_numbers = 0;
++  is_aln = is_jag68k(abfd);
+ 
+   /* FIXME: jimb/2003-09-12: We don't apply the right section's offset
+      to global and static variables.  The stab for a global or static
+@@ -1782,6 +1793,12 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
+ 		 can handle end of function symbols.  */
+ 	      last_function_start = nlist.n_value;
+ 
++	      /* ALN doesn't seem to relocate debug symbols */
++	      if (pst && is_aln)
++		{
++		  nlist.n_value += pst->textlow;
++		}
++
+ 	      /* In reordered executables this function may lie outside
+ 		 the bounds created by N_SO symbols.  If that's the case
+ 		 use the address of this function as the low bound for
+@@ -2513,6 +2530,12 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
+      SECTION_OFFSETS.  */
+   static CORE_ADDR function_start_offset;
+ 
++  /* ALN doesn't seem to relocate some debug symbols.  Track the file
++     start address and add it to the affected symbol types to relocate
++     them correctly. Note this assumes all these symbols' addresses are
++     in the TEXT section. */
++  static CORE_ADDR file_start_offset = 0;
++
+   /* This holds the address of the start of a function, without the
+      system peculiarities of function_start_offset.  */
+   static CORE_ADDR last_function_start;
+@@ -2527,6 +2550,8 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
+      source file.  Used to detect the SunPRO solaris compiler.  */
+   static int n_opt_found;
+ 
++  int is_aln = is_jag68k(objfile->obfd);
++
+   /* Something is wrong if we see real data before seeing a source
+      file name.  */
+ 
+@@ -2596,6 +2621,10 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
+ 
+       goto define_a_symbol;
+ 
++    case N_BCOMM:
++      common_block_start (name, objfile);
++      break;
++
+     case N_LBRAC:
+       /* This "symbol" just indicates the start of an inner lexical
+          context within a function.  */
+@@ -2604,11 +2633,29 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
+       if (n_opt_found && desc == 1)
+ 	break;
+ 
+-      valu += function_start_offset;
++      if (is_aln)
++	{
++	  /* ALN doesn't relocate N_LBRAC */
++	  valu += file_start_offset;
++	}
++      else
++	{
++	  valu += function_start_offset;
++	}
+ 
+       push_context (desc, valu);
+       break;
+ 
++    case N_ECOMM:
++      if (!common_block_end (objfile))
++	{
++	  break;
++	}
++      /* else... ECOMM without matching BCOMM. The old build of GCC used for
++	 Jaguar development seems to insert ECOMM symbols in place of
++	 RBRAC symbols, so assume that's what happened here. */
++      /* Fall through */
++
+     case N_RBRAC:
+       /* This "symbol" just indicates the end of an inner lexical
+          context that was started with N_LBRAC.  */
+@@ -2617,7 +2664,15 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
+       if (n_opt_found && desc == 1)
+ 	break;
+ 
+-      valu += function_start_offset;
++      if (is_aln)
++	{
++	  /* ALN doesn't relocate N_RBRAC */
++	  valu += file_start_offset;
++	}
++      else
++	{
++	  valu += function_start_offset;
++	}
+ 
+       if (context_stack_depth <= 0)
+ 	{
+@@ -2713,6 +2768,7 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
+ 	break;
+ 
+       function_start_offset = 0;
++      file_start_offset = valu;
+ 
+       start_stabs ();
+       start_symtab (objfile, name, NULL, valu, language);
+@@ -2747,9 +2803,23 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
+          core-address correspondence.  Enter it in the line list for
+          this symbol table.  */
+ 
+-      /* Relocate for dynamic loading and for ELF acc
+-         function-relative symbols.  */
+-      valu += function_start_offset;
++      /* ALN appears to relocate line numbers to their absolute address */
++      if (is_aln)
++	{
++	  /* Hack for MAC-generated line numbers: Offset line number by
++	     one, as MAC seems to start counting at line "0" while gdb
++	     expects files to start at line "1". */
++	  if (language == language_asm)
++	    {
++	      desc += 1;
++	    }
++	}
++      else
++	{
++	  /* Relocate for dynamic loading and for ELF acc
++	     function-relative symbols.  */
++	  valu += function_start_offset;
++	}
+ 
+       /* GCC 2.95.3 emits the first N_SLINE stab somwehere in the
+ 	 middle of the prologue instead of right at the start of the
+@@ -2779,14 +2849,6 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
+ 		     gdbarch_addr_bits_remove (gdbarch, valu));
+       break;
+ 
+-    case N_BCOMM:
+-      common_block_start (name, objfile);
+-      break;
+-
+-    case N_ECOMM:
+-      common_block_end (objfile);
+-      break;
+-
+       /* The following symbol types need to have the appropriate
+          offset added to their value; then we process symbol
+          definitions in the name.  */
+@@ -2930,6 +2992,10 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
+ 		    valu = minsym_valu;
+ 		}
+ 
++	      /* ALN doesn't seem to be relocating N_FUN */
++	      if (is_aln)
++		valu += file_start_offset;
++
+ 	      /* These addresses are absolute.  */
+ 	      function_start_offset = valu;
+ 
+diff --git a/gdb/stabsread.c b/gdb/stabsread.c
+index 0017f18..164fb39 100644
+--- a/gdb/stabsread.c
++++ b/gdb/stabsread.c
+@@ -4347,7 +4347,7 @@ common_block_start (const char *name, struct objfile *objfile)
+ 
+ /* Process a N_ECOMM symbol.  */
+ 
+-void
++int
+ common_block_end (struct objfile *objfile)
+ {
+   /* Symbols declared since the BCOMM are to have the common block
+@@ -4364,7 +4364,7 @@ common_block_end (struct objfile *objfile)
+   if (common_block_name == NULL)
+     {
+       complaint (&symfile_complaints, _("ECOMM symbol unmatched by BCOMM"));
+-      return;
++      return -1;
+     }
+ 
+   sym = allocate_symbol (objfile);
+@@ -4400,6 +4400,8 @@ common_block_end (struct objfile *objfile)
+   SYMBOL_VALUE_CHAIN (sym) = global_sym_chain[i];
+   global_sym_chain[i] = sym;
+   common_block_name = NULL;
++
++  return 0;
+ }
+ 
+ /* Add a common block's start address to the offset of each symbol
+diff --git a/gdb/stabsread.h b/gdb/stabsread.h
+index c4c43f9..9b3ddef 100644
+--- a/gdb/stabsread.h
++++ b/gdb/stabsread.h
+@@ -42,7 +42,7 @@ enum language;
+ EXTERN struct symbol *global_sym_chain[HASHSIZE];
+ 
+ extern void common_block_start (const char *, struct objfile *);
+-extern void common_block_end (struct objfile *);
++extern int common_block_end (struct objfile *);
+ 
+ /* Kludge for xcoffread.c */
+ 
+-- 
+2.25.1
+

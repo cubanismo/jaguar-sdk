@@ -9,6 +9,37 @@ SRC_PATH="tools/src"
 SRC_DIR="${SDK_DIR}/${SRC_PATH}"
 PATCH_DIR="${SDK_DIR}/tools/patches"
 
+GDB_VERSION="8.1.1"
+
+GDB_SRC_DIR="${SRC_DIR}/gdb/gdb-${GDB_VERSION}"
+
+if [ -d "${GDB_SRC_DIR}" ]; then
+	echo "Found existing GDB source dir:"
+ 	echo ""
+ 	echo "  '${GDB_SRC_DIR}'?"
+ 	echo ""
+	echo "If not removed, patching may fail."
+	RETRY="yes"
+	while [ -n "${RETRY}" ]; do
+		echo -n "  Remove [yN]: "
+		read REMOVE
+
+		case "${REMOVE}" in
+		n|N|no|No|NO|nO|"")
+			RETRY=""
+			;;
+
+		y|Y|yes|yeS|yEs|yES|Yes|YEs|YeS|YES)
+			RETRY=""
+			rm -r "${GDB_SRC_DIR}"
+			;;
+		*)
+			echo "Please respond 'y' or 'n'."
+			;;
+		esac
+	done
+fi
+
 echo "Building tools, Installing in: \"${TARGET_DIR}\""
 
 mkdir -p "${TARGET_DIR}/bin"
@@ -155,6 +186,37 @@ PATH="${TARGET_DIR}/bin:${PATH}" \
 	--target=m68k-aout \
 	--disable-multilib \
 	--enable-languages=c
+PATH="${TARGET_DIR}/bin:${PATH}" make -j`nproc`
+PATH="${TARGET_DIR}/bin:${PATH}" make install
+
+mkdir -p "${SRC_DIR}/gdb"
+cd "${SRC_DIR}/gdb"
+wget https://ftpmirror.gnu.org/gdb/gdb-${GDB_VERSION}.tar.xz
+
+echo -n "Extracting gdb..."
+tar Jxf gdb-${GDB_VERSION}.tar.xz
+echo "Done"
+
+# Apply patches:
+# - Disable installation of documentation to avoid makeinfo requirement
+cd gdb-${GDB_VERSION}
+for P in "${PATCH_DIR}"/gdb-*.patch; do
+	echo "Applying '`basename "$P"`'"
+	patch -p1 < "${P}"
+done
+cd ..
+
+mkdir -p gdb-build
+cd gdb-build
+PATH="${TARGET_DIR}/bin:${PATH}" \
+	../gdb-${GDB_VERSION}/configure \
+	--prefix="${TARGET_DIR}" \
+	--disable-docs \
+	--enable-obsolete \
+	--target=m68k-coff \
+	--enable-targets=m68k-aout,m68k-elf \
+	--enable-tui \
+	--with-python=python3
 PATH="${TARGET_DIR}/bin:${PATH}" make -j`nproc`
 PATH="${TARGET_DIR}/bin:${PATH}" make install
 

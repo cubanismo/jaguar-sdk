@@ -1,0 +1,64 @@
+From e395497869045a3385e537d5a0fe3c9ae2202659 Mon Sep 17 00:00:00 2001
+From: James Jones <atari@theinnocuous.com>
+Date: Sun, 5 Jun 2022 09:24:20 -0700
+Subject: [PATCH 1/4] Don't build docs
+
+---
+ configure        |  2 +-
+ gdb/Makefile.in  |  2 +-
+ gdb/configure.ac | 13 +++++++++++++
+ 3 files changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/configure b/configure
+index 0bf47fa..83dd923 100755
+--- a/configure
++++ b/configure
+@@ -2738,7 +2738,7 @@ host_libs="intl libiberty opcodes bfd readline tcl tk itcl libgui zlib libbacktr
+ # binutils, gas and ld appear in that order because it makes sense to run
+ # "make check" in that particular order.
+ # If --enable-gold is used, "gold" may replace "ld".
+-host_tools="texinfo flex bison binutils gas ld fixincludes gcc cgen sid sim gdb gprof etc expect dejagnu m4 utils guile fastjar gnattools libcc1 gotools"
++host_tools="flex bison binutils gas ld fixincludes gcc cgen sid sim gdb gprof etc expect dejagnu m4 utils guile fastjar gnattools libcc1 gotools"
+ 
+ # these libraries are built for the target environment, and are built after
+ # the host libraries and the host tools (which may be a cross compiler)
+diff --git a/gdb/Makefile.in b/gdb/Makefile.in
+index 89ced88..f8bb316 100644
+--- a/gdb/Makefile.in
++++ b/gdb/Makefile.in
+@@ -1568,7 +1568,7 @@ COMMON_OBS = $(DEPFILES) $(CONFIG_OBS) $(YYOBJ) \
+ 
+ TSOBS = inflow.o
+ 
+-SUBDIRS = doc @subdirs@ data-directory $(GNULIB_BUILDDIR)
++SUBDIRS = @subdirs@ data-directory $(GNULIB_BUILDDIR)
+ CLEANDIRS = $(SUBDIRS)
+ 
+ # List of subdirectories in the build tree that must exist.
+diff --git a/gdb/configure.ac b/gdb/configure.ac
+index d4133ea..0dab734 100644
+--- a/gdb/configure.ac
++++ b/gdb/configure.ac
+@@ -97,6 +97,19 @@ PACKAGE=gdb
+ AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Name of this package. ])
+ AC_SUBST(PACKAGE)
+ 
++# Enable/Disable documentation
++AC_ARG_ENABLE(docs,
++AS_HELP_STRING([--disable-docs], [Do not build documentation]),
++  [case $enableval in
++    yes | no)
++      ;;
++    *) AC_MSG_ERROR([bad value $enableval for --enable-docs]) ;;
++  esac],
++  [enable_docs=yes])
++if test "x$enable_docs" = xyes; then
++   AC_CONFIG_SUBDIRS(doc)
++fi
++
+ # We never need to detect it in this sub-configure.
+ # But preserve it for config.status --recheck.
+ AC_ARG_VAR(MAKEINFO,
+-- 
+2.25.1
+

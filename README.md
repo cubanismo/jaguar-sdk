@@ -31,7 +31,7 @@ Lars Hannig (according to his web page).
 Prepare your system.  You'll need the prequisites required to build gcc from source, git to fetch the source, and libusb development files/headers to build jcp (If you don't need jcp, just comment that section of the tools build script out).  Optionally, you'll need dosemu to use the DOS-only tools from Linux.  Most projects and included sample code won't need these, but a couple of things, namely the Music/synth demos, do still require them.  On Ubuntu, this should be sufficient to get everything:
 
 ````sh
-$ sudo apt install build-essential gcc-multilib git libusb-dev dosemu
+$ sudo apt install build-essential gcc-multilib git libusb-dev libncurses5-dev libpython3-dev dosemu
 ````
 
 If building on a 32-bit system, you can omit `gcc-multilib`.

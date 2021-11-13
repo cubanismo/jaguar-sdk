@@ -1,0 +1,430 @@
+From 46f1d7d35ea94cafea8319f7ded3bc747dc1c9da Mon Sep 17 00:00:00 2001
+From: James Jones <atari@theinnocuous.com>
+Date: Sun, 5 Jun 2022 19:53:44 -0700
+Subject: [PATCH 3/4] Read stabs symbols in Jaguar m68k COFF files
+
+Add a very hacky Jaguar m68k COFF target vector
+to libbfd, detected by looking for the buggy
+COFF a.out optional header magic and version
+stamp field values used by RLN and ALN.
+
+When reading a COFF file in gdb, if the symbol
+size is too small to be a COFF symbol type, skip
+all the code to read COFF-style symbols and call
+over to the stabs symbol file reader instead.
+---
+ bfd/coff-jag68k.c |  77 ++++++++++++++++++++++++-
+ bfd/coffcode.h    |  11 ++++
+ gdb/coffread.c    | 143 ++++++++++++++++++++++++++--------------------
+ gdb/dbxread.c     |  54 +++++++++++++++++
+ gdb/stabsread.h   |   7 +++
+ 5 files changed, 228 insertions(+), 64 deletions(-)
+
+diff --git a/bfd/coff-jag68k.c b/bfd/coff-jag68k.c
+index 3c99501..5add712 100644
+--- a/bfd/coff-jag68k.c
++++ b/bfd/coff-jag68k.c
+@@ -19,8 +19,81 @@
+    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+    MA 02110-1301, USA.  */
+ 
++#include "sysdep.h"
++#include "bfd.h"
++#include "libbfd.h"
++#include "coff/m68k.h"
++#include "coff/internal.h"
++#include "libcoff.h"
++
++#define BADMAG(x) M68KBADMAG(x)
++#define M68 1   /* Customize coffcode.h */
++
++#define COFF_DEFAULT_SECTION_ALIGNMENT_POWER (2)
++/* The page size is a guess based on ELF. */
++#define COFF_PAGE_SIZE 0x2000
++
++#define bfd_pe_print_pdata NULL
++
++#define SYMESZ 12
++
++#include "coffcode.h"
++
++static bfd_boolean
++jaguar_coff_slurp_symbol_table(bfd * abfd)
++{
++  /* XXX Wrong */
++  return coff_slurp_symbol_table(abfd);
++}
++
++static void
++jaguar_coff_swap_symbol_in(bfd * abfd, void *raw, void *intern)
++{
++
++}
++
++/* Jaguar COFF files have their magic and vstamp swapped in the a.out header */
++#define JAGUAR_AOUT_MAGIC 0
++#define JAGUAR_AOUT_VERSION 0x107 /* AOUT ZMAGIC: demand-paged executable */
++
++static void *
++jaguar_coff_mkobject_hook(bfd * abfd, void * filehdr, void * aouthdr)
++{
++  struct internal_aouthdr *internal_a = (struct itnernal_aouthdr *)aouthdr;
++
++  if ((internal_a->magic != JAGUAR_AOUT_MAGIC) ||
++      (internal_a->vstamp != JAGUAR_AOUT_VERSION))
++    {
++      return NULL;
++    }
++
++  return coff_mkobject_hook(abfd, filehdr, aouthdr);
++}
++
++static bfd_coff_backend_data jaguar_coff_backend_data =
++{
++  /* COFF backend structure.  */
++  (void (*) (bfd *,void *,int,int,int,int,void *)) bfd_void, /* aux_in */
++  jaguar_coff_swap_symbol_in,
++  (void (*) (bfd *,void *,void *)) bfd_void, /* lineno_in */
++  (unsigned (*) (bfd *,void *,int,int,int,int,void *)) bfd_void,/*aux_out*/
++  (unsigned (*) (bfd *,void *,void *)) bfd_void, /* XXX sym_out */
++  (unsigned (*) (bfd *,void *,void *)) bfd_void, /* lineno_out */
++  (unsigned (*) (bfd *,void *,void *)) bfd_void, /* reloc_out */
++  coff_SWAP_filehdr_out, coff_SWAP_aouthdr_out,
++  coff_SWAP_scnhdr_out,
++  FILHSZ, AOUTSZ, SCNHSZ, SYMESZ, 0, 0, 0 /* XXX LINESZ */, FILNMLEN, FALSE,
++  COFF_DEFAULT_LONG_SECTION_NAMES, COFF_DEFAULT_SECTION_ALIGNMENT_POWER, FALSE, 2, 32768,
++  coff_SWAP_filehdr_in, coff_SWAP_aouthdr_in,
++  coff_SWAP_scnhdr_in, NULL,
++  coff_bad_format_hook, coff_set_arch_mach_hook,
++  jaguar_coff_mkobject_hook, styp_to_sec_flags,
++  coff_set_alignment_hook, jaguar_coff_slurp_symbol_table,
++  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
++  NULL, NULL, NULL, NULL
++};
++
+ #define TARGET_SYM	m68k_coff_jaguar_vec
+ #define TARGET_NAME	"coff-m68k-jaguar"
+-#define STATIC_RELOCS
+ 
+-#include "coff-m68k.c"
++CREATE_BIG_COFF_TARGET_VEC (TARGET_SYM, TARGET_NAME, D_PAGED, 0, 0, NULL, &jaguar_coff_backend_data)
+diff --git a/bfd/coffcode.h b/bfd/coffcode.h
+index ec0103e..786071a 100644
+--- a/bfd/coffcode.h
++++ b/bfd/coffcode.h
+@@ -5289,6 +5289,7 @@ SUBSUBSECTION
+   }
+ #endif
+ 
++#if defined(RTYPE2HOWTO) || defined(RELOC_PROCESSING)
+ static bfd_boolean
+ coff_slurp_reloc_table (bfd * abfd, sec_ptr asect, asymbol ** symbols)
+ {
+@@ -5391,6 +5392,16 @@ coff_slurp_reloc_table (bfd * abfd, sec_ptr asect, asymbol ** symbols)
+   return TRUE;
+ }
+ 
++#else /* !(defined(RTYPE2HOWTO) || defined(RELOC_PROCESSING)) */
++
++static bfd_boolean
++coff_slurp_reloc_table (bfd * abfd, sec_ptr asect, asymbol ** symbols)
++{
++  return FALSE;
++}
++
++#endif /* !(defined(RTYPE2HOWTO) || defined(RELOC_PROCESSING)) */
++
+ #ifndef coff_rtype_to_howto
+ #ifdef RTYPE2HOWTO
+ 
+diff --git a/gdb/coffread.c b/gdb/coffread.c
+index fbbbb68..a7f771b 100644
+--- a/gdb/coffread.c
++++ b/gdb/coffread.c
+@@ -128,6 +128,10 @@ static int pe_file;
+ 
+ static struct symbol *opaque_type_chain[HASHSIZE];
+ 
++/* String table data */
++static char *stringtab = NULL;
++static unsigned int stringtab_size = 0;
++
+ /* Simplified internal version of coff symbol table information.  */
+ 
+ struct coff_symbol
+@@ -646,89 +650,103 @@ coff_symfile_read (struct objfile *objfile, symfile_add_flags symfile_flags)
+   if (val < 0)
+     error (_("\"%s\": can't get string table"), name);
+ 
+-  minimal_symbol_reader reader (objfile);
+-
+-  /* Now that the executable file is positioned at symbol table,
+-     process it and define symbols accordingly.  */
++  if (local_symesz == 12)
++    {
++      bfd_map_over_sections (abfd, coff_locate_sections, (void *) info);
++
++      /* The file has a COFF header but a.out-style symbol table */
++      coffaout_symtab_read (objfile,
++			    info->textaddr, info->textsize,
++			    symtab_offset, num_symbols,
++			    stringtab, stringtab_size,
++			    symfile_flags);
++    }
++  else
++    {
++      minimal_symbol_reader reader (objfile);
+ 
+-  coff_symtab_read (reader, (long) symtab_offset, num_symbols, objfile);
++      /* Now that the executable file is positioned at symbol table,
++	 process it and define symbols accordingly.  */
+ 
+-  /* Install any minimal symbols that have been collected as the
+-     current minimal symbols for this objfile.  */
++      coff_symtab_read (reader, (long) symtab_offset, num_symbols, objfile);
+ 
+-  reader.install ();
++      /* Install any minimal symbols that have been collected as the
++	 current minimal symbols for this objfile.  */
+ 
+-  if (pe_file)
+-    {
+-      struct minimal_symbol *msym;
++      reader.install ();
+ 
+-      ALL_OBJFILE_MSYMBOLS (objfile, msym)
++      if (pe_file)
+ 	{
+-	  const char *name = MSYMBOL_LINKAGE_NAME (msym);
++	  struct minimal_symbol *msym;
+ 
+-	  /* If the minimal symbols whose name are prefixed by "__imp_"
+-	     or "_imp_", get rid of the prefix, and search the minimal
+-	     symbol in OBJFILE.  Note that 'maintenance print msymbols'
+-	     shows that type of these "_imp_XXXX" symbols is mst_data.  */
+-	  if (MSYMBOL_TYPE (msym) == mst_data)
++	  ALL_OBJFILE_MSYMBOLS (objfile, msym)
+ 	    {
+-	      const char *name1 = NULL;
++	      const char *name = MSYMBOL_LINKAGE_NAME (msym);
+ 
+-	      if (startswith (name, "_imp_"))
+-		name1 = name + 5;
+-	      else if (startswith (name, "__imp_"))
+-		name1 = name + 6;
+-	      if (name1 != NULL)
++	      /* If the minimal symbols whose name are prefixed by "__imp_"
++		 or "_imp_", get rid of the prefix, and search the minimal
++		 symbol in OBJFILE.  Note that 'maintenance print msymbols'
++		 shows that type of these "_imp_XXXX" symbols is mst_data.  */
++	      if (MSYMBOL_TYPE (msym) == mst_data)
+ 		{
+-		  int lead = bfd_get_symbol_leading_char (objfile->obfd);
+-		  struct bound_minimal_symbol found;
++		  const char *name1 = NULL;
++
++		  if (startswith (name, "_imp_"))
++		    name1 = name + 5;
++		  else if (startswith (name, "__imp_"))
++		    name1 = name + 6;
++		  if (name1 != NULL)
++		    {
++		      int lead = bfd_get_symbol_leading_char (objfile->obfd);
++		      struct bound_minimal_symbol found;
+ 
+-                  if (lead != '\0' && *name1 == lead)
+-		    name1 += 1;
++		      if (lead != '\0' && *name1 == lead)
++			name1 += 1;
+ 
+-		  found = lookup_minimal_symbol (name1, NULL, objfile);
++		      found = lookup_minimal_symbol (name1, NULL, objfile);
+ 
+-		  /* If found, there are symbols named "_imp_foo" and "foo"
+-		     respectively in OBJFILE.  Set the type of symbol "foo"
+-		     as 'mst_solib_trampoline'.  */
+-		  if (found.minsym != NULL
+-		      && MSYMBOL_TYPE (found.minsym) == mst_text)
+-		    MSYMBOL_TYPE (found.minsym) = mst_solib_trampoline;
++		      /* If found, there are symbols named "_imp_foo" and "foo"
++			 respectively in OBJFILE.  Set the type of symbol "foo"
++			 as 'mst_solib_trampoline'.  */
++		      if (found.minsym != NULL
++			  && MSYMBOL_TYPE (found.minsym) == mst_text)
++			MSYMBOL_TYPE (found.minsym) = mst_solib_trampoline;
++		    }
+ 		}
+ 	    }
+ 	}
+-    }
+ 
+-  if (!(objfile->flags & OBJF_READNEVER))
+-    bfd_map_over_sections (abfd, coff_locate_sections, (void *) info);
++      if (!(objfile->flags & OBJF_READNEVER))
++	bfd_map_over_sections (abfd, coff_locate_sections, (void *) info);
+ 
+-  if (info->stabsects)
+-    {
+-      if (!info->stabstrsect)
++      if (info->stabsects)
+ 	{
+-	  error (_("The debugging information in `%s' is corrupted.\nThe "
+-		   "file has a `.stabs' section, but no `.stabstr' section."),
+-		 name);
+-	}
++	  if (!info->stabstrsect)
++	    {
++	      error (_("The debugging information in `%s' is corrupted.\nThe "
++		       "file has a `.stabs' section, but no `.stabstr' section."),
++		     name);
++	    }
+ 
+-      /* FIXME: dubious.  Why can't we use something normal like
+-         bfd_get_section_contents?  */
+-      bfd_seek (abfd, abfd->where, 0);
++	  /* FIXME: dubious.  Why can't we use something normal like
++	     bfd_get_section_contents?  */
++	  bfd_seek (abfd, abfd->where, 0);
+ 
+-      stabstrsize = bfd_section_size (abfd, info->stabstrsect);
++	  stabstrsize = bfd_section_size (abfd, info->stabstrsect);
+ 
+-      coffstab_build_psymtabs (objfile,
+-			       info->textaddr, info->textsize,
+-			       info->stabsects,
+-			       info->stabstrsect->filepos, stabstrsize);
+-    }
+-  if (dwarf2_has_info (objfile, NULL))
+-    {
+-      /* DWARF2 sections.  */
+-      dwarf2_build_psymtabs (objfile);
+-    }
++	  coffstab_build_psymtabs (objfile,
++				   info->textaddr, info->textsize,
++				   info->stabsects,
++				   info->stabstrsect->filepos, stabstrsize);
++	}
++      if (dwarf2_has_info (objfile, NULL))
++	{
++	  /* DWARF2 sections.  */
++	  dwarf2_build_psymtabs (objfile);
++	}
+ 
+-  dwarf2_build_frame_info (objfile);
++      dwarf2_build_frame_info (objfile);
++    }
+ 
+   /* Try to add separate debug file if no symbols table found.   */
+   if (!objfile_has_partial_symbols (objfile))
+@@ -1305,8 +1323,6 @@ read_one_sym (struct coff_symbol *cs,
+ 
+ /* Support for string table handling.  */
+ 
+-static char *stringtab = NULL;
+-
+ static int
+ init_stringtab (bfd *abfd, long offset)
+ {
+@@ -1332,6 +1348,8 @@ init_stringtab (bfd *abfd, long offset)
+   if (val != sizeof lengthbuf || length < sizeof lengthbuf)
+     return 0;
+ 
++  stringtab_size = length;
++
+   stringtab = (char *) xmalloc (length);
+   /* This is in target format (probably not very useful, and not
+      currently used), not host format.  */
+@@ -1353,6 +1371,7 @@ free_stringtab (void)
+   if (stringtab)
+     xfree (stringtab);
+   stringtab = NULL;
++  stringtab_size = 0;
+ }
+ 
+ static void
+diff --git a/gdb/dbxread.c b/gdb/dbxread.c
+index bdf4fb9..599bccd 100644
+--- a/gdb/dbxread.c
++++ b/gdb/dbxread.c
+@@ -3131,6 +3131,60 @@ coffstab_build_psymtabs (struct objfile *objfile,
+ 
+   dbx_symfile_read (objfile, 0);
+ }
++
++/* Scan and build partial symbols for coff file using a.out-style symbol table
++
++   This routine is the equivalent of dbx_symfile_init and dbx_symfile_read
++   rolled into one.
++
++   OBJFILE is the object file we are reading symbols from.
++   TEXTADDR is the address of the text section.
++   TEXTSIZE is the size of the text section.
++   SYMTAB_OFFSET and NUM_SYMBOLS define the location in OBJFILE where the
++   symbol table is located.
++   STRINGTAB and STRINGTAB_SIZE are the pre-loaded string table contents
++   ADD_FLAGS are the symbol loading flags passed through from the COFF
++   file reader function.
++
++   This routine is mostly copied from dbx_symfile_init and dbx_symfile_read,
++   adjusted for coff details.  */
++
++void
++coffaout_symtab_read (struct objfile *objfile,
++		      CORE_ADDR textaddr, unsigned int textsize,
++		      file_ptr symtab_offset, unsigned int num_symbols,
++		      char *stringtab, unsigned int stringtab_size,
++		      symfile_add_flags add_flags)
++{
++  int val;
++  bfd *sym_bfd = objfile->obfd;
++  char *name = bfd_get_filename (sym_bfd);
++
++  DBX_TEXT_ADDR (objfile) = textaddr;
++  DBX_TEXT_SIZE (objfile) = textsize;
++
++#define	COFF_STABS_SYMBOL_SIZE	12	/* XXX FIXME XXX */
++  DBX_SYMBOL_SIZE (objfile) = COFF_STABS_SYMBOL_SIZE;
++  DBX_STRINGTAB_SIZE (objfile) = stringtab_size;
++
++  DBX_STRINGTAB (objfile) = (char *)
++    obstack_alloc (&objfile->objfile_obstack, stringtab_size + 1);
++  memcpy(DBX_STRINGTAB (objfile), stringtab, stringtab_size);
++
++  OBJSTAT (objfile, sz_strtab += stringtab_size + 1);
++  DBX_SYMCOUNT (objfile) = num_symbols;
++  DBX_SYMTAB_OFFSET (objfile) = symtab_offset;
++
++  stabsread_new_init ();
++  buildsym_new_init ();
++  free_header_files ();
++  init_header_files ();
++
++  processing_acc_compilation = 1;
++
++  dbx_symfile_read (objfile, add_flags);
++}
++
+ 
+ /* Scan and build partial symbols for an ELF symbol file.
+    This ELF file has already been processed to get its minimal symbols.
+diff --git a/gdb/stabsread.h b/gdb/stabsread.h
+index d24b25d..c4c43f9 100644
+--- a/gdb/stabsread.h
++++ b/gdb/stabsread.h
+@@ -183,6 +183,13 @@ extern void coffstab_build_psymtabs
+    struct stab_section_list *stabs,
+    file_ptr stabstroffset, unsigned int stabstrsize);
+ 
++extern void coffaout_symtab_read
++  (struct objfile *objfile,
++   CORE_ADDR textaddr, unsigned int textsize,
++   file_ptr symtab_offset, unsigned int num_symbols,
++   char *stringtab, unsigned int stringtab_size,
++   symfile_add_flags add_flags);
++
+ extern void stabsect_build_psymtabs (struct objfile *objfile, char *stab_name,
+ 				     char *stabstr_name, char *text_name);
+ 
+-- 
+2.25.1
+

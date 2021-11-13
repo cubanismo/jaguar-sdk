@@ -33,6 +33,8 @@ virtualjaguar.log
 # Ignore all the tools built from source
 /tools/bin
 /tools/src/gcc
+/tools/src/gdb
+/tools/include/gdb
 /tools/lib
 /tools/libexec
 /tools/m68k-aout
