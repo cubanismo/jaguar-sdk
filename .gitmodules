@@ -19,3 +19,6 @@
 [submodule "tools/src/jcp"]
 	path = tools/src/jcp
 	url = https://github.com/cubanismo/skunk_jcp
+[submodule "tools/src/kernel-tools"]
+	path = tools/src/kernel-tools
+	url = https://github.com/kees/kernel-tools
