@@ -1,2 +1,0 @@
-#!/bin/sh
-dosemu_helper filefix.exe $@

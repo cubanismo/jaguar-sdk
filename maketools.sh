@@ -78,10 +78,15 @@ strip --strip-unneeded jcp
 cp jcp "${TARGET_DIR}/bin/rmvjcp"
 make REMOVERS=1 clean
 
-echo "Building a.out loader"
+echo "Building a.out loader..."
 cd "${SRC_DIR}/kernel-tools/a.out"
 make
 cp aout "${TARGET_DIR}/bin/aout-loader"
+
+echo "Building jag_utils..."
+cd "${SRC_DIR}/jag_utils"
+make
+cp allsyms filefix size symval  "${TARGET_DIR}/bin"
 
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"

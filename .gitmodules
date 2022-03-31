@@ -22,3 +22,6 @@
 [submodule "tools/src/kernel-tools"]
 	path = tools/src/kernel-tools
 	url = https://github.com/kees/kernel-tools
+[submodule "tools/src/jag_utils"]
+	path = tools/src/jag_utils
+	url = https://github.com/cubanismo/jag_utils
