@@ -8,17 +8,25 @@ STADDR = 4000
 # BSS follows directly after text and data sections
 BSSADDR = x
 
-# Default alignment is double-phrase.  This can be overriden on the
+# Default padding and alignment is double-phrase. This can be overriden on the
 # make command line, or before including this fragment in a Makefile.
 ALIGN ?= d
+ASMPAD ?= $(ALIGN)
+LINKALIGN ?= $(ALIGN)
 
-ASMFLAGS = -fb -g -r$(ALIGN)
+# Default to the same optimizations MADMAC used by default:
+#  +o0: Absolute long addresses to word
+#  +o1: move.l #x,dn/an to moveq
+#  +o2: Word branches to short
+ASMOPTS ?= +o0 +o1 +o2
+
+ASMFLAGS = -fb -g -r$(ASMPAD)
 # Link flags:
 #  -e  - Output using COF file format
 #  -g  - Output source level debugging (where supported)
 #  -r<N> - Align sections to requested boundaries
 #  -a  - Absolute section addresses
-LINKFLAGS = -e -g -r$(ALIGN) -a $(STADDR) x $(BSSADDR)
+LINKFLAGS = -e -g -r$(LINKALIGN) -a $(STADDR) x $(BSSADDR)
 
 # Enable additional logging if requested on the command line.
 V ?= 0
@@ -41,6 +49,12 @@ LINK = rln
 # linker)
 #ASM = mac
 #LINK = aln
+
+# MADMAC doesn't handle the optimization flags, and has the above defaults
+# enabled unconditionally.
+ifeq ($(ASM),rmac)
+  ASMFLAGS += $(ASMOPTS)
+endif
 
 # Use gcc to build C files
 CFLAGS ?= -O2
