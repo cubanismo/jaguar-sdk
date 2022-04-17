@@ -9,7 +9,7 @@ jag.o
 PROGS = jaghello.cof
 
 jaghello.cof: $(OBJS)
-	$(LINK) $(LINKFLAGS) $(OBJS) -o $@
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS)
 
 
 go:	$(PROGS)
