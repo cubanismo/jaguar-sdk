@@ -19,7 +19,7 @@ virtualjaguar.log
 !/jaguar/cdboot/cdboot.rom
 !/jaguar/nvramsim/nvmsim.rom
 !/jaguar/bin/maketoc.cof
-!/jaguar/bin/regdump.bin
+!/jaguar/bin/*.bin
 !/jaguar/workshop/data/jaguar.bin
 !/jaguar/cinepak/decomp/codec.o
 !/jaguar/cinepak/decomp/codec_a.o
