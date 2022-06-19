@@ -25,3 +25,6 @@
 [submodule "tools/src/jag_utils"]
 	path = tools/src/jag_utils
 	url = https://github.com/cubanismo/jag_utils
+[submodule "tools/src/jrisc_tools"]
+	path = tools/src/jrisc_tools
+	url = https://github.com/cubanismo/jrisc_tools

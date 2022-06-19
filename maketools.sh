@@ -88,6 +88,11 @@ cd "${SRC_DIR}/jag_utils"
 make
 cp allsyms filefix size symval  "${TARGET_DIR}/bin"
 
+echo "Building jdis..."
+cd "${SRC_DIR}/jrisc_tools"
+make
+cp jdis "${TARGET_DIR}/bin"
+
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
 
