@@ -1,0 +1,3 @@
+#!/bin/sh
+
+m68k-coff-gdb -x "${JAGSDK}/jaguar/bin/jag.gdb" "$@"
