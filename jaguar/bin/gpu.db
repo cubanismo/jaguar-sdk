@@ -111,41 +111,65 @@ procedure gob break count
 #:gobgo
 	set count 1
 #:gobgc
+	# Set mem@0x1C to "JR 00000b,-1,pc+0; NOP;"
+	# In English: put GPU in a tight loop unconditionally jumping to 0x1C
 	sl 1C D7E0E400
+
+	# Set address to long-aligned breakpoint address
 	set addr break&fffffffc
+
+	# Read back the opcodes near the breakpoint
 	set opcode0 lpeek(addr)
 	set opcode1 lpeek(addr+4)
+
+	# set g0 to "MOVEQ 0x1c,R31; JUMP 00000b,R31 
+	# In English: Set g0 to move address 0x1c into R31, unconditionally jump to R31
 	set g0 8F9FD3E0
+
+	# Set temp to next two opcodes, mask off first opcode, replace with NOP
 	set temp opcode1&0000ffff
 	set temp temp+E4000000
+
+	# If the breakpoint is not long-aligned, shift everything over 2 bytes.
 	if ((break&2)==0) goto hiok
 	set g0 opcode0&ffff0000
 	set g0 g0+00008F9F
 	set temp D3E0E400
 #:hiok
+	# Overwrite instructions at breakpoint location with our instructions
+	# implementing the breakpoint.
 	sl addr g0
 	set addr addr+4
 	sl addr temp
 	set addr addr-4
+
 #	print -x08 addr -x08 lpeek(addr) -x08 lpeek(addr+4)
 #	goto gobend
 #	goto gobend
 	gogpu
 	print -d count
-#:gobwait	
+#:gobwait
+	# Read back G_CTRL
 	set temp lpeek(f02114)
 	if ((temp&1)==1) goto chk100
+	# GPU cleared GPUGO.
 	set count 1
 	print GPU self-terminated
 	goto exitw
 #:chk100  
+	# Read G_PC
 	set temp lpeek(f02110)
+	# If it's at some address >100, it's not parked in the
+	# tight loop set above yet, so keep waiting.
 	if (temp>100) goto gobwait
+	# The GPU *is* in our tight loop. Stop it.
 	stopgpu
 #:exitw
+	# Restore the old opcodes at breakpoint location
 	sl addr opcode0
 	set addr addr+4
 	sl addr opcode1
+	# Restore G_PC
 	sl f02110 break
 	set count count-1
 	if (count==0) goto gobover
@@ -291,6 +315,7 @@ procedure td start end
 	ld g0 1
 .
 
+# GPU register dumping code.
 procedure xg
 	local temp1 temp2 count gflags
 
