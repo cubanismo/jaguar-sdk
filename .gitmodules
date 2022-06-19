@@ -28,3 +28,6 @@
 [submodule "tools/src/jrisc_tools"]
 	path = tools/src/jrisc_tools
 	url = https://github.com/cubanismo/jrisc_tools
+[submodule "tools/src/jserve"]
+	path = tools/src/jserve
+	url = https://github.com/cubanismo/jserve

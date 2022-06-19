@@ -135,6 +135,14 @@ cp jdis "${TARGET_DIR}/bin"
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
 
+echo "Building jserve..."
+cd "${SRC_DIR}/jserve"
+make
+# XXX Don't install for now. Needs to be next to jdb.cof
+
+mkdir -p "${SRC_DIR}/gcc"
+cd "${SRC_DIR}/gcc"
+
 wget https://ftpmirror.gnu.org/binutils/binutils-2.16.1a.tar.bz2
 wget https://ftpmirror.gnu.org/gcc/gcc-3.4.6/gcc-3.4.6.tar.bz2
 
