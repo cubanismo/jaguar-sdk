@@ -78,10 +78,18 @@ strip --strip-unneeded jcp
 cp jcp "${TARGET_DIR}/bin/rmvjcp"
 make REMOVERS=1 clean
 
-echo "Building a.out loader..."
-cd "${SRC_DIR}/kernel-tools/a.out"
-make
-cp aout "${TARGET_DIR}/bin/aout-loader"
+case `uname -m` in
+	x86_64|i?86)
+		echo "Building a.out loader..."
+		cd "${SRC_DIR}/kernel-tools/a.out"
+		make
+		cp aout "${TARGET_DIR}/bin/aout-loader"
+		;;
+	*)
+		echo "Not x86/x86_64 host, so not building the a.out loader"
+		echo "Some tools (mac/aln/wdb/rdbjag) will not be usable"
+		;;
+esac
 
 echo "Building jag_utils..."
 cd "${SRC_DIR}/jag_utils"
@@ -111,6 +119,11 @@ cd binutils-2.16.1
 # - Switch m68k default processor from m68020 to m68000
 patch -p1 < "${PATCH_DIR}/binutils-2.16.1a-fixes.diff"
 
+# Update the config.guess and config.sub scripts to support aarch64 and any
+# other "new" architectures introduced after ~2004
+wget -O config.guess "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" && chmod +x config.guess
+wget -O config.sub "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" && chmod +x config.sub
+
 ./configure --prefix="${TARGET_DIR}" --target=m68k-aout
 make -j`nproc`
 make install
@@ -127,6 +140,11 @@ echo "Done"
 # - Switch m68k default processor from m68020 to m68000
 cd gcc-3.4.6
 patch -p1 < "${PATCH_DIR}/gcc-3.4.6-fixes.diff"
+
+# Update the config.guess and config.sub scripts to support aarch64 and any
+# other "new" architectures introduced after ~2004
+wget -O config.guess "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" && chmod +x config.guess
+wget -O config.sub "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" && chmod +x config.sub
 cd ..
 
 mkdir -p gcc-build
