@@ -245,7 +245,7 @@ define tg
 		end
 	end
 	if ($temp & 1)
-		# XXX Disassemble instruction at G_PC
+		gdis
 	end
 end
 

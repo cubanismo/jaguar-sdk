@@ -131,6 +131,8 @@ echo "Building jdis..."
 cd "${SRC_DIR}/jrisc_tools"
 make
 cp jdis "${TARGET_DIR}/bin"
+cd "${SRC_DIR}/jrisc_tools/python"
+make PYTHON_EXT_DIR="${TARGET_DIR}/lib/python"
 
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
