@@ -362,21 +362,21 @@ define xg
 	printf "  G_PC: %08x\n", $jagval_gpc + 0x2
 
 	if ($success != 0)
-		set $row = 0
-		while ($row < 4)
-			printf "R%02d:", ($row * 8)
-			set $count = 0
-			while ($count < 8)
-				if ((($row * 8) + $count) != 30)
-					printf " %08x", {unsigned long}($reg_shadow+($row*32)+($count*4))
-				else
-					printf " TRASHED!"
-				end
-				set $count = $count + 1
-			end
-			printf "\n"
-			set $row = $row + 1
-		end
+		# Use python to print the register shadow memory so we can do with in one
+		# 128-byte read rather than 32 4-byte reads. The former is much faster.
+# Begin python code: No indenting to keep python happy
+		python
+regview = gdb.selected_inferior().read_memory(0x600, (4 * 32))
+for i in range(0, 32, 8):
+	print("R%02d:" % i, end = '')
+	for j in range(i*4, (i+8)*4, 4):
+		if (j == (30 * 4)): # r30 is clobbered by the readback code
+			print(" TRASHED!", end = '')
+		else:
+			print(" %s" % regview[j:j+4].hex(), end = '')
+	print("")
+end
+# End python
 	else
 		printf "Did the GPU die?\n"
 	end
