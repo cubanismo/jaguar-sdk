@@ -90,3 +90,79 @@ class PyJriscDisDsp(gdb.Command):
 
 # Instantiate the command
 PyJriscDisDsp()
+
+class PyJriscGoBreakGpu(gdb.Command):
+	def __init__(self):
+		super (PyJriscGoBreakGpu, self).__init__("gob", gdb.COMMAND_USER)
+
+	def invoke(self, arg, from_tty):
+		args = gdb.string_to_argv(arg)
+
+		# Set mem@0x1C to "jr *+0; nop
+		gdb.selected_inferior().write_memory(0x1c, b'\xd7\xe0\xe4\x00')
+
+		location = gdb.decode_line(args[0])
+		if location[1]:
+			syms = location[1]
+			location = syms[0].pc
+			location &= ~1
+		else:
+			raise Exception("Invalid location: '%s'" % (args[0]))
+
+		addr = location & 0xfffffffc
+
+		# Convert from gdb.Value to int so that the variables don't
+		# continue to track updates to the associated memory locations
+		# in the inferior, which would defeat the goal here of saving
+		# the old opcodes.
+		opcode0 = int(gdb.parse_and_eval("{unsigned long}0x%x" % (addr)))
+		opcode1 = int(gdb.parse_and_eval("{unsigned long}0x%x" % (addr + 4)))
+
+		# Set b0 to moveq 0x1c,r30; jump (r30)
+		b0 = 0x8f9ed3c0
+
+		# Set b1 to "nop; <second opcode in opcode1>"
+		b1 = opcode1 & 0x0000ffff
+		b1 |= 0xe4000000
+
+		# If the breakpoint is not long-aligned, shift everything
+		# over 2 bytes to compensate.
+		if ((location & 2) != 0):
+			b0 = opcode0 & 0xffff0000
+			b0 |= 0x8f9e
+			b1 = 0xd3c0e400
+
+		# Overwrite the instructions at the breakpoint location with our
+		# new instructions implementing the breakpoint.
+		gdb.execute("set {unsigned long}0x%x = 0x%x" % (addr, b0))
+		gdb.execute("set {unsigned long}0x%x = 0x%x" % (addr + 4, b1))
+
+		# Start the GPU
+		gdb.execute("gogpu")
+
+		breakHit = False
+		while (True):
+			ctrl_val = gdb.parse_and_eval("{unsigned long}$jagptr_gctrl")
+			if ((ctrl_val & 0x1) == 0):
+				print('The GPU self-terminated')
+				break
+
+			gpc_val = gdb.parse_and_eval("$gpc()")
+
+			if (gpc_val < 100):
+				print('GPU breakpoint hit:')
+				breakHit = True
+				gdb.execute("stopgpu")
+				break
+
+		# Restore the code under the breakpoint and restore G_PC
+		gdb.execute("set {unsigned long}0x%x = 0x%x" % (addr, opcode0))
+		gdb.execute("set {unsigned long}0x%x = 0x%x" % (addr + 4, opcode1))
+		gdb.execute("set {unsigned long}$jagptr_gpc = 0x%x" % (location))
+
+		if breakHit:
+			# Disassemble the current instruction if breakpoint hit
+			gdb.execute("gdis")
+
+# Instantiate the command
+PyJriscGoBreakGpu()
