@@ -81,10 +81,10 @@
 
 set $jrisc_break = 0x400
 set $regdump_code = 0x500
-set $regset_code = 0x5a0
-set $regset_val = 0x5c0
-set $regset_oldval = 0x5bc
-set $regdump_shadow = 0x600
+set $regdump_code_end = 0x558
+set $regset_code = 0x55c
+set $regset_code_end = 0x5a6
+set $reg_shadow = 0x600
 
 #
 # Conventions:
@@ -166,8 +166,7 @@ define gpustuf
 python
 import os
 if 'DBPATH' in os.environ:
-	gdb.execute('restore ' + os.environ['DBPATH'] + '/regdump-500.bin binary $regdump_code')
-	gdb.execute('restore ' + os.environ['DBPATH'] + '/regset-5a0.bin binary $regset_code')
+	gdb.execute('restore ' + os.environ['DBPATH'] + '/regdumpset-500.bin binary $regdump_code')
 else:
 	gdb.execute('printf "Environment variable \'DBPATH\' not found!\n"')
 	gdb.execute('printf "Please set up the jaguar-sdk environment variables by sourcing\n"')
@@ -195,16 +194,17 @@ define tg
 		set $nexti = {unsigned short}$local_gpc
 		set $unaligned_movei = 0
 		if ((($local_gpc & 2) == 0) && (($nexti >> 10) == 38))
-			# Long-aligned movei instructions don't single-step
-			# correctly. To work around this, move the instruction
-			# to the scratch space at the start of the regdump code
-			# and execute it there.
+			# Long-aligned movei instructions don't single-step correctly.
+			# To work around this, move the instruction to the register
+			# shadow memory scratch space and execute it there.
 			set $unaligned_movei = 1
-			set {unsigned short}($regdump_code + 2) = $nexti
+			set {unsigned short}($reg_shadow + 2) = $nexti
 			set $immediate_val = {unsigned long}($local_gpc + 2)
-			set {unsigned long}($regdump_code + 4) = $immediate_val
+			set {unsigned long}($reg_shadow + 4) = $immediate_val
+			# Add two nop instructions after the movei out of paranoia
+			set {unsigned long}($reg_shadow + 8) = 0xe400e400
 			# Restart single stepping at the relocated instruction.
-			setgpc $regdump_code+2
+			setgpc $reg_shadow+2
 			set {unsigned long}$jagptr_gctrl = $jagval_ctrl_steponly
 		else
 			set {unsigned long}$jagptr_gctrl = $jagval_ctrl_step
@@ -257,33 +257,58 @@ Usage: tg                   - single-step GPU from current G_PC
        tg <new_PC> <end_PC> - step GPU from new G_PC until end G_PC
 end
 
-define xgrinternal
+# Helper function to run the register dump and register set code
+#
+# arg0 = GPU code start address
+# arg1 = GPU code end address, which should be a tight loop jumping to itself.
+# arg2 = return value: 0 = failure, 1 = success
+define jag_grununtil
 	jag_savegflags
 	jag_savegpc
-	setgpc $regset_code 
 
-	# Build a long-word of <High word of old value address>|<Store old value>
-	set {unsigned long}($regset_code + 4) = 0x0000BFE0|$arg0
-
-	# Build a long-word of <addq #4,r31>|<load new value>
-	set {unsigned long}($regset_code + 8) = 0x089Fa7E0|$arg0
-
-	# Store the new value at the temp location
-	set {unsigned long}$regset_val = $arg1
-
+	setgpc $arg0
 	gogpu
 
-	set $local_gctrl = 0xFFFFFFFF
 	set $count = 0
-	while (($count < 10) && ($local_gctrl != 0))
-		set $local_gctrl = {unsigned long}$jagptr_gctrl
+	while (($count < 10) && ($gpc() < $arg1))
 		set $count = $count + 1
 	end
 
-	printf "R%d was: 0x%08x and is now: 0x%08x\n", $arg0, {unsigned long}$regset_oldval, $arg1
+	stopgpu
 
 	jag_resetgflags
 	jag_resetgpc
+
+	if ($count < 10)
+		set $arg2 = 1
+	else
+		set $arg2 = 0
+	end
+end
+
+define xgrinternal
+	set $shadow_addr = $reg_shadow + ($arg0 * 4)
+
+	# Read back the current register values
+	set $success = 0
+	jag_grununtil $regdump_code $regdump_code_end $success
+
+	if ($success != 0)
+		# Find the old value
+		set $oldval = {unsigned long}$shadow_addr
+
+		# Store the new value at the shadow location
+		set {unsigned long}($reg_shadow + ($arg0 * 4)) = $arg1
+
+		set $success = 0
+		jag_grununtil $regset_code $regset_code_end $success
+	end
+
+	if ($success != 0)
+		printf "R%d was: 0x%08x and is now: 0x%08x\n", $arg0, $oldval, $arg1
+	else
+		printf "Did the GPU die?\n"
+	end
 end
 
 define xgr
@@ -308,9 +333,10 @@ Usage: xgr <RegNumber> <NewRegisterData>
 end
 
 define xg
-	jag_savegflags
-	jag_savegpc
+	set $success = 0
+	jag_grununtil $regdump_code $regdump_code_end $success
 
+	# Decode the G_FLAGS and G_PC values saved by jag_gpu_readregs
 	printf "G_FLAGS: %04x", $jagval_gflags & 0xff
 	if (($jagval_gflags&1)==0)
 		printf " NZ"
@@ -335,31 +361,14 @@ define xg
 	# G_PC always reads back as two less than the current instruction
 	printf "  G_PC: %08x\n", $jagval_gpc + 0x2
 
-	setgpc ($regdump_code+0x8) 
-	set {unsigned long}($regdump_shadow+0x7c) = 0xffffffff
-	set {unsigned long}($regdump_shadow+0x78) = 0x0
-	set {unsigned long}($regdump_code+0x8c) = 0x981f2114
-	set {unsigned long}($regdump_code+0x90) = 0x00f0981e
-
-	gogpu
-
-	set $temp1 = 0xffffffff
-	set $temp2 = 0
-	set $count = 0
-	while (($count < 10) && ($temp1 != $temp2))
-		set $temp1 = {unsigned long}($regdump_shadow+0x7c)
-		set $temp2 = {unsigned long}($regdump_shadow+0x78)
-		set $count = $count + 1
-	end
-
-	if ($count < 10)
+	if ($success != 0)
 		set $row = 0
 		while ($row < 4)
 			printf "R%02d:", ($row * 8)
 			set $count = 0
 			while ($count < 8)
-				if ((($row * 8) + $count) < 30)
-					printf " %08x", {unsigned long}($regdump_shadow+($row*32)+($count*4))
+				if ((($row * 8) + $count) != 30)
+					printf " %08x", {unsigned long}($reg_shadow+($row*32)+($count*4))
 				else
 					printf " TRASHED!"
 				end
@@ -371,13 +380,11 @@ define xg
 	else
 		printf "Did the GPU die?\n"
 	end
-	jag_resetgflags
-	jag_resetgpc
 end
 
 document xg
 Dump GPU registers
 
-Usage: xg - Dump the registers in the current register bank. Registers
-            r30 and r31 are clobbered as part of the readback process.
+Usage: xg - Dump the registers in the current register bank. Register r30
+            is clobbered as part of the readback process.
 end
