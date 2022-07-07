@@ -4,8 +4,9 @@
 		.org 500
 regdump:
 		or	r30,r30
-		movei	#$600,r30
+		movei	#$700,r30
 		or	r0,r0
+		; Dump the current register bank
 		store	r0,(r30)
 		or	r14,r14
 		move	r14,r0
@@ -40,6 +41,74 @@ regdump:
 		store	r28,(r14+28)
 		store	r29,(r14+29)
 		store	r31,(r14+31)
+		; Now dump the inactive register bank
+		movei	#$780,r14
+		movefa	r0,r0
+		store	r0,(r14)
+		movefa	r1,r0
+		store	r0,(r14+1)
+		movefa	r2,r0
+		store	r0,(r14+2)
+		movefa	r3,r0
+		store	r0,(r14+3)
+		movefa	r4,r0
+		store	r0,(r14+4)
+		movefa	r5,r0
+		store	r0,(r14+5)
+		movefa	r6,r0
+		store	r0,(r14+6)
+		movefa	r7,r0
+		store	r0,(r14+7)
+		movefa	r8,r0
+		store	r0,(r14+8)
+		movefa	r9,r0
+		store	r0,(r14+9)
+		movefa	r10,r0
+		store	r0,(r14+10)
+		movefa	r11,r0
+		store	r0,(r14+11)
+		movefa	r12,r0
+		store	r0,(r14+12)
+		movefa	r13,r0
+		store	r0,(r14+13)
+		movefa	r14,r0
+		store	r0,(r14+14)
+		movefa	r15,r0
+		store	r0,(r14+15)
+		movefa	r16,r0
+		store	r0,(r14+16)
+		movefa	r17,r0
+		store	r0,(r14+17)
+		movefa	r18,r0
+		store	r0,(r14+18)
+		movefa	r19,r0
+		store	r0,(r14+19)
+		movefa	r20,r0
+		store	r0,(r14+20)
+		movefa	r21,r0
+		store	r0,(r14+21)
+		movefa	r22,r0
+		store	r0,(r14+22)
+		movefa	r23,r0
+		store	r0,(r14+23)
+		movefa	r24,r0
+		store	r0,(r14+24)
+		movefa	r25,r0
+		store	r0,(r14+25)
+		movefa	r26,r0
+		store	r0,(r14+26)
+		movefa	r27,r0
+		store	r0,(r14+27)
+		movefa	r28,r0
+		store	r0,(r14+28)
+		movefa	r29,r0
+		store	r0,(r14+29)
+		movefa	r30,r0
+		store	r0,(r14+30)
+		movefa	r31,r0
+		store	r0,(r14+31)
+		; Clean up: Restore r14 and r0
+		move	r30,r14
 		load	(r14+14),r14
 		or	r14,r14
 		load	(r30),r0
@@ -49,7 +118,74 @@ regdump:
 		nop
 
 regset:
-		movei	#$600,r14
+		; First, set the inactive register bank
+		movei	#$780,r14
+		load	(r14),r0
+		moveta	r0,r0
+		load	(r14+1),r0
+		moveta	r0,r1
+		load	(r14+2),r0
+		moveta	r0,r2
+		load	(r14+3),r0
+		moveta	r0,r3
+		load	(r14+4),r0
+		moveta	r0,r4
+		load	(r14+5),r0
+		moveta	r0,r5
+		load	(r14+6),r0
+		moveta	r0,r6
+		load	(r14+7),r0
+		moveta	r0,r7
+		load	(r14+8),r0
+		moveta	r0,r8
+		load	(r14+9),r0
+		moveta	r0,r9
+		load	(r14+10),r0
+		moveta	r0,r10
+		load	(r14+11),r0
+		moveta	r0,r11
+		load	(r14+12),r0
+		moveta	r0,r12
+		load	(r14+13),r0
+		moveta	r0,r13
+		load	(r14+14),r0
+		moveta	r0,r14
+		load	(r14+15),r0
+		moveta	r0,r15
+		load	(r14+16),r0
+		moveta	r0,r16
+		load	(r14+17),r0
+		moveta	r0,r17
+		load	(r14+18),r0
+		moveta	r0,r18
+		load	(r14+19),r0
+		moveta	r0,r19
+		load	(r14+20),r0
+		moveta	r0,r20
+		load	(r14+21),r0
+		moveta	r0,r21
+		load	(r14+22),r0
+		moveta	r0,r22
+		load	(r14+23),r0
+		moveta	r0,r23
+		load	(r14+24),r0
+		moveta	r0,r24
+		load	(r14+25),r0
+		moveta	r0,r25
+		load	(r14+26),r0
+		moveta	r0,r26
+		load	(r14+27),r0
+		moveta	r0,r27
+		load	(r14+28),r0
+		moveta	r0,r28
+		load	(r14+29),r0
+		moveta	r0,r29
+		load	(r14+30),r0
+		moveta	r0,r30
+		load	(r14+31),r0
+		moveta	r0,r31
+		; Now, set the current register bank
+		movei	#$700,r14
 		load	(r14),r0
 		load	(r14+1),r1
 		load	(r14+2),r2
@@ -80,10 +216,14 @@ regset:
 		load	(r14+28),r28
 		load	(r14+29),r29
 		load	(r14+31),r31
+		; Clean up: Set r14 and r30
 		move	r14,r30
 		addqt	#32,r30		; Add 4 * 14 to r30
 		addqt	#24,r30
 		load	(r30),r14
+		addqt	#32,r30		; Add 4 * 16 to r30
+		addqt	#32,r30
+		load	(r30),r30
 .endset:	jr	t,.endset
 		nop
 

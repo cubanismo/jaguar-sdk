@@ -19,8 +19,8 @@
 # $1000-$1400: BJL loader screen bitmap (Overflows this a bit in 2005 version)
 # $1400-$????: Skunkboard BIOS code.
 # $2000-$2C00: Memory Track flash driver.
-# $23??-$23FC: Skunkboard BIOS stack. It makes very light use of the stack.
 # $2000-$????: BJL loader variables and stack (aliases Memory Track)
+# $23??-$23FC: Skunkboard BIOS stack. It makes very light use of the stack.
 # $2C00-$2???: Jaguar CD table of contents (TOC)
 # $3000-$3???: Jaguar CD BIOS
 # $3???-$4000: Jaguar BIOS Stack
@@ -51,40 +51,39 @@
 #
 # What we need:
 #
-# JDB         - 0x270 bytes for text section. It doesn't have a data or BSS
-#               section, but it also needs...
-# JDB         - 0xb4 bytes for shadow copy of registers + 0xC bytes for
-#               exception data at hard-coded absolute addresses. If the shadow
-#               register buffer moves, jserve needs to be updated as well. It
-#               hard-codes this address too.
-# regdump.bin - 0xa0 bytes of GPU/DSP code to dump RISC registers. This code
-#               is position-independent, but its load address is hard-coded in
-#               this script.
-# regdump.bin - 0x100 for shadow copy of RISC registers ((32 * 4) * (2 banks))
-#               The address of this buffer is hard-coded in regdump.bin itself
-#               and this script.
-# RISC break  - 0x4 bytes for a two-instruction RISC loop used to corral a RISC
-#               processor when it hits a software breakpoint. The location of
-#               this loop is hard-coded in this script. The Atari gpu.db file
-#               places this at $1C, which is the TRAPV exception vector. This
-#               value was likely chosen because it is small enough to be loaded
-#               with a moveq instruction.
+# JDB            - 0x270 bytes for text section. It doesn't have a data or BSS
+#                  section, but it also needs...
+# JDB            - 0xb4 bytes for shadow copy of registers + 0xC bytes for
+#                  exception data at hard-coded absolute addresses. If the
+#                  shadow register buffer moves, jserve needs to be updated as
+#                  well. It hard-codes this address too.
+# regdumpset.bin - 0x1be bytes of GPU/DSP code to dump RISC registers. This code
+#                  is position-independent, but its load address is hard-coded
+#                  in this script.
+# regdumpset.bin - 0x100 for shadow copy of RISC registers
+#                  ((32 * 4) * (2 banks)). The address of this buffer is hard-
+#                  coded in regdumpset.bin itself and this script.
+# RISC break     - 0x4 bytes for a two-instruction RISC loop used to corral a
+#                  RISC processor when it hits a software breakpoint. The
+#                  location of this loop is hard-coded in this script. The Atari
+#                  gpu.db file places this at $1C, which is the TRAPV exception
+#                  vector. This value was likely chosen because it is small
+#                  enough to be loaded with a moveq instruction.
 #
 # Solution:
 #
 # $0400-$0404 - RISC break XXX Not going to work with moveq!
-# $0500-$05a0 - regdump.bin
-# $05a0-$05c4 - regset.bin
-# $0600-$0700 - regdump.bin shadow copy of RISC registers
+# $0500-$06be - regdumpset-500.bin
+# $0700-$0800 - regdumpset shadow copy of RISC registers
 # $1000-$1300 - JDB code, leaving 0x90 bytes free for future expansion.
 # $1300-$13C0 - JDB shadow copy of registers and exception data
 
 set $jrisc_break = 0x400
 set $regdump_code = 0x500
-set $regdump_code_end = 0x558
-set $regset_code = 0x55c
-set $regset_code_end = 0x5a6
-set $reg_shadow = 0x600
+set $regdump_code_end = 0x5e0
+set $regset_code = 0x5e4
+set $regset_code_end = 0x6ba
+set $reg_shadow = 0x700
 
 #
 # Conventions:
@@ -286,26 +285,42 @@ define jag_grununtil
 	end
 end
 
-define xgrinternal
-	set $shadow_addr = $reg_shadow + ($arg0 * 4)
-
-	# Read back the current register values
+define jag_xgr
+	# First, read back the current register values
 	set $success = 0
 	jag_grununtil $regdump_code $regdump_code_end $success
+
+	set $current_bank = ($jagval_gflags & 0x4000) >> 14
+
+	if ($argc < 3)
+		set $req_bank = $current_bank
+	else
+		set $req_bank = $arg2
+	end
+
+	if ($current_bank == $req_bank)
+		set $shadow_addr = $reg_shadow + ($arg0 * 4)
+	else
+		set $shadow_addr = $reg_shadow + 0x80 + ($arg0 * 4)
+	end
 
 	if ($success != 0)
 		# Find the old value
 		set $oldval = {unsigned long}$shadow_addr
 
 		# Store the new value at the shadow location
-		set {unsigned long}($reg_shadow + ($arg0 * 4)) = $arg1
+		set {unsigned long}$shadow_addr = $arg1
 
 		set $success = 0
 		jag_grununtil $regset_code $regset_code_end $success
 	end
 
 	if ($success != 0)
-		printf "R%d was: 0x%08x and is now: 0x%08x\n", $arg0, $oldval, $arg1
+		if (($arg0 == 30) && ($current_bank == $req_bank))
+			printf "R30 in bank %d was: <UNKNOWN> and is now: 0x%08x\n", $req_bank, $arg1
+		else
+			printf "R%d in bank %d was: 0x%08x and is now: 0x%08x\n", $arg0, $req_bank, $oldval, $arg1
+		end
 	else
 		printf "Did the GPU die?\n"
 	end
@@ -315,21 +330,33 @@ define xgr
 	if ($argc < 2)
 		help xgr
 	else
-		if (($arg0 < 0) || ($arg0 > 29))
+		if (($arg0 < 0) || ($arg0 > 31))
 			printf "Register number %d is out of range\n", $arg0
 			help xgr
 		else
-			xgrinternal $arg0 $arg1
+			if ($argc > 2)
+				if (($arg2 != 0) && ($arg2 != 1))
+					printf "Invalid register bank: %d\n", $arg2
+					help xgr
+				else
+					jag_xgr $arg0 $arg1 $arg2
+				end
+			else
+				jag_xgr $arg0 $arg1
+			end
 		end
-		
 	end
 end
 
 document xgr
-Usage: xgr <RegNumber> <NewRegisterData>
- where <RegNumber> is 0-29 decimal and <NewRegisterData> is a 32-bit
- unsigned value. Registers r30 and r31 are clobbered as part of the
- register setting process.
+Usage: xgr <RegNumber> <NewRegisterData> [RegisterBank]
+ where <RegNumber> is 0-31 decimal, <NewRegisterData> is a 32-bit
+ unsigned value, and [RegisterBank] is 0 or 1.
+
+ If not specified, [RegisterBank] defaults to the current bank.
+
+ The value of R30 in the current bank is clobbered unless it is
+ the register being set.
 end
 
 define xg
@@ -366,7 +393,7 @@ define xg
 		# 128-byte read rather than 32 4-byte reads. The former is much faster.
 # Begin python code: No indenting to keep python happy
 		python
-regview = gdb.selected_inferior().read_memory(0x600, (4 * 32))
+regview = gdb.selected_inferior().read_memory(gdb.parse_and_eval("$reg_shadow"), (8 * 32))
 for i in range(0, 32, 8):
 	print("R%02d:" % i, end = '')
 	for j in range(i*4, (i+8)*4, 4):
@@ -374,6 +401,11 @@ for i in range(0, 32, 8):
 			print(" TRASHED!", end = '')
 		else:
 			print(" %s" % regview[j:j+4].hex(), end = '')
+	print("")
+for i in range(0, 32, 8):
+	print("A%02d:" % i, end = '')
+	for j in range(128+(i*4), 128+((i+8)*4), 4):
+		print(" %s" % regview[j:j+4].hex(), end = '')
 	print("")
 end
 # End python
