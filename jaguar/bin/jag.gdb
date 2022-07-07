@@ -420,3 +420,109 @@ Dump GPU registers
 Usage: xg - Dump the registers in the current register bank. Register r30
             is clobbered as part of the readback process.
 end
+
+#
+# Document commands implemented in python in gdbjag.py
+#
+document gdisassemble
+Disassemble GPU code
+
+Usage: gdisassemble
+          Dissassemble the instruction at G_PC
+
+       gdisassemble <Address>
+          Disassemble the instruction at <Address>
+
+       gdisassemble <Address>,+<Count>
+          Disassemble the instructions in the range
+          [<Address>, <Address>+<Count>)
+
+       gdisassemble <BeginAddress>,<EndAddress>
+          Disassemble the instructions in the range
+          [<BeginAddress>, <EndAddress>)
+
+  The <Address> and <BeginAddress> parameters can be an absolute address
+  preceeded by a '*' character, a symbol, or a line number. The <Count> and
+  <EndAddress> parameters are currently parsed as simple integers.
+
+  Examples:
+
+    Disassemble the next instruction:
+
+      gdis
+
+    Longer version of the same thing:
+
+      gdis *$gpc()
+
+    Disassemble the next instruction and the following 8 bytes
+
+      gdis *$gpc(),+8
+
+    Disassemble the instructions between 0xf03000 and 0xf03020
+
+      gdis *0xf03000,0xf03020
+end
+
+document ddisassemble
+Disassemble DSP code
+
+Usage: ddisassemble
+          Dissassemble the instruction at D_PC
+
+       ddisassemble <Address>
+          Disassemble the instruction at <Address>
+
+       ddisassemble <Address>,+<Count>
+          Disassemble the instructions in the range
+          [<Address>, <Address>+<Count>)
+
+       ddisassemble <BeginAddress>,<EndAddress>
+          Disassemble the instructions in the range
+          [<BeginAddress>, <EndAddress>)
+
+  The <Address> and <BeginAddress> parameters can be an absolute address
+  preceeded by a '*' character, a symbol, or a line number. The <Count> and
+  <EndAddress> parameters are currently parsed as simple integers.
+
+  Examples:
+
+    Disassemble the next instruction:
+
+      ddis
+
+    Longer version of the same thing:
+
+      ddis *$dpc()
+
+    Disassemble the next instruction and the following 8 bytes
+
+      ddis *$dpc(),+8
+
+    Disassemble the instructions between 0xf03000 and 0xf03020
+
+      ddis *0xf03000,0xf03020
+
+end
+
+document gob
+Run the GPU until it reaches the specified address
+
+Usage: gob <BreakAddress>
+
+  <BreakAddress> can be an absolute address preceeded by a '*' character, a
+  symbol, or a line number.
+
+  Note: Do not set breakpoints less than 6 bytes before the current G_PC
+  value. This will confuse the breakpoint logic and produce undefined results.
+  E.g., given the following code and G_PC value:
+
+            0xf03000 loadb   (r1), r6
+            0xf03002 xor     r5, r4
+            0xf03004 add     r6, r4
+    G_PC -> 0xf03006 xor     r6, r4
+            0xf03008 shlq    #24, r4
+
+  It is safe to set a breakpoint at 0xf03000, but not 0xf03002 or 0xf03004.
+  To set a breakpoint at the latter locations, first single-step the GPU
+  forward one or two instructions respectively.
