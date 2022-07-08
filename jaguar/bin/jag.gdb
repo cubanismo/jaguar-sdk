@@ -176,7 +176,7 @@ else:
 end
 end
 
-define tg
+define gstepi
 	set $local_gpc = {unsigned long}$jagptr_gpc + 2
 	if ($argc>0)
 		if ($local_gpc != $arg0)
@@ -248,12 +248,12 @@ define tg
 	end
 end
 
-document tg
+document gstepi
 Trace GPU
 
-Usage: tg                   - single-step GPU from current G_PC
-       tg <new_PC>          - single-step GPU from new G_PC
-       tg <new_PC> <end_PC> - step GPU from new G_PC until end G_PC
+Usage: gstepi                   - single-step GPU from current G_PC
+       gstepi <new_PC>          - single-step GPU from new G_PC
+       gstepi <new_PC> <end_PC> - step GPU from new G_PC until end G_PC
 end
 
 # Helper function to run the register dump and register set code
@@ -505,10 +505,10 @@ Usage: ddisassemble
 
 end
 
-document gob
+document gadvance
 Run the GPU until it reaches the specified address
 
-Usage: gob <BreakAddress>
+Usage: gadvance <BreakAddress>
 
   <BreakAddress> can be an absolute address preceeded by a '*' character, a
   symbol, or a line number.

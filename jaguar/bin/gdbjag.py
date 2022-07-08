@@ -93,7 +93,7 @@ PyJriscDisDsp()
 
 class PyJriscGoBreakGpu(gdb.Command):
 	def __init__(self):
-		super (PyJriscGoBreakGpu, self).__init__("gob", gdb.COMMAND_USER)
+		super (PyJriscGoBreakGpu, self).__init__("gadvance", gdb.COMMAND_USER)
 
 	def invoke(self, arg, from_tty):
 		args = gdb.string_to_argv(arg)
