@@ -145,8 +145,8 @@ make
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
 
-wget https://ftpmirror.gnu.org/binutils/binutils-2.16.1a.tar.bz2
-wget https://ftpmirror.gnu.org/gcc/gcc-3.4.6/gcc-3.4.6.tar.bz2
+wget -N https://ftpmirror.gnu.org/binutils/binutils-2.16.1a.tar.bz2
+wget -N https://ftpmirror.gnu.org/gcc/gcc-3.4.6/gcc-3.4.6.tar.bz2
 
 echo -n "Extracting bintuils..."
 tar jxf binutils-2.16.1a.tar.bz2
@@ -201,7 +201,7 @@ PATH="${TARGET_DIR}/bin:${PATH}" make install
 
 mkdir -p "${SRC_DIR}/gdb"
 cd "${SRC_DIR}/gdb"
-wget https://ftpmirror.gnu.org/gdb/gdb-${GDB_VERSION}.tar.xz
+wget -N https://ftpmirror.gnu.org/gdb/gdb-${GDB_VERSION}.tar.xz
 
 echo -n "Extracting gdb..."
 tar Jxf gdb-${GDB_VERSION}.tar.xz
@@ -232,7 +232,9 @@ PATH="${TARGET_DIR}/bin:${PATH}" make install
 
 # Strip binaries
 cd "${TARGET_DIR}"/bin
+mv m68k-aout-gccbug ../m68k-aout-gccbug
 strip --strip-unneeded * || true
+mv ../m68k-aout-gccbug m68k-aout-gccbug
 cd "${TARGET_DIR}"/m68k-aout/bin
 strip --strip-unneeded * || true
 
