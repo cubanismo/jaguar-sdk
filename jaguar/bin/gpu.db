@@ -95,7 +95,7 @@ procedure ld addr range
 .
 
 procedure gpustuf
-	read /root/jaguar/bin/regdump.bin 2000
+	read regdump.bin 2000
 .
 
 gag ; gpustuf ; gag off ; defer gag

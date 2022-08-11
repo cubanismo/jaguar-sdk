@@ -20,10 +20,12 @@ alias INT2 'sw f000e2'
 alias BORD1 'sl f0002a'
 alias BG 'sw f00058'
 
-load /root/jaguar/bin/od.db
-load /root/jaguar/bin/fill.db
-load /root/jaguar/bin/gpu.db
-load /root/jaguar/bin/ngpu.db
+load od.db
+load fill.db
+# gpu.db conflicts with wdb/rdb versions that contain built-in GPU and DSP
+# context management.
+#load gpu.db
+load ngpu.db
 
 pprot=4
 
