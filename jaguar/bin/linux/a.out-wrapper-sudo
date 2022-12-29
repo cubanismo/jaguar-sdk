@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo DBPATH="${DBPATH}" RDBRC="${RDBRC}" `which aout-loader` `which "${0}-a.out"` "$@"
