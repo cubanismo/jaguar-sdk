@@ -59,7 +59,8 @@ echo "Building rln..."
 cd "${SDK_DIR}"
 git submodule update --checkout -- "${SRC_PATH}/rln"
 cd "${SRC_DIR}/rln"
-git am "${PATCH_DIR}/rln-"*
+# No outstanding RLN patches at the moment :-)
+#git am "${PATCH_DIR}/rln-"*
 make
 strip --strip-unneeded rln
 cp rln  "${TARGET_DIR}/bin"

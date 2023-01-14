@@ -1,0 +1,62 @@
+From d2a943665b50539c4e983d7ad60dd50e925fef4d Mon Sep 17 00:00:00 2001
+From: James Jones <atari@theinnocuous.com>
+Date: Sat, 14 Jan 2023 01:26:23 -0800
+Subject: [PATCH] Revert "Fix for #209 - forbid exporting expressions with
+ unresolved symbols"
+
+This reverts commit 31894aa869ad24fac76a1d045d22c9179ea533d1.
+It broke compiling the 3D demo
+---
+ expr.c | 2 +-
+ rmac.h | 1 -
+ sect.c | 9 ---------
+ 3 files changed, 1 insertion(+), 11 deletions(-)
+
+diff --git a/expr.c b/expr.c
+index 30629df..5a9155c 100644
+--- a/expr.c
++++ b/expr.c
+@@ -585,7 +585,7 @@ be converted from a linked list into an array).
+ //
+ // Evaluate expression.
+ // If the expression involves only ONE external symbol, the expression is
+-// UNDEFINED, but its value includes everything but the symbol value, and
++// UNDEFINED, but it's value includes everything but the symbol value, and
+ // 'a_esym' is set to the external symbol.
+ //
+ int evexpr(TOKEN * _tk, uint64_t * a_value, WORD * a_attr, SYM ** a_esym)
+diff --git a/rmac.h b/rmac.h
+index 00dcd3b..a41723e 100644
+--- a/rmac.h
++++ b/rmac.h
+@@ -262,7 +262,6 @@ PTR
+ #define SIZP         0x0080		// .p (FPU pakced decimal real)
+ #define SIZQ         0x0100		// .q (quad word)
+ 
+-// Extended attributes
+ #define EQUATEDREG   0x0008		// Equated register symbol
+ #define UNDEF_EQUR   0x0010
+ #define EQUATEDCC    0x0020
+diff --git a/sect.c b/sect.c
+index 834df9d..20e6fcb 100644
+--- a/sect.c
++++ b/sect.c
+@@ -462,15 +462,6 @@ int ResolveFixups(int sno)
+ 			if (evexpr(fup->expr, &eval, &eattr, &esym) != OK)
+ 				continue;
+ 
+-			if (esym)
+-				if (!(esym->sattr & DEFINED))
+-				{
+-					// If our expression still has an undefined symbol at this stage, it's bad news.
+-					// The linker is never going to resolve the expression, so that's an error.
+-					error("cannot export complex expression with unresloved symbol '%s'", esym->sname);
+-					continue;
+-				}
+-
+ 			if ((CHECK_OPTS(OPT_PC_RELATIVE)) && (eattr & (DEFINED | REFERENCED | EQUATED)) == (DEFINED | REFERENCED))
+ 			{
+ 				error("relocation not allowed when o30 is enabled");
+-- 
+2.25.1
+
