@@ -1,9 +1,9 @@
 [submodule "tools/src/rln"]
 	path = tools/src/rln
-	url = http://shamusworld.gotdns.org/git/rln
+	url = https://gitlab.com/ggnkua/rln-mirror.git
 [submodule "tools/src/rmac"]
 	path = tools/src/rmac
-	url = http://shamusworld.gotdns.org/git/rmac
+	url = https://gitlab.com/ggnkua/rmac-mirror.git
 [submodule "tools/src/lo_inp"]
 	path = tools/src/lo_inp
 	url = https://github.com/cubanismo/lo_inp
