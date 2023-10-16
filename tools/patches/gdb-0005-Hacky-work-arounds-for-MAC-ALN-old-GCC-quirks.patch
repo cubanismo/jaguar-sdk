@@ -1,7 +1,7 @@
-From 9d8971afceb276e6304dc2a11b5767aef96d7d67 Mon Sep 17 00:00:00 2001
+From 26e486ee32d5ec7f7c48952c07155ea6beb31d91 Mon Sep 17 00:00:00 2001
 From: James Jones <atari@theinnocuous.com>
 Date: Mon, 6 Jun 2022 01:31:37 -0700
-Subject: [PATCH 4/4] Hacky work-arounds for MAC, ALN, & old GCC quirks
+Subject: [PATCH 5/5] Hacky work-arounds for MAC, ALN, & old GCC quirks
 
 -Add file start offset to symbols that ALN doesn't
  relocate properly when processing ALN-generated
@@ -267,5 +267,5 @@ index c4c43f9..9b3ddef 100644
  /* Kludge for xcoffread.c */
  
 -- 
-2.25.1
+2.42.0
 

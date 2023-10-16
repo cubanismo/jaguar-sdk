@@ -1,7 +1,7 @@
-From 46f1d7d35ea94cafea8319f7ded3bc747dc1c9da Mon Sep 17 00:00:00 2001
+From f1651d3d16dde79a1141d74cf5cf05f37b68c8a0 Mon Sep 17 00:00:00 2001
 From: James Jones <atari@theinnocuous.com>
 Date: Sun, 5 Jun 2022 19:53:44 -0700
-Subject: [PATCH 3/4] Read stabs symbols in Jaguar m68k COFF files
+Subject: [PATCH 4/5] Read stabs symbols in Jaguar m68k COFF files
 
 Add a very hacky Jaguar m68k COFF target vector
 to libbfd, detected by looking for the buggy
@@ -426,5 +426,5 @@ index d24b25d..c4c43f9 100644
  				     char *stabstr_name, char *text_name);
  
 -- 
-2.25.1
+2.42.0
 

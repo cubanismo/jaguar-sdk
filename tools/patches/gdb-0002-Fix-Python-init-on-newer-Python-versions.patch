@@ -1,0 +1,95 @@
+From 74a1857eaeb7cd3a47dbdf9fbfe4f2778ef01d66 Mon Sep 17 00:00:00 2001
+From: James Jones <atari@theinnocuous.com>
+Date: Sun, 15 Oct 2023 22:19:01 -0700
+Subject: [PATCH 2/5] Fix Python init on newer Python versions
+
+Copy in some code from newer versions of GDB that
+better manages the python thread state stuff.
+Without this, gdb crashes on startup and (after
+applying a subset of it) exit on my Arch system
+using Pythin 3.11.
+---
+ gdb/python/python.c | 38 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 36 insertions(+), 2 deletions(-)
+
+diff --git a/gdb/python/python.c b/gdb/python/python.c
+index bb0a46d..91aae2a 100644
+--- a/gdb/python/python.c
++++ b/gdb/python/python.c
+@@ -242,6 +242,30 @@ gdbpy_enter::~gdbpy_enter ()
+   restore_active_ext_lang (m_previous_active);
+ }
+ 
++/* A helper class to save and restore the GIL, but without touching
++   the other globals that are handled by gdbpy_enter.  */
++
++class gdbpy_gil
++{
++public:
++
++  gdbpy_gil ()
++    : m_state (PyGILState_Ensure ())
++  {
++  }
++
++  ~gdbpy_gil ()
++  {
++    PyGILState_Release (m_state);
++  }
++
++  DISABLE_COPY_AND_ASSIGN (gdbpy_gil);
++
++private:
++
++  PyGILState_STATE m_state;
++};
++
+ /* Set the quit flag.  */
+ 
+ static void
+@@ -255,6 +279,10 @@ gdbpy_set_quit_flag (const struct extension_language_defn *extlang)
+ static int
+ gdbpy_check_quit_flag (const struct extension_language_defn *extlang)
+ {
++  if (!gdb_python_initialized)
++    return 0;
++
++  gdbpy_gil gil;
+   return PyOS_InterruptOccurred ();
+ }
+ 
+@@ -1653,6 +1681,7 @@ finalize_python (void *ignore)
+ 
+   Py_Finalize ();
+ 
++  gdb_python_initialized = 0;
+   restore_active_ext_lang (previous_active);
+ }
+ 
+@@ -1716,7 +1745,13 @@ do_start_initialization ()
+ #endif
+ 
+   Py_Initialize ();
++
++#if PY_VERSION_HEX < 0x03090000
++  /* PyEval_InitThreads became deprecated in Python 3.9 and will
++     be removed in Python 3.11.  Prior to Python 3.7, this call was
++     required to initialize the GIL.  */
+   PyEval_InitThreads ();
++#endif
+ 
+ #ifdef IS_PY3K
+   gdb_module = PyImport_ImportModule ("_gdb");
+@@ -1816,8 +1851,7 @@ do_start_initialization ()
+     return false;
+ 
+   /* Release the GIL while gdb runs.  */
+-  PyThreadState_Swap (NULL);
+-  PyEval_ReleaseLock ();
++  PyEval_SaveThread ();
+ 
+   make_final_cleanup (finalize_python, NULL);
+ 
+-- 
+2.42.0
+

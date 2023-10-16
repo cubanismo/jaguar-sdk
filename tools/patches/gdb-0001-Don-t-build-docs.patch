@@ -1,7 +1,7 @@
-From e395497869045a3385e537d5a0fe3c9ae2202659 Mon Sep 17 00:00:00 2001
+From 67349f2a213c70a461685fbe8298b981a3ed0a3a Mon Sep 17 00:00:00 2001
 From: James Jones <atari@theinnocuous.com>
 Date: Sun, 5 Jun 2022 09:24:20 -0700
-Subject: [PATCH 1/4] Don't build docs
+Subject: [PATCH 1/5] Don't build docs
 
 ---
  configure        |  2 +-
@@ -60,5 +60,5 @@ index d4133ea..0dab734 100644
  # But preserve it for config.status --recheck.
  AC_ARG_VAR(MAKEINFO,
 -- 
-2.25.1
+2.42.0
 
