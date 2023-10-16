@@ -34,6 +34,12 @@ Prepare your system.  You'll need the prequisites required to build gcc from sou
 $ sudo apt install build-essential gcc-multilib git libusb-dev libncurses5-dev libpython3-dev python3-pip dosemu
 ````
 
+On Arch, you'll need to enable multi-lib, then this should work:
+
+````sh
+$ sudo pacman -S base-devel git wget python-pip dosemu
+````
+
 If building on a 32-bit system, you can omit `gcc-multilib`.
 
 If you installed dosemu, you'll need to tweak the configuration slightly to avoid most of the tools crashing immediately for some reason:
