@@ -67,6 +67,9 @@ typedef int		boolean;
 
 extern Enumeration	Func1();
 extern boolean		Func2();
+#ifdef USE_SKUNK
+extern char		skunkstr[];
+#endif
 
 #ifdef DEBUG
 #define dprintf printf

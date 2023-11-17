@@ -1,46 +1,32 @@
-#.c.o:
-#	$(CC) $(CFLAGS) -c $<
-.s.o:
-	$(AS) $(SFLAGS) $<
-#.o.cof:
-#	$(LN) $(LFLAGS) $<
+include $(JAGSDK)/tools/build/jagdefs.mk
 
-JDIR=/usr/local/jaguar/
-JBIN=$(JDIR)bin/#				jaguar binaries path
-VFLAGS=-v#					verbose on
-GFLAGS=-g#					source-level debugging
-DFLAGS=#-da#					get output source,dump GCC debug files
+# Change this to 0 to build without the skunk console dependency.
+# Things like printf won't work.
+SKUNKLIB := 1
 
-C68KFLAGS=-b m68k -O2 -fomit-frame-pointer#	M68K flags
-CGPUFLAGS=-b agpu -O2 -fomit-frame-pointer#	AGPU flags
-CC=$(JDIR)gcc263 -B$(JDIR) -v#			C compiler's name
-CFLAGS=$(GFLAGS)#				C compiler's flags
+CGPUOBJS=agpudhry.o
+OBJS=m68kmisc.o m68kdhry.o $(CGPUOBJS)
 
-AS=$(JBIN)mac#					assembler's name
-SFLAGS=-fb -i$(JDIR)inc $(GFLAGS)#		assembler's flags
-LN=$(JBIN)aln#					linker's name
-LFLAGS=-g -e -a 802000 4000 x -l $(VFLAGS) -y $(JDIR)lib#	linker's flags
-LIBS=#gpustd.a
+ifeq ($(SKUNKLIB),1)
+	OBJS += skunkc.o skunk.o
+endif
 
-RM=rm -f
+# Additional CFLAGS for both AGPU and M68K
+CFLAGS += -fno-builtin
 
-C68KOBJ=m68kdhry.o
-CGPUOBJ=agpudhry.o
-OBJS=m68kmisc.o $(C68KOBJ) $(CGPUOBJ)
+# ADditional AGPU CFLAGS
+CFLAGS_JRISC += -v -fno-builtin
 
-dhry.cof:	$(OBJS)
-	$(LN) $(LFLAGS) -o dhry.cof $(OBJS) $(LIBS)
+PROGS = dhry.cof
 
-$(C68KOBJ):%o:%c
-	$(CC) $(C68KFLAGS) $(CFLAGS) -c $<
-$(CGPUOBJ):%o:%c
-	$(CC) $(CGPUFLAGS) $(CFLAGS) $(DFLAGS) -c $<
+ifeq ($(SKUNKLIB),1)
+	include $(JAGSDK)/jaguar/skunk/skunk.mk
+endif
 
-.PHONY:	clean realclean distclean
+dhry.cof: $(OBJS)
+	$(LINK) $(LINKFLAGS) -o $@ $(OBJS)
 
-clean:
-	$(RM) *.o *~
-realclean:	clean
-	$(RM) dhry.cof
-distclean:	realclean
-	$(RM) agpudhry.s *.err *.greg *.lreg *.combine *.flow *.cse *.jump *.rtl *.tree *.loop *.dbr *.jump2 *.sched *.cse2 *.sched2 *.stack
+skunkc.o: $(SKUNKDIR)/lib/skunkc.s
+	$(ASM) $(ASMFLAGS) -o $@ $<
+
+include $(JAGSDK)/tools/build/jagrules.mk

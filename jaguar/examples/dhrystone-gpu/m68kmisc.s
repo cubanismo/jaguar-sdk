@@ -19,8 +19,24 @@ Start::	lea	_DATA_E,a0
 	;and.w	#$e7ff,d0
 	;or.w	#$1000,d0
 	;move.w	d0,(a0)
+.if ^^defined USE_SKUNK
+	; The skunk BIOS disables video interrupts. Reactivate them.
+	move.l	#_EmptyVbl,LEVEL0
+	move.w	#519,VI
+	move.w	#C_VIDENA,INT1
+	move.w	sr,d0
+	and.w	#$F8FF,d0
+	move.w	d0,sr
+.endif ; ^^defined USE_SKUNK
 	bsr	_Main
 	illegal
+
+.if ^^defined USE_SKUNK
+_EmptyVbl: ; No-op VBlank interrupt handler for environments that don't have one
+	move.w	#$101,INT1
+	clr.w	INT2
+	rte
+.endif ; ^^defined USE_SKUNK
 
 _Vbl::	move.w	d0,-(sp)
 	move.w	INT1,d0
@@ -31,3 +47,10 @@ _Vbl::	move.w	d0,-(sp)
 	clr.w	INT2
 	move.w	(sp)+,d0
 	rte
+
+.if ^^defined USE_SKUNK
+.bss
+	.long
+_skunkstr::
+	.ds.b	128
+.endif ; ^^defined USE_SKUNK
