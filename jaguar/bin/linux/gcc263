@@ -1,0 +1,2 @@
+#!/bin/sh
+GCC_EXEC_PREFIX="${JAGSDK}/jaguar/bin/linux/" aout-loader "${0}-a.out" -V2.6.3 "$@"

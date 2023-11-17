@@ -1,0 +1,70 @@
+15-jan-1995:
+	PC/DOS: Replaced "as.exe" in AGPU and M68K directories with one that
+	searches MAC.EXE in the PATH and executes it instead. You must then be
+	sure that MAC.EXE in in your path.
+
+20-jan-1995:
+	Moved "readme.txt" to "readme.gcc".
+	Created "history.gcc".
+	AGPU: Fixed typo in umodsi: move->store.
+	Reported by Jamie @ Rebellion.
+
+27-jan-1995:
+	M68K: Fixed output of switch table.
+	AGPU: Fixed recognition of first function. Was broken when first
+	function ended with a BARRIER.
+	Reported by Dan @ Rebellion.
+	AGPU: Check if optimising before scanning insn_addresses.
+	Could cause a segmentation fault when no -O was specified.
+
+01-feb-1995:
+	ALL: Changed .SKIP to .DCB.B.
+	Reported by Dan @ Rebellion.
+
+05-feb-1995:
+	AGPU: Fixed output of MOVEQ;NOT.
+	Reported by Dan @ Rebellion.
+
+06-feb-1995:
+	AGPU: Fixed umodsi3 (negative AGPU modulo pb).
+	Reported by Dan @ Rebellion.
+	AGPU: Added udivmodsi4, worthful since umodsi3 is now longer.
+	AGPU: Fixed a break in loop jump optimisation, seems to a GCC pb (I
+	turned around it, but I will post the pb).
+	Reported by Dan @ Rebellion.
+	AGPU: Fixed a pb in CC generation.
+	AGPU: Fixed getting command line stack size.
+	AGPU: Changed all default library names to __axxxx because they
+	conflict with M68K names.
+	Requested by Dan @ Rebellion.
+
+07-feb-1995:
+	AGPU: Optimized output of -32..-1 and 32..63 constants even in -O2!
+	AGPU: Fixed an oops... multiply was removed on 06-feb-1995!
+	Reported by Dan @ Rebellion.
+
+10-feb-1995:
+	AGPU: movsi/addsi/subsi optimised.
+
+12-feb-1995:
+	AGPU: CCR inheritance active again. "btst" use added.
+
+14-feb-1995:
+	AGPU: Test-and-set constant folding improved.
+
+16-feb-1995:
+	AGPU: Fixed pb in tstsi with le and leu.
+	Reported by Dan @ Rebellion.
+	AGPU: Put _RTS macro instead of inlining it, allowing easier use in
+	assembly code.
+	Derived from a report by Dan @ Rebellion.
+
+20-feb-1995:
+	AGPU: Fixed (for the last time hopefully) the reverse branch pb. It
+	could happen in some very special cases that a cmp staid reversed
+	instead of being reversed again because of the dbr pass.
+
+21-feb-1995:
+	AGPU: "bset" use added.
+
+	Brainstorm.

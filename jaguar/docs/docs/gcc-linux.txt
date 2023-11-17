@@ -1,0 +1,272 @@
+*******************************************************************************
+*                                                                             *
+*     PLEASE: If you have any bug report, send it to Atari AND TO US TOO!:    *
+*      (if you have suggestions, comments, problems, send them to us also)    *
+*     Brainstorm:                                                             *
+*      Fax:   +331-44670811 (France)                                          *
+*      BBS:   +331-44670844 (France)                                          *
+*      Email: alex@brasil.brainstorm.cnam.fr (not yet)                        *
+*          or alex@brasil.frmug.fr.net                                        *
+*      CIS:   76004,1616                                                      *
+*     Atari Jaguar Developer Support:                                         *
+*      Tel:   +1-408 745 8821 (Mike Fulton)                                   *
+*          or +1-408 745 2127 (Normen B. Kowalewski)                          *
+*          or +1-408 745 2143 (Scott Sanders)                                 *
+*      Fax:   +1-408 745 2088                                                 *
+*      CIS:   75300,1141 (Mike Fulton)                                        *
+*          or 75300,3444 (Normen B. Kowalewski)                               *
+*          or 70007,1135 (Scott Sanders)                                      *
+*                                                                             *
+*     The newest versions of the tools are always available on our BBS, in    *
+*      the Jaguar Area.                                                       *
+*                                                                             *
+*******************************************************************************
+
+*******************************************************************************
+*                    Layout of GCC for Atari GPU/DSP                          *
+*           Parts (C)1994-95 Brainstorm, (C)1994-95 Atari Corp.               *
+*                       version 20-jan-1995                                   *
+*******************************************************************************
+(TABSIZE=8)
+
+
+** Installing under PC/DOS **
+You should install GCC in one of the following ways:
+1) Create a directory \JAGUAR wherever.
+2) Create 2 subdirectories JAGUAR\AGPU\2.6\ and JAGUAR\M68K\2.6\.
+   Copy in each subdirectory each set of AS.EXE, CPP.EXE, CC1.EXE and SPECS.
+   The 2.6\ subdirectories are required by GCC. They mean version 2.6.x.
+3) Create your INCLUDE and LIB directories where you want.
+   If you want to have 2 INCLUDEs, one for each CPU, then you should
+   create them in JAGUAR\AGPU\ and JAGUAR\M68K\.
+   If you want to keep everything together, create them in JAGUAR\.
+4) Update the SPECS files with your INCLUDE paths. Remember to use '/'s
+   rather than '\'s. BTW, this is true also for makefiles.
+5) Copy GCC.EXE somewhere included in your PATH environment variable.
+   If you already have GCC installed (f.i. for GO32) and want to keep it,
+   then you should rename your old GCC.EXE or copy the new one with another
+   name (like jaggcc.exe f.i.).
+6) Then, in your makefiles, you will call GCC with:
+   "-B/jaguar/ -V2.6 -b agpu" for Atari GPU output.
+   "-B/jaguar/ -V2.6 -b m68k" for Motorola 68K output.
+   You can avoid the "-B/jaguar/" by setting the environment variable
+   GCC_EXEC_PREFIX to "/jaguar/". DON'T FORGET THE TRAILING '/'!!!
+7) Since the AS.EXE programs that are located in the AGPU\6.3 and M68K\6.3
+   directories is executing MAC.EXE found in the PATH, you must be sure to
+   have it in.
+
+
+** Command-line switches **
+-mDSP		Selects DSP output.
+-mver=<vers>	Selects GPU or DSP version number (in decimal) (default: 2).
+-morg=<addr>	Sets the ORG addr (in hex) for the whole C file.
+		Default is f03000 for GPU, f1b000 for DSP.
+		A value of 0 cancels the ORG statement.
+-msiz=<size>	Sets the size (in hex) to check for.
+		Default is 1000 for GPU, 2000 for DSP.
+		A value of 0 cancels the test.
+-mstk=<@>	Defines stack address.
+		Default is org+siz.
+		A value of 0 cancels the stack setting.
+-mstkparm	Pass parameters through stack.
+-mnoit		Assume there are no interrupts running. This saves r30.
+-mdivun		Always reset the divide mode before DIV.
+-mdiv16		Assume that divide mode is always 16-bit, so change it if 32.
+-mdiv32		Assume that divide mode is always 32-bit, so change it if 16.
+-mnoalt		Don't use the alternate bank registers.
+
+NB:
+You should run GCC with: -O2 -fomit-frame-pointer to have optimal code.
+Don't use "-mstkparm" since the resulting code is really awful.
+There is no use for the chips version number for now. It may in the future...
+
+
+** Predefines **
+Some macros are predefined.
+Standard macros are:
+	__GNUC__ contains GNU C's major revision # (2).
+	__GNUC_MINOR__ contains GNU C's minor revision # (5 or 6).
+	__OPTIMIZE__ is defined to 1 when passing -O1 or -O2.
+With the standard SPECS file, target macros are:
+	JAGUAR, __JAGUAR and __JAGUAR__ contain 1.
+	AGPU, __AGPU and __AGPU__ isdefined to 1 when outputing GPU/DSP code.
+	M68K, __M68K and __M68K__ is defined to 1 when outputing M68K code.
+Note that the previous version of GCC for Jaguar's 68K was predefining
+__atariST__ and other things related to the ST. Please switch to
+__JAGUAR__ instead for this version.
+
+
+** Register usages **
+GCC considers the following informations by default:
+-r0 to r5 are used as parameters. r0 is also function return register.
+-r6 to r15 are local registers.
+-r16 to r27 are global registers.
+-r28 is reserved as a temporary register for GCC.
+-r29 is the frame pointer or local.
+-r30 is unused except if "-mnoit" is specified then it is local.
+-r31 is the stack pointer.
+You are able to alter those usages with "-mnoit", "-ffixed-REG",
+"-fcall-used-REG" and "-fcall-saved-REG".
+GCC uses also the alternate register bank, considered as local registers,
+unless you specified "-mnoalt".
+It assumes that the register bank is not switched by anybody.
+Registers are internally numbered as follow:
+00-31:	1st bank registers.
+32-63:	2nd bank registers.
+64:		PC.
+
+** Startup code **
+Each file is normally ORG'ed to GPU or DSP internal ram address start unless
+you specified a different address with "-morg=<@>" or disabled with
+"-morg=0".
+Since you cannot add a startup code easily, GCC adds to the first compiled
+function a "movei" instruction to set the stack unless used with "-mstk=0".
+In the same way, a "jr	T,*" instruction is generated instead of a return
+piece of code at the end of the first compiled function, unless used with
+"-mstk=0".
+One day, saving and restoring regs in the first function will also be
+removed, unless used with "-mstk=0".
+
+
+** Data types **
+There are only integer types (char,short,long) signed or unsigned. That
+means there are no float nor double. There are also no long long.
+Int type is 32 bits.
+For the moment, there is no way to tell GCC that data is in external or
+internal memory. This means two things:
+- Any char or short memory reference will be done with loadb, loadw, storeb, 
+storew. So there must point to somewhere in external memory.
+- Delays are not aware that there is 2 memory interfaces, and assume that it
+is done in internal memory.
+
+This will (hopefully) be changed when GCC 2.6.x for GPU/DSP will be
+available, since it now understands machine-specific
+__attribute__((xxx)). So it will be something like:
+__attribute__((ext_memory)) will tell it is external memory.
+__attribute__((int_memory)) will tell it is internal memory.
+with internal memory by default if nothing is indicated. So you can
+definitely write something like:
+
+#define	XMEM	/*will be __attribute__((ext_memory)) one day*/
+#define	IMEM	/*will be __attribute__((int_memory)) one day*/
+
+and use those defines in your program like:
+
+extern	XMEM	short	my_xtab[256];
+static	IMEM	int	my_itab[256];
+
+More, there are no data nor bss section in the output. This means everything
+declared in the source file which is not extern will be allocated in the
+GPU/DSP internal ram. So, leave everything which resides in external RAM in
+other (68K) C or assembler files.
+In the same way, there are no COMMON variables.
+
+Local variables are allocated in registers, and on the stack if no more regs
+are available. In the stack, local variables are 32-bit, regardless of the
+type. So you *MUST* declare all your local variables as int, otherwise GCC
+will try to zero-extend variables with loadw/storew or loadb/storeb, which
+will not work as expected in internal RAM. Of course, you will sometimes
+need short operands (for MUL f.i.), so you must explicitely cast.
+See ** Operations ** below.
+Same thing for stacked parameters.
+If you really want to use more than int locals or stacked parameters, then
+you must set your stack in external ram.
+BTW, since only zero extension can be performed while loading or storing to
+(external) memory, prefer using unsigned types (char or short) if you can.
+Otherwise, you will get 2/3 of unuseful code.
+
+
+** Operations **
+16*16->32 multiply is done with MULT/IMULT. 32*32->32 is not implemented in
+the GPU, so it is done with libraries. So you should cast your operands if
+you want GCC to use mult/imult with your int's:
+	int	a,b,c;
+	c=(short)a*(short)b;
+You should therefore use a #define if you have lots of muls.
+
+Divide is done with DIV, regardless of operand's sizes by default. A
+specific value may be set with command line switches. I suggest anyway that
+you stick to only one div mode, even if you switch it by hand directly in
+your code.
+Anyway, remember that DIV is unsigned, so casting may be interesting.
+
+
+** Code size **
+Code size is checked with madmac's FAIL directive at the end of assembly.
+If you don't want to bother with the size, simply use "-msiz=0" and run your
+code in external RAM. It will be slower, of course, but will work.
+
+
+** Pragmas **
+There are no machine specific pragmas for the moment. They will be used if,
+really, no other way works. -m switches and __attribute__((xxx)) declarations
+should be enough, and are -really- more "portable". I mean, you cannot
+#define a #pragma, but you have machine specific makefiles and header files.
+
+
+** Weird things **
+You may want to generate functions with no prologue nor epilogue code. Well,
+this should be handled by declaring the function as volatile, but
+unfortunately this only skips the epilogue. It seems to be a weird
+problem in GCC in general, and hopefully will be changed soon. Anyway, I
+can add a "-mnoprologue" switch in the mean time if needed.
+
+
+** Delays and interleaving **
+GCC tries to interleave all ALU instructions by sets of 2 and all MEM
+instructions by sets of 3.
+It also tries to use the jump delay. However, if the delay cannot be filled,
+a NOP is inserted.
+
+
+** Integrating GPU code in 68K code **
+Each GPU C file is declared with _<filename>_start pointing to the 68K
+section where it has been linked. _<filename>_end points to the end, and
+_<filename>_size contains the size.
+
+
+** PIC support **
+No PIC support at the moment.
+
+
+** Things to do **
+1) Handling GPU's scoreboard bugs if needed.
+
+
+** Things that will maybe be handled (but are not worth the bother now) **
+1) Profiling support.
+2) Hand-inlining mulsi/umulsi/divsi/udivsi.
+3) Interleaving hand-inlined code like umodsi.
+n) Define ADDQT/SUBT and ADDC/SUBC, then
+n+1) Scc emulation with ADDC/SUBC (but the built-in is quite ok).
+n+2) LOADP/STOREP support for DI and BLK (but only for GPU and XMEM!!).
+o) Support for floating point constants in MADMAC, thus allowing float
+   support for M68K version.
+o+1) Support for read-only data section?
+
+
+Brainstorm 20-jan-1995.
+
+*******************************************************************************
+*                                                                             *
+*     PLEASE: If you have any bug report, send it to Atari AND TO US TOO!:    *
+*      (if you have suggestions, comments, problems, send them to us also)    *
+*     Brainstorm:                                                             *
+*      Fax:   +331-44670811 (France)                                          *
+*      BBS:   +331-44670844 (France)                                          *
+*      Email: alex@brasil.brainstorm.cnam.fr (not yet)                        *
+*          or alex@brasil.frmug.fr.net                                        *
+*      CIS:   76004,1616                                                      *
+*     Atari Jaguar Developer Support:                                         *
+*      Tel:   +1-408 745 8821 (Mike Fulton)                                   *
+*          or +1-408 745 2127 (Normen B. Kowalewski)                          *
+*          or +1-408 745 2143 (Scott Sanders)                                 *
+*      Fax:   +1-408 745 2088                                                 *
+*      CIS:   75300,1141 (Mike Fulton)                                        *
+*          or 75300,3444 (Normen B. Kowalewski)                               *
+*          or 70007,1135 (Scott Sanders)                                      *
+*                                                                             *
+*     The newest versions of the tools are always available on our BBS, in    *
+*      the Jaguar Area.                                                       *
+*                                                                             *
+*******************************************************************************
