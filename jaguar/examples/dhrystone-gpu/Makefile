@@ -11,10 +11,10 @@ ifeq ($(SKUNKLIB),1)
 	OBJS += skunkc.o skunk.o
 endif
 
-# Additional CFLAGS for both AGPU and M68K
+# Additional M68K CFLAGS
 CFLAGS += -fno-builtin
 
-# ADditional AGPU CFLAGS
+# Additional AGPU CFLAGS
 CFLAGS_JRISC += -v -fno-builtin
 
 PROGS = dhry.cof
