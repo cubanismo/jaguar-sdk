@@ -131,7 +131,7 @@ dobitmap:
 			l0 = ((long)o->bit.firstpix << (49L-32L)) | ((long)o->bit.flags << (45L-32L)) | ((long)(o->bit.index>>1) << (38L-32L)) |
 				HIIWIDTH(o->bit.iwidth);
 			l1 = ((long)LOIWIDTH(o->bit.iwidth) << 28L) | ((long)o->bit.dwidth << 18L) | ((long)o->bit.pitch << 15L) |
-				((long)o->bit.depth << 12L) | (o->bit.xpos);
+				((long)o->bit.depth << 12L) | (o->bit.xpos & 0xfff);
 			*lptr++ = l0;
 			*lptr++ = l1;
 			curlink++;
@@ -185,5 +185,3 @@ OLbuild(union olist *unpacked) {
 	}
 	return packed;
 }
-
-
