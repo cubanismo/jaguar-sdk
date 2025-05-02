@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -12,6 +12,9 @@ PATCH_DIR="${SDK_DIR}/tools/patches"
 GDB_VERSION="8.1.1"
 
 GDB_SRC_DIR="${SRC_DIR}/gdb/gdb-${GDB_VERSION}"
+
+HOST=$(gcc -dumpmachine)
+BUILD=$HOST
 
 if [ -d "${GDB_SRC_DIR}" ]; then
 	echo "Found existing GDB source dir:"
@@ -47,6 +50,7 @@ mkdir -p "${TARGET_DIR}/bin"
 echo "Building rmac..."
 
 cd "${SDK_DIR}"
+
 git submodule update --checkout -- "${SRC_PATH}/rmac"
 cd "${SRC_DIR}/rmac"
 git am "${PATCH_DIR}/rmac-"*
@@ -65,15 +69,16 @@ make
 strip --strip-unneeded rln
 cp rln  "${TARGET_DIR}/bin"
 
-echo "Building lo_inp..."
-
-cd "${SRC_DIR}/lo_inp"
-make
-strip --strip-unneeded lo_inp
-cp lo_inp  "${TARGET_DIR}/bin"
-
+if [[ $HOST =~ aarch64 ]]; then
+    echo "Skip lo_inp"
+else
+    echo "Building lo_inp..."
+    cd "${SRC_DIR}/lo_inp"
+    make
+    strip --strip-unneeded lo_inp
+    cp lo_inp  "${TARGET_DIR}/bin"
+fi 
 echo "Building 3dsconv..."
-
 cd "${SRC_DIR}/3dsconv"
 make
 strip --strip-unneeded 3dsconv
@@ -93,19 +98,21 @@ make
 # Jagcrypt is stripped in its own Makefile, and potentially then
 # compressed using UPX, so don't attempt to re-strip it here.
 cp jagcrypt "${TARGET_DIR}/bin"
+if [[ $HOST =~ aarch64 ]]; then
+    echo "Skip  jcp"
+else
+    echo "Building jcp..."
 
-echo "Building jcp..."
-
-cd "${SRC_DIR}/jcp/jcp"
-make REMOVERS=0
-strip --strip-unneeded jcp
-cp jcp "${TARGET_DIR}/bin"
-make REMOVERS=0 clean
-
-echo "Building rmvjcp..."
-
-cd "${SRC_DIR}/jcp/jcp"
-make REMOVERS=1
+    cd "${SRC_DIR}/jcp/jcp"
+    make REMOVERS=0
+    strip --strip-unneeded jcp
+    cp jcp "${TARGET_DIR}/bin"
+    make REMOVERS=0 clean
+    
+    echo "Building rmvjcp..."
+    
+    cd "${SRC_DIR}/jcp/jcp"
+    make REMOVERS=1
 strip --strip-unneeded jcp
 cp jcp "${TARGET_DIR}/bin/rmvjcp"
 make REMOVERS=1 clean
@@ -122,19 +129,23 @@ case `uname -m` in
 		echo "Some tools (mac/aln/wdb/rdbjag) will not be usable"
 		;;
 esac
+fi
 
 echo "Building jag_utils..."
 cd "${SRC_DIR}/jag_utils"
 make
 cp allsyms filefix size symval  "${TARGET_DIR}/bin"
 
+if [[ $HOST =~ aarch64 ]]; then
+    echo "Skip jdis"
+else
 echo "Building jdis..."
 cd "${SRC_DIR}/jrisc_tools"
 make
 cp jdis "${TARGET_DIR}/bin"
 cd "${SRC_DIR}/jrisc_tools/python"
 make PYTHON_EXT_DIR="${TARGET_DIR}/lib/python"
-
+fi
 mkdir -p "${SRC_DIR}/gcc"
 cd "${SRC_DIR}/gcc"
 
@@ -163,10 +174,13 @@ patch -p1 < "${PATCH_DIR}/binutils-2.16.1a-fixes.diff"
 
 # Update the config.guess and config.sub scripts to support aarch64 and any
 # other "new" architectures introduced after ~2004
-wget -O config.guess "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" && chmod +x config.guess
-wget -O config.sub "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" && chmod +x config.sub
+#wget -O config.guess "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" && chmod +x config.guess
+#wget -O config.sub "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" && chmod +x config.sub
+cp ${SRC_DIR}/../external/binutils/config.guess . && chmod +x config.guess
+cp ${SRC_DIR}/../external/binutils/config.sub . && chmod +x config.sub
 
-./configure --prefix="${TARGET_DIR}" --target=m68k-aout
+
+./configure --prefix="${TARGET_DIR}" --host=$HOST --build=$BUILD --target=m68k-aout
 make -j`nproc`
 make install
 cd ..
@@ -185,8 +199,11 @@ patch -p1 < "${PATCH_DIR}/gcc-3.4.6-fixes.diff"
 
 # Update the config.guess and config.sub scripts to support aarch64 and any
 # other "new" architectures introduced after ~2004
-wget -O config.guess "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" && chmod +x config.guess
-wget -O config.sub "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" && chmod +x config.sub
+#wget -O config.guess "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" && chmod +x config.guess
+#wget -O config.sub "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" && chmod +x config.sub
+cp ${SRC_DIR}/../external/gcc/config.guess . && chmod +x config.guess
+cp ${SRC_DIR}/../external/gcc/config.sub . && chmod +x config.sub
+
 cd ..
 
 mkdir -p gcc-build
@@ -195,23 +212,27 @@ PATH="${TARGET_DIR}/bin:${PATH}" \
 	../gcc-3.4.6/configure \
 	--prefix="${TARGET_DIR}" \
 	--target=m68k-aout \
+	--host=$HOST --build=$BUILD \
 	--disable-multilib \
 	--enable-languages=c
 PATH="${TARGET_DIR}/bin:${PATH}" make -j`nproc`
 PATH="${TARGET_DIR}/bin:${PATH}" make install
 
-mkdir -p "${SRC_DIR}/gdb"
-cd "${SRC_DIR}/gdb"
-wget -N https://ftpmirror.gnu.org/gdb/gdb-${GDB_VERSION}.tar.xz
+if [[ $HOST =~ aarch64 ]]; then
+    echo "Skip gdb"
+else
+    mkdir -p "${SRC_DIR}/gdb"
+    cd "${SRC_DIR}/gdb"
+    wget -N https://ftpmirror.gnu.org/gdb/gdb-${GDB_VERSION}.tar.xz
 
-echo -n "Extracting gdb..."
-tar Jxf gdb-${GDB_VERSION}.tar.xz
-echo "Done"
+    echo -n "Extracting gdb..."
+    tar Jxf gdb-${GDB_VERSION}.tar.xz
+    echo "Done"
 
-# Apply patches:
-# - Disable installation of documentation to avoid makeinfo requirement
-cd gdb-${GDB_VERSION}
-for P in "${PATCH_DIR}"/gdb-*.patch; do
+    # Apply patches:
+    # - Disable installation of documentation to avoid makeinfo requirement
+    cd gdb-${GDB_VERSION}
+    for P in "${PATCH_DIR}"/gdb-*.patch; do
 	echo "Applying '`basename "$P"`'"
 	patch -p1 < "${P}"
 done
@@ -230,12 +251,12 @@ PATH="${TARGET_DIR}/bin:${PATH}" \
 	--with-python=python3
 PATH="${TARGET_DIR}/bin:${PATH}" make -j`nproc`
 PATH="${TARGET_DIR}/bin:${PATH}" make install
-
+fi
 # Strip binaries
 cd "${TARGET_DIR}"/bin
 # strip complains about this script not being a binary, and no one upstream is
 # fixing bugs against this version of GCC anyway. Just delete it.
-rm m68k-aout-gccbug
+rm -f m68k-aout-gccbug
 strip --strip-unneeded * || true
 cd "${TARGET_DIR}"/m68k-aout/bin
 strip --strip-unneeded * || true
