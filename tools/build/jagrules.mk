@@ -16,10 +16,14 @@ all: $(PROGS)
 	$(CC) $(CDEFS) $(CINCLUDES) $(CFLAGS) -S -o $@ $<
 
 $(CGPUOBJS):%o:%c
-	$(CC_JRISC) $(CDEFS) $(CINCLUDES) $(CFLAGS_JRISC) -c $<
+	$(CC_JRISC) $(CDEFS) $(CINCLUDES) $(CFLAGS_JRISC) -o $(patsubst %.c,g_%.s,$<) -S $<
+	gawk -i inplace '/.*::?	.DCB.B	8,0/{print "	.long" RS $$0;next}1' $(patsubst %.c,g_%.s,$<)
+	$(ASM) $(ASMFLAGS) -u -o $@ $(patsubst %.c,g_%.s,$<)
 
 $(CDSPOBJS):%o:%c
-	$(CC_JRISC) $(CDEFS) $(CINCLUDES) $(CFLAGS_JRISC) $(CFLAGS_DSP) -c $<
+	$(CC_JRISC) $(CDEFS) $(CINCLUDES) $(CFLAGS_JRISC) $(CFLAGS_DSP) -o $(patsubst %.c,g_%.s,$<) -S $<
+	gawk -i inplace '/.*::?	.DCB.B	8,0/{print "	.long" RS $$0;next}1' $(patsubst %.c,g_%.s,$<)
+	$(ASM) $(ASMFLAGS) -u -o $@ $(patsubst %.c,g_%.s,$<)
 
 .PHONY: clean
 clean:
