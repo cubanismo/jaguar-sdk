@@ -141,7 +141,12 @@ while [ -n "$1" ]; do
 
 				ADDRESS=$1
 			else
-				FILE="$1"
+				if [ -r "$1" ]; then
+					FILE="$1"
+				else
+					echo "Can not read file: $1"
+					exit
+				fi
 			fi
 		fi
 		shift
