@@ -1,7 +1,7 @@
-From f1651d3d16dde79a1141d74cf5cf05f37b68c8a0 Mon Sep 17 00:00:00 2001
+From c0c3653c34b44975858e9124cf6b06f5789235b6 Mon Sep 17 00:00:00 2001
 From: James Jones <atari@theinnocuous.com>
 Date: Sun, 5 Jun 2022 19:53:44 -0700
-Subject: [PATCH 4/5] Read stabs symbols in Jaguar m68k COFF files
+Subject: [PATCH 4/7] Read stabs symbols in Jaguar m68k COFF files
 
 Add a very hacky Jaguar m68k COFF target vector
 to libbfd, detected by looking for the buggy
@@ -21,7 +21,7 @@ over to the stabs symbol file reader instead.
  5 files changed, 228 insertions(+), 64 deletions(-)
 
 diff --git a/bfd/coff-jag68k.c b/bfd/coff-jag68k.c
-index 3c99501..5add712 100644
+index 3c99501..c927ed7 100644
 --- a/bfd/coff-jag68k.c
 +++ b/bfd/coff-jag68k.c
 @@ -19,8 +19,81 @@
@@ -68,7 +68,7 @@ index 3c99501..5add712 100644
 +static void *
 +jaguar_coff_mkobject_hook(bfd * abfd, void * filehdr, void * aouthdr)
 +{
-+  struct internal_aouthdr *internal_a = (struct itnernal_aouthdr *)aouthdr;
++  struct internal_aouthdr *internal_a = (struct internal_aouthdr *)aouthdr;
 +
 +  if ((internal_a->magic != JAGUAR_AOUT_MAGIC) ||
 +      (internal_a->vstamp != JAGUAR_AOUT_VERSION))
@@ -426,5 +426,5 @@ index d24b25d..c4c43f9 100644
  				     char *stabstr_name, char *text_name);
  
 -- 
-2.42.0
+2.50.0
 

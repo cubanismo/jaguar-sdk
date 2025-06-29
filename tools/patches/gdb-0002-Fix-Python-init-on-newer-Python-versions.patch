@@ -1,7 +1,7 @@
 From 74a1857eaeb7cd3a47dbdf9fbfe4f2778ef01d66 Mon Sep 17 00:00:00 2001
 From: James Jones <atari@theinnocuous.com>
 Date: Sun, 15 Oct 2023 22:19:01 -0700
-Subject: [PATCH 2/5] Fix Python init on newer Python versions
+Subject: [PATCH 2/7] Fix Python init on newer Python versions
 
 Copy in some code from newer versions of GDB that
 better manages the python thread state stuff.
@@ -91,5 +91,5 @@ index bb0a46d..91aae2a 100644
    make_final_cleanup (finalize_python, NULL);
  
 -- 
-2.42.0
+2.50.0
 

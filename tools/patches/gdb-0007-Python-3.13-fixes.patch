@@ -1,0 +1,188 @@
+From 146f70226d48bc5b8b7f8a3766db76c0ed3e172d Mon Sep 17 00:00:00 2001
+From: James Jones <atari@theinnocuous.com>
+Date: Sat, 28 Jun 2025 18:55:17 -0700
+Subject: [PATCH 7/7] Python 3.13 fixes
+
+-Manually define the undocumented ABI symbol
+ _PyOS_ReadlineTState if python >= 3.13
+
+-Implement PySys_SetPath locally on python >= 3.13
+ since it was removed in that version
+
+-Don't call PyMem_Malloc() before calling
+ Py_Initialize(). Just use a static fixed-size
+ variable that should be large enough for all
+ practical values of argv[0] instead and fail
+ if argv[0] is longer.
+
+-Use importlib.reload instead of imp.reload on
+ Python >= 3.4
+
+-Don't use 'is not' to compare strings in
+ commands/prompt.py
+---
+ gdb/python/lib/gdb/__init__.py       |  7 ++--
+ gdb/python/lib/gdb/command/prompt.py |  4 +--
+ gdb/python/py-gdb-readline.c         |  4 +++
+ gdb/python/python-internal.h         | 52 ++++++++++++++++++++++++++++
+ gdb/python/python.c                  | 10 ++++--
+ 5 files changed, 70 insertions(+), 7 deletions(-)
+
+diff --git a/gdb/python/lib/gdb/__init__.py b/gdb/python/lib/gdb/__init__.py
+index 7e7c299..da4302c 100644
+--- a/gdb/python/lib/gdb/__init__.py
++++ b/gdb/python/lib/gdb/__init__.py
+@@ -19,8 +19,11 @@ import sys
+ import _gdb
+ 
+ if sys.version_info[0] > 2:
+-    # Python 3 moved "reload"
+-    from imp import reload
++    # Python 3 moved "reload", and Python 3.12 moved it again
++    if sys.version_info[1] >= 4:
++        from importlib import reload
++    else:
++        from imp import reload
+ 
+ from _gdb import *
+ 
+diff --git a/gdb/python/lib/gdb/command/prompt.py b/gdb/python/lib/gdb/command/prompt.py
+index 1cae003..58cca46 100644
+--- a/gdb/python/lib/gdb/command/prompt.py
++++ b/gdb/python/lib/gdb/command/prompt.py
+@@ -45,7 +45,7 @@ The currently defined substitutions are:
+         self.hook_set = False
+ 
+     def get_show_string (self, pvalue):
+-        if self.value is not '':
++        if self.value:
+            return "The extended prompt is: " + self.value
+         else:
+            return "The extended prompt is not set."
+@@ -57,7 +57,7 @@ The currently defined substitutions are:
+         return ""
+ 
+     def before_prompt_hook(self, current):
+-        if self.value is not '':
++        if self.value:
+             return gdb.prompt.substitute_prompt(self.value)
+         else:
+             return None
+diff --git a/gdb/python/py-gdb-readline.c b/gdb/python/py-gdb-readline.c
+index a95be41..40d43ad 100644
+--- a/gdb/python/py-gdb-readline.c
++++ b/gdb/python/py-gdb-readline.c
+@@ -28,6 +28,10 @@
+    respectively, as far as I can tell; they are ignored and
+    command_line_input is used instead.  */
+ 
++#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 13
++extern PyThreadState *_PyOS_ReadlineTState;
++#endif
++
+ static char *
+ gdbpy_readline_wrapper (FILE *sys_stdin, FILE *sys_stdout,
+ #if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION >= 4
+diff --git a/gdb/python/python-internal.h b/gdb/python/python-internal.h
+index c110588..abb90d9 100644
+--- a/gdb/python/python-internal.h
++++ b/gdb/python/python-internal.h
+@@ -284,10 +284,62 @@ gdb_PySys_GetObject (const char *name)
+ # define GDB_PYSYS_SETPATH_CHAR char
+ #endif
+ 
++#if PY_VERSION_HEX >= 0x030b0000
++
++#endif /* PY_VERSION_HEX >= 0x030b0000 */
++#ifdef _WIN32
++#define LOCAL_DELIM L';'
++#else
++#define LOCAL_DELIM L':'
++#endif
++
++static inline PyObject *
++makepathobject__(const wchar_t *path, wchar_t delim)
++{
++    int i, n;
++    const wchar_t *p;
++    PyObject *v, *w;
++
++    n = 1;
++    p = path;
++    while ((p = wcschr(p, delim)) != NULL) {
++        n++;
++        p++;
++    }
++    v = PyList_New(n);
++    if (v == NULL)
++        return NULL;
++    for (i = 0; ; i++) {
++        p = wcschr(path, delim);
++        if (p == NULL)
++            p = path + wcslen(path); /* End of string */
++        w = PyUnicode_FromWideChar(path, (Py_ssize_t)(p - path));
++        if (w == NULL) {
++            Py_DECREF(v);
++            return NULL;
++        }
++        PyList_SET_ITEM(v, i, w);
++        if (*p == '\0')
++            break;
++        path = p+1;
++    }
++    return v;
++}
++
+ static inline void
+ gdb_PySys_SetPath (const GDB_PYSYS_SETPATH_CHAR *path)
+ {
++#if PY_VERSION_HEX >= 0x030b0000
++  /* XXX Adapted from PySys_SetPath() definition in Python 3.12 */
++  PyObject *v;
++  if ((v = makepathobject__(path, LOCAL_DELIM)) == NULL)
++    Py_FatalError("can't create path object for sys.path");
++  if (PySys_SetObject("path", v) != 0)
++    Py_FatalError("can't assign sys.path");
++  Py_DECREF(v);
++#else
+   PySys_SetPath (const_cast<GDB_PYSYS_SETPATH_CHAR *> (path));
++#endif
+ }
+ 
+ #define PySys_SetPath gdb_PySys_SetPath
+diff --git a/gdb/python/python.c b/gdb/python/python.c
+index 91aae2a..62a4b44 100644
+--- a/gdb/python/python.c
++++ b/gdb/python/python.c
+@@ -1696,12 +1696,17 @@ init__gdb_module (void)
+ }
+ #endif
+ 
++#ifdef IS_PY3K
++/* XXX Totally arbitrary */
++#define PROGNAME_COPY_SIZE 4096
++static wchar_t progname_copy[PROGNAME_COPY_SIZE];
++#endif
++
+ static bool
+ do_start_initialization ()
+ {
+ #ifdef IS_PY3K
+   size_t progsize, count;
+-  wchar_t *progname_copy;
+ #endif
+ 
+ #ifdef WITH_PYTHON_PATH
+@@ -1718,8 +1723,7 @@ do_start_initialization ()
+   std::string oldloc = setlocale (LC_ALL, NULL);
+   setlocale (LC_ALL, "");
+   progsize = strlen (progname.get ());
+-  progname_copy = (wchar_t *) PyMem_Malloc ((progsize + 1) * sizeof (wchar_t));
+-  if (!progname_copy)
++  if ((progsize + 1) > PROGNAME_COPY_SIZE)
+     {
+       fprintf (stderr, "out of memory\n");
+       return false;
+-- 
+2.50.0
+

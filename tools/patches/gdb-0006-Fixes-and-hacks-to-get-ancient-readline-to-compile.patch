@@ -1,0 +1,194 @@
+From 9a51a927587158e5dffa6d9767e36e0f91012bce Mon Sep 17 00:00:00 2001
+From: James Jones <atari@theinnocuous.com>
+Date: Sat, 28 Jun 2025 18:06:06 -0700
+Subject: [PATCH 6/7] Fixes and hacks to get ancient readline to compile
+
+Modern gcc is pickier about function signature
+mismatches than older versions. Fix up some lazy
+code in readline to get through these modern
+compilers.
+---
+ readline/aclocal.m4 | 2 +-
+ readline/bind.c     | 2 +-
+ readline/complete.c | 5 +++++
+ readline/configure  | 2 +-
+ readline/display.c  | 7 ++++++-
+ readline/histlib.h  | 2 +-
+ readline/mbutil.c   | 5 +++++
+ readline/parens.c   | 2 +-
+ readline/rldefs.h   | 2 +-
+ readline/signals.c  | 2 +-
+ 10 files changed, 23 insertions(+), 8 deletions(-)
+
+diff --git a/readline/aclocal.m4 b/readline/aclocal.m4
+index 716a043..aefc0fd 100644
+--- a/readline/aclocal.m4
++++ b/readline/aclocal.m4
+@@ -374,7 +374,7 @@ AC_CACHE_VAL(bash_cv_void_sighandler,
+ #ifdef __cplusplus
+ extern "C"
+ #endif
+-void (*signal ()) ();],
++void (*signal (int, void (*)(int))) (int);],
+ [int i;], bash_cv_void_sighandler=yes, bash_cv_void_sighandler=no)])dnl
+ AC_MSG_RESULT($bash_cv_void_sighandler)
+ if test $bash_cv_void_sighandler = yes; then
+diff --git a/readline/bind.c b/readline/bind.c
+index a939528..45b6c0c 100644
+--- a/readline/bind.c
++++ b/readline/bind.c
+@@ -66,7 +66,7 @@ extern int errno;
+ #include "xmalloc.h"
+ 
+ #if !defined (strchr) && !defined (__STDC__)
+-extern char *strchr (), *strrchr ();
++extern char *strchr (const char *s, int c), *strrchr (const char *s, int c);
+ #endif /* !strchr && !__STDC__ */
+ 
+ /* Variables exported by this file. */
+diff --git a/readline/complete.c b/readline/complete.c
+index 5733d4e..9fcf817 100644
+--- a/readline/complete.c
++++ b/readline/complete.c
+@@ -20,6 +20,7 @@
+ */
+ 
+ #define READLINE_LIBRARY
++#define _XOPEN_SOURCE 700
+ 
+ #if defined (HAVE_CONFIG_H)
+ #  include <config.h>
+@@ -43,6 +44,10 @@
+ 
+ #include <stdio.h>
+ 
++#if defined (HAVE_WCHAR_H)
++#  include <wchar.h>
++#endif /* HAVE_WCHAR_H */
++
+ #include <errno.h>
+ #if !defined (errno)
+ extern int errno;
+diff --git a/readline/configure b/readline/configure
+index 249ab7b..5a7720e 100755
+--- a/readline/configure
++++ b/readline/configure
+@@ -5337,7 +5337,7 @@ else
+ #ifdef __cplusplus
+ extern "C"
+ #endif
+-void (*signal ()) ();
++void (*signal (int, void (*)(int))) (int);
+ int
+ main ()
+ {
+diff --git a/readline/display.c b/readline/display.c
+index 9044305..0a898a5 100644
+--- a/readline/display.c
++++ b/readline/display.c
+@@ -20,6 +20,7 @@
+ */
+ 
+ #define READLINE_LIBRARY
++#define _XOPEN_SOURCE 700
+ 
+ #if defined (HAVE_CONFIG_H)
+ #  include <config.h>
+@@ -41,6 +42,10 @@
+ 
+ #include <stdio.h>
+ 
++#if defined (HAVE_WCHAR_H)
++#  include <wchar.h>
++#endif /* HAVE_WCHAR_H */
++
+ #ifdef __MSDOS__
+ # include <pc.h>
+ #endif
+@@ -60,7 +65,7 @@
+ #include "xmalloc.h"
+ 
+ #if !defined (strchr) && !defined (__STDC__)
+-extern char *strchr (), *strrchr ();
++extern char *strchr (const char *s, int c), *strrchr (const char *s, int c);
+ #endif /* !strchr && !__STDC__ */
+ 
+ static void update_line PARAMS((char *, char *, int, int, int, int));
+diff --git a/readline/histlib.h b/readline/histlib.h
+index c938a10..7b5ac65 100644
+--- a/readline/histlib.h
++++ b/readline/histlib.h
+@@ -52,7 +52,7 @@
+ 
+ #ifndef member
+ #  ifndef strchr
+-extern char *strchr ();
++extern char *strchr (const char *s, int c);
+ #  endif
+ #define member(c, s) ((c) ? ((char *)strchr ((s), (c)) != (char *)NULL) : 0)
+ #endif
+diff --git a/readline/mbutil.c b/readline/mbutil.c
+index eeb7e55..427cd04 100644
+--- a/readline/mbutil.c
++++ b/readline/mbutil.c
+@@ -20,6 +20,7 @@
+ */
+ 
+ #define READLINE_LIBRARY
++#define _XOPEN_SOURCE 700
+ 
+ #if defined (HAVE_CONFIG_H)
+ #  include <config.h>
+@@ -42,6 +43,10 @@
+ #include <stdio.h>
+ #include <ctype.h>
+ 
++#if defined (HAVE_WCHAR_H)
++#  include <wchar.h>
++#endif /* HAVE_WCHAR_H */
++
+ /* System-specific feature definitions and include files. */
+ #include "rldefs.h"
+ #include "rlmbutil.h"
+diff --git a/readline/parens.c b/readline/parens.c
+index 9c98488..36001e0 100644
+--- a/readline/parens.c
++++ b/readline/parens.c
+@@ -47,7 +47,7 @@
+ #endif /* !HAVE_STRING_H */
+ 
+ #if !defined (strchr) && !defined (__STDC__)
+-extern char *strchr (), *strrchr ();
++extern char *strchr (const char *s, int c), *strrchr (const char *s, int c);
+ #endif /* !strchr && !__STDC__ */
+ 
+ #include "readline.h"
+diff --git a/readline/rldefs.h b/readline/rldefs.h
+index 0257754..2af319c 100644
+--- a/readline/rldefs.h
++++ b/readline/rldefs.h
+@@ -64,7 +64,7 @@
+ #endif /* !HAVE_STRING_H */
+ 
+ #if !defined (strchr) && !defined (__STDC__)
+-extern char *strchr (), *strrchr ();
++extern char *strchr (const char *s, int c), *strrchr (const char *s, int c);
+ #endif /* !strchr && !__STDC__ */
+ 
+ #if defined (PREFER_STDARG)
+diff --git a/readline/signals.c b/readline/signals.c
+index f119691..7931870 100644
+--- a/readline/signals.c
++++ b/readline/signals.c
+@@ -64,7 +64,7 @@
+ 
+ /* This typedef is equivalent to the one for Function; it allows us
+    to say SigHandler *foo = signal (SIGKILL, SIG_IGN); */
+-typedef RETSIGTYPE SigHandler ();
++typedef RETSIGTYPE SigHandler (int);
+ 
+ #if defined (HAVE_POSIX_SIGNALS)
+ typedef struct sigaction sighandler_cxt;
+-- 
+2.50.0
+

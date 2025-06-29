@@ -1,7 +1,7 @@
 From 4cb43a65fbf9e4129bbf71b4e6a9d709a00abd40 Mon Sep 17 00:00:00 2001
 From: James Jones <atari@theinnocuous.com>
 Date: Sun, 5 Jun 2022 14:07:51 -0700
-Subject: [PATCH 3/5] Add m68k_coff_jaguar target
+Subject: [PATCH 3/7] Add m68k_coff_jaguar target
 
 Currently identical to m68k_coff target
 ---
@@ -155,5 +155,5 @@ index 43102d4..e585599 100644
  	&m68k_coff_un_vec,
  	&m68k_elf32_vec,
 -- 
-2.42.0
+2.50.0
 
