@@ -49,7 +49,8 @@ echo "Building rmac..."
 cd "${SDK_DIR}"
 git submodule update --checkout -- "${SRC_PATH}/rmac"
 cd "${SRC_DIR}/rmac"
-git am "${PATCH_DIR}/rmac-"*
+# No outstanding RMAC patches at the moment :-)
+#git am "${PATCH_DIR}/rmac-"*
 make
 strip --strip-unneeded rmac
 cp rmac  "${TARGET_DIR}/bin"

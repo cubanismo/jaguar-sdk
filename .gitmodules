@@ -1,9 +1,9 @@
 [submodule "tools/src/rln"]
 	path = tools/src/rln
-	url = https://gitlab.com/ggnkua/rln-mirror.git
+	url = http://tiddly.mooo.com:5000/rln/rln.git
 [submodule "tools/src/rmac"]
 	path = tools/src/rmac
-	url = https://gitlab.com/ggnkua/rmac-mirror.git
+	url = http://tiddly.mooo.com:5000/rmac/rmac.git
 [submodule "tools/src/lo_inp"]
 	path = tools/src/lo_inp
 	url = https://github.com/cubanismo/lo_inp
