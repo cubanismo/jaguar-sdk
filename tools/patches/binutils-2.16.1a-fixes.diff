@@ -1,6 +1,6 @@
 diff -rudN binutils-2.16.1/bfd/archive.c binutils-2.16.1-fixed/bfd/archive.c
 --- binutils-2.16.1/bfd/archive.c	2005-03-03 03:40:56.000000000 -0800
-+++ binutils-2.16.1-fixed/bfd/archive.c	2020-06-23 23:02:00.612145915 -0700
++++ binutils-2.16.1-fixed/bfd/archive.c	2025-06-28 22:11:33.468346135 -0700
 @@ -1319,6 +1319,7 @@
    struct stat status;
    struct areltdata *ared;
@@ -91,9 +91,43 @@ diff -rudN binutils-2.16.1/bfd/archive.c binutils-2.16.1-fixed/bfd/archive.c
    strncpy (hdr.ar_fmag, ARFMAG, 2);
  
    for (i = 0; i < sizeof (struct ar_hdr); i++)
+diff -rudN binutils-2.16.1/binutils/configure binutils-2.16.1-fixed/binutils/configure
+--- binutils-2.16.1/binutils/configure	2005-03-22 07:31:04.000000000 -0800
++++ binutils-2.16.1-fixed/binutils/configure	2025-06-28 22:15:00.012970129 -0700
+@@ -1196,7 +1196,7 @@
+ #line 1197 "configure"
+ #include "confdefs.h"
+ 
+-main(){return(0);}
++int main(){return(0);}
+ EOF
+ if { (eval echo configure:1202: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   ac_cv_prog_cc_works=yes
+@@ -2369,7 +2369,7 @@
+ #line 2370 "configure"
+ #include "confdefs.h"
+ 
+-main(){return(0);}
++int main(){return(0);}
+ EOF
+ if { (eval echo configure:2375: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   ac_cv_prog_cc_works=yes
+Binary files binutils-2.16.1/binutils/po/ro.gmo and binutils-2.16.1-fixed/binutils/po/ro.gmo differ
+diff -rudN binutils-2.16.1/configure binutils-2.16.1-fixed/configure
+--- binutils-2.16.1/configure	2005-02-28 06:06:59.000000000 -0800
++++ binutils-2.16.1-fixed/configure	2025-06-28 22:13:05.208522329 -0700
+@@ -1932,7 +1932,7 @@
+ #line 1933 "configure"
+ #include "confdefs.h"
+ 
+-main(){return(0);}
++int main(){return(0);}
+ EOF
+ if { (eval echo configure:1938: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   ac_cv_prog_cc_works=yes
 diff -rudN binutils-2.16.1/gas/config/tc-m68k.c binutils-2.16.1-fixed/gas/config/tc-m68k.c
 --- binutils-2.16.1/gas/config/tc-m68k.c	2005-03-22 07:31:48.000000000 -0800
-+++ binutils-2.16.1-fixed/gas/config/tc-m68k.c	2020-06-23 23:02:00.612145915 -0700
++++ binutils-2.16.1-fixed/gas/config/tc-m68k.c	2025-06-28 22:11:33.488858616 -0700
 @@ -384,7 +384,7 @@
      { mcfisa_a|mcfhwdiv|mcfisa_b|mcfemac|mcfusp|cfloat,	mcf5480, "548x", 0 },
      /* Aliases (effectively, so far as gas is concerned) for the above
@@ -103,9 +137,42 @@ diff -rudN binutils-2.16.1/gas/config/tc-m68k.c binutils-2.16.1-fixed/gas/config
      { m68000,						m68000,	"68008", 1 },
      { m68000,						m68000,	"68302", 1 },
      { m68000,						m68000,	"68306", 1 },
+diff -rudN binutils-2.16.1/intl/configure binutils-2.16.1-fixed/intl/configure
+--- binutils-2.16.1/intl/configure	2001-11-28 19:20:34.000000000 -0800
++++ binutils-2.16.1-fixed/intl/configure	2025-06-28 22:13:33.853401612 -0700
+@@ -791,7 +791,7 @@
+ cat > conftest.$ac_ext <<EOF
+ #line 793 "configure"
+ #include "confdefs.h"
+-main(){return(0);}
++int main(){return(0);}
+ EOF
+ if { (eval echo configure:797: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+   ac_cv_prog_cc_works=yes
+diff -rudN binutils-2.16.1/ld/configure binutils-2.16.1-fixed/ld/configure
+--- binutils-2.16.1/ld/configure	2005-02-21 03:49:47.000000000 -0800
++++ binutils-2.16.1-fixed/ld/configure	2025-06-28 22:15:49.253628338 -0700
+@@ -1200,7 +1200,7 @@
+ #line 1201 "configure"
+ #include "confdefs.h"
+ 
+-main(){return(0);}
++int main(){return(0);}
+ EOF
+ if { (eval echo configure:1206: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   ac_cv_prog_cc_works=yes
+@@ -2424,7 +2424,7 @@
+ #line 2425 "configure"
+ #include "confdefs.h"
+ 
+-main(){return(0);}
++int main(){return(0);}
+ EOF
+ if { (eval echo configure:2430: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   ac_cv_prog_cc_works=yes
 diff -rudN binutils-2.16.1/ld/ld.texinfo binutils-2.16.1-fixed/ld/ld.texinfo
 --- binutils-2.16.1/ld/ld.texinfo	2005-06-12 11:35:45.000000000 -0700
-+++ binutils-2.16.1-fixed/ld/ld.texinfo	2020-06-23 23:02:17.763400430 -0700
++++ binutils-2.16.1-fixed/ld/ld.texinfo	2025-06-28 22:11:33.581878332 -0700
 @@ -1589,7 +1589,7 @@
  
  @kindex --version-script=@var{version-scriptfile}
@@ -115,3 +182,55 @@ diff -rudN binutils-2.16.1/ld/ld.texinfo binutils-2.16.1-fixed/ld/ld.texinfo
  Specify the name of a version script to the linker.  This is typically
  used when creating shared libraries to specify additional information
  about the version hierarchy for the library being created.  This option
+diff -rudN binutils-2.16.1/libiberty/getcwd.c binutils-2.16.1-fixed/libiberty/getcwd.c
+--- binutils-2.16.1/libiberty/getcwd.c	2003-04-15 14:29:34.000000000 -0700
++++ binutils-2.16.1-fixed/libiberty/getcwd.c	2025-06-28 22:11:46.135886097 -0700
+@@ -30,7 +30,7 @@
+ #include <stdlib.h>
+ #endif
+ 
+-extern char *getwd ();
++extern char *getwd (char *buf);
+ extern int errno;
+ 
+ #ifndef MAXPATHLEN
+diff -rudN binutils-2.16.1/libiberty/getpwd.c binutils-2.16.1-fixed/libiberty/getpwd.c
+--- binutils-2.16.1/libiberty/getpwd.c	2004-01-22 11:34:11.000000000 -0800
++++ binutils-2.16.1-fixed/libiberty/getpwd.c	2025-06-28 22:11:46.136069881 -0700
+@@ -41,7 +41,7 @@
+ 
+ /* Prototype these in case the system headers don't provide them. */
+ extern char *getpwd ();
+-extern char *getwd ();
++extern char *getwd (char *);
+ 
+ #include "libiberty.h"
+ 
+diff -rudN binutils-2.16.1/libiberty/md5.c binutils-2.16.1-fixed/libiberty/md5.c
+--- binutils-2.16.1/libiberty/md5.c	2002-11-16 04:39:57.000000000 -0800
++++ binutils-2.16.1-fixed/libiberty/md5.c	2025-06-28 22:11:46.136202563 -0700
+@@ -33,6 +33,8 @@
+ #else
+ # ifndef HAVE_MEMCPY
+ #  define memcpy(d, s, n) bcopy ((s), (d), (n))
++# else
++extern void *memcpy(void *dst, const void *src, size_t n);
+ # endif
+ #endif
+ 
+diff -rudN binutils-2.16.1/libiberty/regex.c binutils-2.16.1-fixed/libiberty/regex.c
+--- binutils-2.16.1/libiberty/regex.c	2004-11-19 19:00:46.000000000 -0800
++++ binutils-2.16.1-fixed/libiberty/regex.c	2025-06-28 22:11:46.136554484 -0700
+@@ -133,8 +133,10 @@
+ #  if defined STDC_HEADERS || defined _LIBC
+ #   include <stdlib.h>
+ #  else
+-char *malloc ();
+-char *realloc ();
++char *malloc (size_t size);
++char *realloc (void *ptr, size_t size);
++void abort(void);
++void free(void *);
+ #  endif
+ 
+ /* When used in Emacs's lib-src, we need to get bzero and bcopy somehow.

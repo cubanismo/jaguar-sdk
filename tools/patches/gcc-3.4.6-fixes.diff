@@ -1,6 +1,6 @@
 diff -rudN gcc-3.4.6/gcc/collect2.c gcc-3.4.6-fixed/gcc/collect2.c
 --- gcc-3.4.6/gcc/collect2.c	2005-01-10 07:25:23.000000000 -0800
-+++ gcc-3.4.6-fixed/gcc/collect2.c	2020-04-15 09:56:24.905593068 -0700
++++ gcc-3.4.6-fixed/gcc/collect2.c	2025-06-28 22:43:06.382253945 -0700
 @@ -1534,7 +1534,8 @@
    if (redir)
      {
@@ -13,7 +13,7 @@ diff -rudN gcc-3.4.6/gcc/collect2.c gcc-3.4.6-fixed/gcc/collect2.c
  	 so they can be restored later.  */
 diff -rudN gcc-3.4.6/gcc/config/m68k/m68k.md gcc-3.4.6-fixed/gcc/config/m68k/m68k.md
 --- gcc-3.4.6/gcc/config/m68k/m68k.md	2005-07-26 13:32:25.000000000 -0700
-+++ gcc-3.4.6-fixed/gcc/config/m68k/m68k.md	2020-04-15 10:26:39.303053065 -0700
++++ gcc-3.4.6-fixed/gcc/config/m68k/m68k.md	2025-06-28 22:43:06.382730357 -0700
 @@ -3679,7 +3679,7 @@
        target = operand_subword_force (operands[0], 0, SFmode);
        result = expand_binop (SImode, xor_optab,
@@ -43,7 +43,7 @@ diff -rudN gcc-3.4.6/gcc/config/m68k/m68k.md gcc-3.4.6-fixed/gcc/config/m68k/m68
  
 diff -rudN gcc-3.4.6/gcc/config/m68k/m68k-none.h gcc-3.4.6-fixed/gcc/config/m68k/m68k-none.h
 --- gcc-3.4.6/gcc/config/m68k/m68k-none.h	2003-10-10 20:06:45.000000000 -0700
-+++ gcc-3.4.6-fixed/gcc/config/m68k/m68k-none.h	2020-04-15 23:35:11.701227296 -0700
++++ gcc-3.4.6-fixed/gcc/config/m68k/m68k-none.h	2025-06-28 22:43:06.383173487 -0700
 @@ -20,7 +20,7 @@
  
  /* Default to m68k (m68020).  */
@@ -53,3 +53,125 @@ diff -rudN gcc-3.4.6/gcc/config/m68k/m68k-none.h gcc-3.4.6-fixed/gcc/config/m68k
  #endif
  
  /* These are values set by the configure script in TARGET_CPU_DEFAULT.
+diff -rudN gcc-3.4.6/gcc/cpplex.c gcc-3.4.6-fixed/gcc/cpplex.c
+--- gcc-3.4.6/gcc/cpplex.c	2004-02-18 14:10:16.000000000 -0800
++++ gcc-3.4.6-fixed/gcc/cpplex.c	2025-06-28 22:52:48.958361153 -0700
+@@ -39,7 +39,7 @@
+ };
+ 
+ static const unsigned char *const digraph_spellings[] =
+-{ U"%:", U"%:%:", U"<:", U":>", U"<%", U"%>" };
++{ (const unsigned char *)U"%:", (const unsigned char *)U"%:%:", (const unsigned char *)U"<:", (const unsigned char *)U":>", (const unsigned char *)U"<%", (const unsigned char *)U"%>" };
+ 
+ #define OP(e, s) { SPELL_OPERATOR, U s           },
+ #define TK(e, s) { s,              U #e },
+diff -rudN gcc-3.4.6/gcc/cpplib.c gcc-3.4.6-fixed/gcc/cpplib.c
+--- gcc-3.4.6/gcc/cpplib.c	2004-12-01 18:32:21.000000000 -0800
++++ gcc-3.4.6-fixed/gcc/cpplib.c	2025-06-28 22:51:35.873455186 -0700
+@@ -191,7 +191,7 @@
+    did use this notation in its preprocessed output.  */
+ static const directive linemarker_dir =
+ {
+-  do_linemarker, U"#", 1, KANDR, IN_I
++  do_linemarker, (const unsigned char *)U"#", 1, KANDR, IN_I
+ };
+ 
+ #define SEEN_EOL() (pfile->cur_token[-1].type == CPP_EOF)
+@@ -656,7 +656,7 @@
+       const unsigned char *dir;
+ 
+       if (pfile->directive == &dtable[T_PRAGMA])
+-	dir = U"pragma dependency";
++	dir = (const unsigned char *)U"pragma dependency";
+       else
+ 	dir = pfile->directive->name;
+       cpp_error (pfile, CPP_DL_ERROR, "#%s expects \"FILENAME\" or <FILENAME>",
+diff -rudN gcc-3.4.6/gcc/cppmacro.c gcc-3.4.6-fixed/gcc/cppmacro.c
+--- gcc-3.4.6/gcc/cppmacro.c	2005-02-16 15:07:47.000000000 -0800
++++ gcc-3.4.6-fixed/gcc/cppmacro.c	2025-06-28 22:53:13.787548285 -0700
+@@ -220,8 +220,8 @@
+ 	      cpp_errno (pfile, CPP_DL_WARNING,
+ 			 "could not determine date and time");
+ 		
+-	      pfile->date = U"\"??? ?? ????\"";
+-	      pfile->time = U"\"??:??:??\"";
++	      pfile->date = (const unsigned char *)U"\"??? ?? ????\"";
++	      pfile->time = (const unsigned char *)U"\"??:??:??\"";
+ 	    }
+ 	}
+ 
+diff -rudN gcc-3.4.6/intl/configure gcc-3.4.6-fixed/intl/configure
+--- gcc-3.4.6/intl/configure	2003-07-07 22:55:11.000000000 -0700
++++ gcc-3.4.6-fixed/intl/configure	2025-06-28 22:46:17.807294816 -0700
+@@ -1148,7 +1148,7 @@
+ #line 1149 "configure"
+ #include "confdefs.h"
+ 
+-main(){return(0);}
++int main(){return(0);}
+ EOF
+ if { (eval echo configure:1154: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   ac_cv_prog_cc_works=yes
+diff -rudN gcc-3.4.6/libiberty/getpwd.c gcc-3.4.6-fixed/libiberty/getpwd.c
+--- gcc-3.4.6/libiberty/getpwd.c	2001-10-07 14:53:31.000000000 -0700
++++ gcc-3.4.6-fixed/libiberty/getpwd.c	2025-06-28 22:47:41.083961654 -0700
+@@ -38,7 +38,7 @@
+ 
+ /* Prototype these in case the system headers don't provide them. */
+ extern char *getpwd ();
+-extern char *getwd ();
++extern char *getwd (char *);
+ 
+ #include "libiberty.h"
+ 
+diff -rudN gcc-3.4.6/libiberty/md5.c gcc-3.4.6-fixed/libiberty/md5.c
+--- gcc-3.4.6/libiberty/md5.c	2006-02-06 06:06:55.000000000 -0800
++++ gcc-3.4.6-fixed/libiberty/md5.c	2025-06-28 22:47:12.313306763 -0700
+@@ -33,6 +33,8 @@
+ #else
+ # ifndef HAVE_MEMCPY
+ #  define memcpy(d, s, n) bcopy ((s), (d), (n))
++# else
++extern void *memcpy(void *dst, const void *src, size_t n);
+ # endif
+ #endif
+ 
+diff -rudN gcc-3.4.6/libiberty/pex-unix.c gcc-3.4.6-fixed/libiberty/pex-unix.c
+--- gcc-3.4.6/libiberty/pex-unix.c	2003-01-24 12:02:11.000000000 -0800
++++ gcc-3.4.6-fixed/libiberty/pex-unix.c	2025-06-28 22:49:21.006265239 -0700
+@@ -44,8 +44,8 @@
+ #define waitpid(pid, status, flags) wait(status)
+ #endif
+ 
+-extern int execv ();
+-extern int execvp ();
++extern int execv (const char *path, char *const argv[]);
++extern int execvp (const char *file, char *const argv[]);
+ 
+ int
+ pexecute (program, argv, this_pname, temp_base, errmsg_fmt, errmsg_arg, flags)
+@@ -56,7 +56,7 @@
+      char **errmsg_fmt, **errmsg_arg;
+      int flags;
+ {
+-  int (*func)() = (flags & PEXECUTE_SEARCH ? execvp : execv);
++  int (*func)(const char *, char *const []) = (flags & PEXECUTE_SEARCH ? execvp : execv);
+   int pid;
+   int pdes[2];
+   int input_desc, output_desc;
+diff -rudN gcc-3.4.6/libiberty/regex.c gcc-3.4.6-fixed/libiberty/regex.c
+--- gcc-3.4.6/libiberty/regex.c	2003-04-15 07:24:26.000000000 -0700
++++ gcc-3.4.6-fixed/libiberty/regex.c	2025-06-28 22:45:49.619050090 -0700
+@@ -129,8 +129,10 @@
+ #  if defined STDC_HEADERS || defined _LIBC
+ #   include <stdlib.h>
+ #  else
+-char *malloc ();
+-char *realloc ();
++char *malloc (size_t size);
++char *realloc (void *ptr, size_t size);
++void free (void *ptr);
++void abort(void);
+ #  endif
+ 
+ /* When used in Emacs's lib-src, we need to get bzero and bcopy somehow.
