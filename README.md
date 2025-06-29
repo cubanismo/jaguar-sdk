@@ -28,7 +28,7 @@ Lars Hannig (according to his web page).
 
 ## Build/Installation
 
-Prepare your system.  You'll need the prequisites required to build gcc from source, git to fetch the source, and libusb development files/headers to build jcp (If you don't need jcp, just comment that section of the tools build script out).  You'll alsso need some python development tools to built the GDB python support and the JRISC tools python module used by GDB for JRISC disassembly. Optionally, you'll need dosemu to use the DOS-only tools from Linux.  Most projects and included sample code won't need these, but a couple of things, namely the Music/synth demos, do still require them.  On Ubuntu, this should be sufficient to get everything:
+Prepare your system.  You'll need the prequisites required to build gcc from source, git to fetch the source, and libusb 0.9 (Named libusb-compat on some distros) development files/headers to build jcp (If you don't need jcp, just comment that section of the tools build script out).  You'll alsso need some python development tools to built the GDB python support and the JRISC tools python module used by GDB for JRISC disassembly. Optionally, you'll need dosemu to use the DOS-only tools from Linux.  Most projects and included sample code won't need these, but a couple of things, namely the Music/synth demos, do still require them.  On Ubuntu, this should be sufficient to get everything:
 
 ````sh
 $ sudo apt install build-essential gcc-multilib git libusb-dev libncurses5-dev libpython3-dev python3-pip dosemu
