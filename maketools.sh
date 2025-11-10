@@ -149,6 +149,8 @@ cd "${SRC_DIR}/gcc"
 
 wget -N https://ftpmirror.gnu.org/binutils/binutils-2.16.1a.tar.bz2
 wget -N https://ftpmirror.gnu.org/gcc/gcc-3.4.6/gcc-3.4.6.tar.bz2
+wget -O config.guess "https://cgit.git.savannah.gnu.org/cgit/config.git/plain/config.guess" && chmod +x config.guess
+wget -O config.sub "https://cgit.git.savannah.gnu.org/cgit/config.git/plain/config.sub" && chmod +x config.sub
 
 echo -n "Extracting bintuils..."
 tar jxf binutils-2.16.1a.tar.bz2
@@ -164,8 +166,8 @@ patch -p1 < "${PATCH_DIR}/binutils-2.16.1a-fixes.diff"
 
 # Update the config.guess and config.sub scripts to support aarch64 and any
 # other "new" architectures introduced after ~2004
-wget -O config.guess "https://cgit.git.savannah.gnu.org/cgit/config.git/plain/config.guess" && chmod +x config.guess
-wget -O config.sub "https://cgit.git.savannah.gnu.org/cgit/config.git/plain/config.sub" && chmod +x config.sub
+cp ../config.guess config.guess && chmod +x config.guess
+cp ../config.sub config.sub && chmod +x config.sub
 
 ./configure --prefix="${TARGET_DIR}" --target=m68k-aout
 make -j`nproc`
@@ -186,8 +188,8 @@ patch -p1 < "${PATCH_DIR}/gcc-3.4.6-fixes.diff"
 
 # Update the config.guess and config.sub scripts to support aarch64 and any
 # other "new" architectures introduced after ~2004
-wget -O config.guess "https://cgit.git.savannah.gnu.org/cgit/config.git/plain/config.guess" && chmod +x config.guess
-wget -O config.sub "https://cgit.git.savannah.gnu.org/cgit/config.git/plain/config.sub" && chmod +x config.sub
+cp ../config.guess config.guess && chmod +x config.guess
+cp ../config.sub config.sub && chmod +x config.sub
 cd ..
 
 mkdir -p gcc-build
