@@ -1,0 +1,553 @@
+\documentclass[12pt,letterpaper,twoside]{article}
+% Essential packages for technical documentation
+\usepackage[margin=1in]{geometry}  % Page margins
+\usepackage{amsmath,amssymb,amsfonts}  % Advanced math formatting
+\usepackage{mathtools}  % Extension to amsmath
+\usepackage{bm}  % Bold math symbols
+\usepackage{graphicx}  % For images
+\usepackage{booktabs}  % Professional tables
+\usepackage{array}  % Extended table features
+\usepackage{multirow}  % Multi-row cells in tables
+\usepackage[shortlabels]{enumitem}  % Customized lists
+\usepackage{fancyhdr}  % Custom headers and footers
+\usepackage{titlesec}  % Custom section formatting
+\usepackage{hyperref}  % Hyperlinks
+\usepackage{listings}  % Code listings
+\usepackage{color}  % Text colors
+\usepackage[table]{xcolor}  % Extended color support
+\usepackage{microtype}  % Typography improvements
+\usepackage{placeins} % FloatBarrier
+\usepackage{chngcntr} % counterwithin
+
+% Point table references at top of table while keeping caption below
+\usepackage[tableposition=bottom]{caption}
+
+\usepackage{mathptmx}  % Times Roman font with math support
+
+\newcommand{\doctitle}{Cinepak for Jaguar}
+\newcommand{\doccopy}{(© 1995 Radius Inc. \& Atari Corp.}
+\newcommand{\docdate}{16 June, 1995}
+\newcommand{\titformat}[1]{{\textbf{\textit{#1}}}}
+\newcommand{\headerformat}[1]{{\footnotesize\titformat{#1}}}
+
+% Page setup
+\setlength{\parindent}{0pt}     % Remove paragraph indentation
+\setlength{\parskip}{1em}       % Add vertical space between paragraphs
+\setlength{\headheight}{15pt}	% Shut fancy head warnings up
+\pagestyle{fancy}
+\fancyhf{}  % Clear header/footer
+\fancyhead[LO]{\headerformat{\doctitle}}
+\fancyhead[RE]{\headerformat{\doctitle}}
+\fancyhead[LE]{\headerformat{Page \thepage}}
+\fancyhead[RO]{\headerformat{Page \thepage}}
+\fancyfoot[LO]{\headerformat{\doccopy}}
+\fancyfoot[RE]{\headerformat{\doccopy}}
+\fancyfoot[LE]{\headerformat{\docdate}}
+\fancyfoot[RO]{\headerformat{\docdate}}
+\fancyfoot[CO]{\headerformat{Confidential Information}}
+\fancyfoot[CE]{\headerformat{Property of Atari Corporation}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Title formatting
+\titleformat{\section}[block]
+  {\normalfont\Large\bfseries}
+  {}
+  {0pt}
+  {\colorsection}
+
+\titleformat{\subsection}[block]
+  {\normalfont\large\bfseries}
+  {}
+  {0pt}
+  {\colorsubsection}
+
+\titleformat{\subsubsection}[block]
+  {\normalfont\bfseries}
+  {}
+  {0pt}
+  {\colorsubsubsection}
+
+\newcommand{\colorsection}[1]{%
+  \colorbox{lightgray}{\parbox{\dimexpr\columnwidth-2\fboxsep-2\fboxrule\relax}{\strut\thesection~#1\strut}}}
+
+\newcommand{\colorsubsection}[1]{%
+  \colorbox{lightgray}{\parbox{\dimexpr\columnwidth-2\fboxsep-2\fboxrule\relax}{\strut\thesubsection~#1\strut}}}
+
+\newcommand{\colorsubsubsection}[1]{%
+  \colorbox{lightgray}{\parbox{\dimexpr\columnwidth-2\fboxsep-2\fboxrule\relax}{\strut\thesubsubsection~#1\strut}}}
+
+% Custom environments for special boxes or notes
+\newenvironment{technote}
+  {\begin{center}\begin{tabular}{|p{0.9\textwidth}|}
+   \hline\\}
+  {\\\\
+   \hline
+   \end{tabular}\end{center}}
+
+% Make table counters reset for each section
+\counterwithin{table}{section}
+\captionsetup[table]{labelfont=bf,labelsep=endash}
+
+% Add a command to format the text in table header rows
+\newcommand{\tabheadtxt}[1]{\multicolumn{1}{c}{\textcolor{white}{\textbf{#1}}}}
+
+% Document info
+\title{\Huge{\textbf{\doctitle}}\\ \vspace{0.5cm} \Large{Technical Documentation}}
+\author{Converted from Original Document}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}  % No page number on title page
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+This documents describes \titformat{\doctitle}, a combination of utilities and code that has been developed to enable creation of high-quality video material which can be played back from the Jaguar CD-ROM. Playback rates of 30 frames per second are possible even with full-screen (320x200), 16-bit per pixel images. In fact, even higher resolutions and/or frame rates are possible provided the overall data rate is reasonable.
+
+The \titformat{\doctitle} package is based upon Radius' proprietary Cinepak video compression technology\footnote{Cinepak is a trademark of Radius Inc.}, which was specifically developed for this type of application; it consists of the following main elements:
+
+\begin{enumerate}[left=0pt .. 36pt]
+\item Interface definition and linkable object code for the Cinepak decompressor.
+\item Definition of a file format which interleaves audio and video in a manner suitable for playback on Jaguar, together with sample playback code which illustrates how to manage the periodic access to the CD-ROM and maintain synchronization between audio and video.
+\item A utility to convert Cinepak-encoded QuickTime movies to the Jaguar Cinepak film format and perform necessary manipulations prior to recording on CD-ROM.
+\item Three sample Jaguar films on CD-ROM.
+\end{enumerate}
+
+The Cinepak decompressor and the interface to it are discussed in the \textbf{Cinepak Decompressor} section. The Jaguar film format is discussed in the \textbf{Jaguar Film Format} section. The details of the sample player code are described in the \textbf{Sample Playback Code} section. The use of the film conversion utility is discussed in the \textbf{Jaguar Cinepak Utility For Macintosh} section. The content of a sample Jaguar CD-ROM containing Cinepak films is briefly described in the \textbf{Sample Jaguar Films} section. The layout of film data on a CD-ROM is discussed in the \textbf{Using A Jaguar Cinepak Film With CD-ROM} section.
+
+\section{Cinepak Decompressor}
+In this section, we define the interface to the two code modules and briefly describe the operation of the flags. For an example of how these elements are incorporated in playing a Jaguar film, see the \textbf{Sample Playback Code} section.
+
+\subsection{68000 Module}
+The \texttt{codec.o} module consists of approximately 700 bytes of 68000 code. There are three user callable functions, \texttt{CheckKeyFrame}, \texttt{PreDecompress}, and \texttt{Decompress}. The interfaces to these routines is specified below. All the routines preserve all 68000 registers. All parameters used by these routines are passed on the stack. The return value is also returned on the stack. Cleaning up the stack upon return from any of these three routines is the responsibility of the calling program.
+
+\subsubsection{CheckKeyFrame()}
+This routine is called to determine whether or not the current frame is a key frame.\footnote{Cinepak generally relies upon frame differencing to compress video data; however, the encoder periodically inserts a key frame into the data stream. Such a frame can be decompressed without reference to any frames which precede it. A key frame may either occur naturally as a result of an abrupt change of scene, or can be injected into the data stream at a prescribed rate to aid random access or resynchronization with audio.}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{8cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Stack Offset} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+4(a7) & 4 & Return value. Must be set to 0 prior to entry. Will be set to 1 upon exit if key frame is detected. \\
+\hline
+(a7) & 4 & Address of start of frame. \\
+\hline
+\end{tabular}
+\caption{68000 stack setup before call to CheckKeyFrame.}
+\label{tab:checkKeyFrame}
+\end{table}
+\FloatBarrier
+
+\subsubsection{PreDecompress()}
+This routine is called to set up the tables needed to draw pixels on the display.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{12cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Stack Offset} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+10(a7) & 4 & Return value. Value prior to entry is not important. 0 = returned upon successful completion non-zero Error occurred. \\
+\hline
+6(a7) & 4 & Address of \$3000 byte auxiliary Cinepak data buffer (see section 2.4) \\
+\hline
+2(a7) & 4 & Address of start of frame in Cinepak bitstream. \\
+\hline
+(a7) & 2 & Flag which indicates video data type:
+	\begin{itemize}[nosep]
+	\item[] 0 = Cinepak compressed-RGB format
+	\item[] 1 = Atari CRY format or expanded RGB
+	\end{itemize}\\
+\hline
+\end{tabular}
+\caption{68000 stack setup before call to PreDecompress.}
+\label{tab:predecompress}
+\end{table}
+\FloatBarrier
+
+\subsubsection{Decompress()}
+This is the routine that actually displays the pixels.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{10cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Stack Offset} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+16(a7) & 4 & Value prior to entry is not important. Returns:
+	\begin{itemize}[nosep]
+	\item[] 0 = successful completion
+	\item[] non-zero = error
+	\end{itemize}\\
+\hline
+12(a7) & 4 & Address of \$3000 byte auxiliary Cinepak data buffer (see section 2.4) \\
+\hline
+8(a7) & 4 & Address of start of frame in bitstream. \\
+\hline
+4(a7) & 4 & Frame buffer address of top left corner of image. \\
+\hline
+2(a7) & 2 & Bytes per row in frame buffer \\
+\hline
+(a7) & 2 & Phrase Interleave Factor \\
+\hline
+\end{tabular}
+\caption{68000 stack setup before call to Decompress.}
+\label{tab:decompress}
+\end{table}
+\FloatBarrier
+
+The latest version of Cinepak for Jaguar supports phrase interleaving for faster double or triple buffering schemes. If zero is passed as the phrase interleave factor, Cinepak will perform normally, writing its data contiguously in memory. A phrase interleaving factor of one will cause one phrase to be skipped for every one written. A phrase interleaving factor of two will cause two phrases to be skipped for every one written, and so on. This is done in a way that is compatible with similar features in the Object Processor and Blitter. By interleaving the buffers which must be blitted back and forth, the frequency of DRAM page faults drops signifigantly, increasing the available bus bandwidth.
+
+\subsubsection{HaltCPK()}
+This routine shuts down the Cinepak decompression code running in the GPU at the end of the current frame. It takes no parameters. To restart Cinepak you must start from the beginning again.
+
+\subsection{GPU Module}
+The \texttt{gpucode.og} module consists of approximately 2200 bytes of relocatable GPU code. The labels \texttt{DECOMP\_S} and \texttt{DECOMP\_E} defined in the \texttt{gpucode.og} module are used to locate the beginning and end of the Cinepak GPU code so that it may be copied to the GPU's internal RAM for execution.
+
+After the code has been copied over to internal GPU RAM, the GPU is started. The GPU code detects the address at which it has been loaded by looking at the \texttt{GPUOffset} variable and then patches all instructions and table values which are position-dependent. It then notifies the 68000 via the \texttt{GPU\_READY} flag (see Section 2.3) that it is ready to perform decompression tasks.
+
+The Cinepak GPU code may be run from either register bank with some limitations. By default, Cinepak assumes it will run from Bank \#0 and will set R31 to point to ten longwords of interrupt stack that it provides. As Cinepak requires registers R0-R27 (and R28-R31 are reserved for interrupts), if you run Cinepak in Bank \#0, any interrupt code must preserve all Bank \#0 registers. To run Cinepak in Bank \#1 you must perform the following steps:
+
+\begin{enumerate}[nosep, left=0pt .. 36pt]
+\item Load the Cinepak GPU code into GPU RAM.
+\item Load a small startup stub somewhere else in GPU RAM.
+\item Have the startup stub provide interrupt stack space and store the location in R31.
+\item Switch to the second register bank.
+\item Using the information in \texttt{GPU\_OFFSET}, jump to the head of the Cinepak code.
+\end{enumerate}
+
+When these above steps are performed, Cinepak will harmlessly change R31 in Bank \#1 and continue to run from Bank \#1. Interrupts (which must run in Bank \#0) may then use R0-R27 of Bank \#0 without saving them.
+
+Once the system has been initialized, all GPU functions are invoked from within the routines in the \texttt{codec.o} module; no attempt should ever be made by your code to directly access the GPU decompression functions.
+
+While the GPU is executing decompression functions, the 68000 is halted (a \texttt{stop \#\$2000} instruction is executed within \texttt{codec.o}). When the GPU finishes its task, it interrupts the 68000; the interrupt service routine sets a semaphore which is polled within \texttt{codec.o} to reawaken the 68000. This mechanism provides a 5-10\% improvement in performance by minimizing GPU/68000 bus contention, and should not be circumvented.
+
+The sample player program includes a utility subroutine named \texttt{LoadGPU} in the \texttt{util.s} file. This routine copies the GPU code from \texttt{gpucode.og} into GPU memory (see section 5.5). The load address is offset from the base of GPU memory by the constant value \texttt{GPU\_OFFSET}, defined in the application-specific \texttt{CINEPAK.INC} include file. This offset is necessary to avoid collision with the GPU interrupt vectors.
+
+Sample code for the GPU startup sequence appears in the module \texttt{player.s} (see Section 5), in the vicinity of label \texttt{WaitGPU}.
+
+\subsection{Flags}
+Storage for two flag variables must be declared within the DRAM address space. These are defined in Table \ref{tab:dramflags}. The initial values of these flags are not important.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{12cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Flag} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+semaphore & 2 & Cleared within \texttt{codec.o} upon invocation of GPU task. Set by interrupt service routine upon completion of GPU task. \\
+\hline
+GPUOffset & 4 & Relocation offset of GPU code. Before you execute the GPU code from \texttt{gpucode.og}, this variable must be set to the offset from the beginning of GPU internal RAM (G\_RAM) where the GPU code has been loaded.\newline
+\newline
+The sample player program sets this to the constant value \texttt{GPU\_OFFSET} at time GPU code is loaded.\\
+\hline
+\end{tabular}
+\caption{Flags declared in DRAM address space.}
+\label{tab:dramflags}
+\end{table}
+\FloatBarrier
+
+An additional flag is declared (internal to \texttt{gpucode.og}) within GPU internal address space and must be accessed by the 68000, as defined in Table \ref{tab:gpuflags}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{11cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Flag} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+GPU\_READY & 4 & Cleared by 68000 prior to GPU startup. Set by GPU when initialization procedure has been completed.\newline
+\newline
+To account for GPU code relocation, you must add the value of \texttt{GPUOffset} to this symbol in order to get the correct address. (For an example, see the code immediately before the \texttt{WaitForGPU} label in the sample program's \texttt{player.s} source file.) \\
+\hline
+\end{tabular}
+\caption{Flag declared in GPU internal address space.}
+\label{tab:gpuflags}
+\end{table}
+\FloatBarrier
+
+\section{Jaguar Film Format}
+
+The Cinepak bitstream is simply a source for a continuous stream of video; the bitstream contains no information pertaining to time, frame rate, or synchronization of video with other media such as audio. 
+
+To provide a time reference and synchronization among different media, the Cinepak bitstream must be embedded in some higher-level structure that is aware of time and the existence of media other than video. The Jaguar film format has been devised to meet these requirements. 
+
+The Jaguar film format exists in two flavors: 
+
+\begin{enumerate}[1), left=0pt .. 36pt]
+\item Smooth. This format is useful for playback of multiple low-resolution (for example, less than 160x100) films or a single film of higher resolution, provided in either case that the duration is very short (usually 3 or 4 seconds maximum). In this case, all the film data could be stored and played from ROM, or could be retrieved from the CD-ROM in a single brief access and loaded into DRAM for playing.
+\item Chunky. This format is designed for playback of longer films that cannot fit in DRAM all at once. Here, periodic access to the CD-ROM is required on a continuing basis, so some mechanism must be incorporated in the film structure for locating and identifying the film data that are needed for display at a particular time.
+\end{enumerate}
+
+The film formats are described in detail in the sections 3.1 and 3.2.
+
+Atari's existing sample Cinepak player code only knows how to play Chunky-format Cinepak Films. If your program needs to play smooth films, the changes would needed would be minor. 
+
+\subsection{Smooth Format}
+
+Table \ref{tab:smoothfmt} defines the structure of a smooth film at the highest level. 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{10cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Field} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+Frame Header & 16 & Global film header\\
+\hline
+Frame Description & 20 & Frame size and compression type\\
+\hline
+Audio Description & 20 & Audio data format description\\
+\hline
+Sample Table & 16 + (n * 16) & Index to film samples which follow; n is number of samples\\
+\hline
+Film Samples & variable & Audio blocks and video frames\\
+\hline
+\end{tabular}
+\caption{Smooth film format.}
+\label{tab:smoothfmt}
+\end{table}
+\FloatBarrier
+
+The frame header identifies the ensuing data as a Jaguar film and gives the offset to the start of the film data; its structure is defined in Table \ref{tab:framehead}. The frame description provides information about pixel resolution and the format of the compressed video; Table \ref{tab:framedesc} describes this structure. The audio description contains information about the format of any audio data included in the film. This is discussed in Table \ref{tab:audiodesc}. (Note that some older Jaguar Cinepak films may not include this field.) The sample table provides a time-based index to the ensuing audio and video data which form the actual content of the film; Table \ref{tab:sampletab} defines the structure of the sample table.
+
+At the film sample level, the data stream is interleaved blocks of audio and video sample information; the time field of the sample record holds the key to the multiplexing scheme (see discussion following Table \ref{tab:samplerec}). The audio data itself uses the format defined by the film's audio description atom. The video data stream is in the proprietary Cinepak format, which is interpreted by the Cinepak decompressor.
+
+\subsubsection{Frame Header}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{10cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Field} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+Header & 4 & Human readable tag: 'FILM'\\
+\hline
+AtomSize & 4 & Size of film header, plus ensuing frame description and sample table\\
+\hline
+Version & 4 & Not used\\
+\hline
+Reserved & 4 & Not used\\
+\hline
+\end{tabular}
+\caption{Structure of frame header.}
+\label{tab:framehead}
+\end{table}
+\FloatBarrier
+
+The frame header is a 16-byte structure comprised of four long-word fields. The Header field is a human-readable tag, 'FILM', which identifies the ensuing global data structure as a Jaguar film. The AtomSize field gives the offset in bytes from the start of the header to the beginning of the audio and video data records; this offset includes the size of the frame header itself, plus the sizes of the ensuing frame description and sample table structures. The Version and Reserved fields are not currently used; developers are free to use these as they wish.
+
+\subsubsection{Frame Description Atom}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{10cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Field} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+Header & 4 & Human readable tag: 'FDSC'\\
+\hline
+AtomSize & 4 & Size of frame description atom (=20)\\
+\hline
+CType & 4 & Human readable compression type:
+\newline
+	\begin{itemize}[nosep]
+	\item[] 'cvid' = Cinepak compressed-RGB format
+	\item[] '\$CRY' = Expanded Atari CRY format
+	\item[] '\$RGB = Expanded RGB format
+	\end{itemize}\\
+\hline
+Height & 4 & Number of display lines\\
+\hline
+Width & 4 & Number of pixels per line\\
+\hline
+\end{tabular}
+\caption{Structure of frame description atom.}
+\label{tab:framedesc}
+\end{table}
+\FloatBarrier
+
+The frame description is a 20-byte structure comprised of five long-word fields. The Header field is a human-readable tag, 'FDSC', which identifies the structure as a frame description. The AtomSize field contains the size of the frame description atom (i.e. 20 bytes). The CType field contains a human-readable code which identifies the format of the compressed video; two modes are recognized: 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|p{7cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Value} & \tabheadtxt{Meaning} \\
+\hline
+'cvid' & Cinepak compressed-RGB format\\
+\hline
+'\$CRY' & Cinepak Expanded Atari CRY format\\
+\hline
+'\$RGB & Cinepak Expanded RGB format\\
+\hline
+\end{tabular}
+\caption{Frame Description Atom CType values}
+\label{tab:ctypevals}
+\end{table}
+\FloatBarrier
+
+The Height and Width fields specify the vertical and horizontal resolution of the video in pixels. 
+
+\subsubsection{Audio Description Atom}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{8cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Field} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+Header & 4 & Human readable tag: 'ADSC'\\
+\hline
+AtomSize & 4 & Size of audio description atom (=20)\\
+\hline
+AudioData & 4 & Audio Data Description\\
+\hline
+SCLK & 4 & SCLK timer value for audio playback\\
+\hline
+AudioDrift & 4 & Drift rate value used adjust audio sample rate\\
+\hline
+\end{tabular}
+\caption{Structure of audio description atom.}
+\label{tab:audiodesc}
+\end{table}
+\FloatBarrier
+
+The audio description atom is a 20-byte structure that defines the format of the audio data contained in the Cinepak film so that it may be played back properly. The Header field is a human-readable tag 'ADSC' which identifies the structure as an audio description atom. The AtomSize field specifies the size of the structure (20 bytes).
+
+The AudioData field is a bitmapped flag that defines the data format of the audio, i.e. mono or stereo, compressed or non-compressed, 8-bit samples or 16-bit samples, and so forth. See Table \ref{tab:audioflags} for a definition of the meanings of each bit. Note that the proper utilization of this information is the responsiblity of the Cinepak player application. 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|p{8cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Bits} & \tabheadtxt{Meaning}\\
+\hline
+0 & 0 = Mono, 1 = Stereo\\
+\hline
+1 & 0 = 8-bit, 1 16-bit\\
+\hline
+2-7 & Audio Compression Type:
+\newline
+	\begin{itemize}[nosep]
+	\item[] 0 = uncompressed
+	\item[]	1 = n\textsuperscript{2} compression
+	\item[] other values are reserved 
+	\end{itemize}\\
+\hline
+8-30 & Reserved\\
+\hline
+31 & Two's Complement audio flag\\
+\hline
+\end{tabular}
+\caption{Audio description flag bits}
+\label{tab:audioflags}
+\end{table}
+\FloatBarrier
+
+The SCLK field contains the value which should be used with the Jaguar's SCLK 
+timer to set the DSP interrupt frequency for audio playback. In Jaguar Cinepak
+films which have no audio information, the SCLK field will be set to $-1$
+($\mathrm{FFFFFFFF}$).\footnote{This will only be true for films converted with versions of the Jaguar Cinepak Utilities dated June 1995 and later.}
+
+The Audio Drift field specifies a 32-bit value that can be used by the player program's audio playback code to account for the difference between the audio data's original sample rate and the actual playback rate on the Jaguar. This value is added to an accumulator during each DSP sample rate interrupt. When a carry is generated, instead of proceeding to the next sample as usual, the current sample is reused instead. The audio drift rate is derived from the formula: 
+
+\begin{equation}
+\mathrm{DriftRate} = \frac{2^{32}}{\mathrm{SourceSampleRate} \div (\mathrm{SourceSampleRate} - \mathrm{JaguarSampleRate})}
+\end{equation}
+
+The Jaguar sample rate is determined by: 
+
+\begin{equation}
+\mathrm{VideoClockRate} = 26590906\,\mathrm{Hz} \text{ (NTSC)}, 26593900\,\mathrm{Hz} \text{ (PAL)} \\
+\end{equation}
+\begin{equation}
+\mathrm{JaguarSampleRate} = \left\{\frac{\mathrm{VideoClockRate}}{2 \times (\mathrm{SCLK} + 1)} \div 32\right\}
+\end{equation}
+
+You can work backwards from the DriftRate value and the Jaguar Sample Rate to get the original sample rate. You might do this, for example, in the event that you wanted to change the DSP code to perform linear interpolation to adjust the playback sample rate, rather than simply repeating samples. The formula for this is:
+
+\begin{equation}
+\mathrm{SourceSampleRate} = \mathrm{JaguarSampleRate} + \frac{\mathrm{JaguarSampleRate}}{2^{32} \times \mathrm{DriftRate}}
+\end{equation}
+
+Note that older Jaguar Cinepak films may not contain an Audio Description Atom. If none is found, the player code should typically default to expecting 8-bit mono at a 22050 Hz (original) sample rate.
+
+\subsubsection{Sample Table Atom}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{10cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Field} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+Header& 4 & Human readable tag: 'STAB'\\
+\hline
+AtomSize & 4 & Size of sample table atom\\ 
+\hline
+Scale & 4 & Time scale of film\\ 
+\hline
+Count & 4 & Number of sample records in table\\
+\hline
+Sample records & 16 * Count & Array of sample records\\ 
+\hline
+\end{tabular}
+\caption{Structure of sample table atom.}
+\label{tab:sampletab}
+\end{table}
+\FloatBarrier
+
+The sample table is a data structure which provides a time-based index to the film samples\footnote{The "sample" terminology is, unfortunately, somewhat ambiguous. In the context of a Cinepak film, it refers to a set of data which may be either audio or video. In the context of audio, it conventionally refers to the 8-bit or 16-bit datum which is read or written to a DAC. Where possibility for confusion exists, we use the terminology "block" to indicate the aggregate.}, i.e. blocks of audio and frames of video. The header is a human-readable tag, 'STAB', which identifies the structure as a sample table. The atom size field contains the size of the sample table atom, which encompasses the ensuing sample records. 
+
+The scale field provides the time scale for the film, in fractional units of a second, i.e. the unit of time is the reciprocal of the scale. A value of 600 is commonly used in QuickTime movies, as it is the lowest common multiple of the common rates of 24, 25 and 30 frames per second. The MovieToFilm tool does not alter the time scale embedded in the QuickTime movie when a Jaguar film is created. 
+The count field gives the number of sample records which immediately follow it; the sample record structure is defined in Table \ref{tab:samplerec}.
+
+\subsubsection{Sample Record}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|p{9cm}|}
+\hline
+\rowcolor{black}
+\tabheadtxt{Field} & \tabheadtxt{Size} & \tabheadtxt{Description} \\
+\hline
+Start & 4 & Start of sample\\
+\hline
+Size & 4 & Number of bytes in sample\\
+\hline
+Time & 4 & Time at which to play sample\\
+\hline
+Duration & 4 & Duration of playback interval for sample\\
+\hline
+\end{tabular}
+\caption{Structure of sample record.}
+\label{tab:samplerec}
+\end{table}
+\FloatBarrier
+
+The start field gives the starting address of the sample referenced by the sample record, relative to the end of the sample table. The end of the sample table coincides with the end of the frame header (see Table \ref{tab:framehead}). 
+
+The size field gives the size of the referenced sample in bytes. Adding the start and size fields of the current sample record yields the value in the start field of the next sample record. 
+
+The 31 least-significant bits in the time field of the sample record give the time at which the referenced sample is scheduled to be played, in the units specified by the scale field of the sample table. If the value is \$7FFFFFFF that indicates that the referenced sample (block) contains audio, not video, which should be played immediately following the end of the previous audio sample (block). 
+
+The most significant bit of the time field indicates a shadow sync sample (0) or not (1); this is a carry- over from QuickTime that should be ignored by the sample player code.\footnote{For more information, see the book\textit{Inside Macintosh: QuickTime}, Addison-Wesley Publishing Company, 1993, pages. 2-134 to 2-135.}
+
+The duration field of the sample record gives the play duration of the referenced sample, in units of the time scale. For an audio sample (block), the duration is meaningless; addition of the time and duration fields of the current video sample record yields the value in the time field of the next video sample record.
