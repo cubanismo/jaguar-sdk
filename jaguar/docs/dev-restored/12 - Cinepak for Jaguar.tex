@@ -209,7 +209,7 @@ This is the routine that actually displays the pixels.
 \end{table}
 \FloatBarrier
 
-The latest version of Cinepak for Jaguar supports phrase interleaving for faster double or triple buffering schemes. If zero is passed as the phrase interleave factor, Cinepak will perform normally, writing its data contiguously in memory. A phrase interleaving factor of one will cause one phrase to be skipped for every one written. A phrase interleaving factor of two will cause two phrases to be skipped for every one written, and so on. This is done in a way that is compatible with similar features in the Object Processor and Blitter. By interleaving the buffers which must be blitted back and forth, the frequency of DRAM page faults drops signifigantly, increasing the available bus bandwidth.
+The latest version of Cinepak for Jaguar supports phrase interleaving for faster double or triple buffering schemes. If zero is passed as the phrase interleave factor, Cinepak will perform normally, writing its data contiguously in memory. A phrase interleaving factor of one will cause one phrase to be skipped for every one written. A phrase interleaving factor of two will cause two phrases to be skipped for every one written, and so on. This is done in a way that is compatible with similar features in the Object Processor and Blitter. By interleaving the buffers which must be blitted back and forth, the frequency of DRAM page faults drops significantly, increasing the available bus bandwidth.
 
 \subsubsection{HaltCPK()}
 This routine shuts down the Cinepak decompression code running in the GPU at the end of the current frame. It takes no parameters. To restart Cinepak you must start from the beginning again.
@@ -434,7 +434,7 @@ AudioDrift & 4 & Drift rate value used adjust audio sample rate\\
 
 The audio description atom is a 20-byte structure that defines the format of the audio data contained in the Cinepak film so that it may be played back properly. The Header field is a human-readable tag 'ADSC' which identifies the structure as an audio description atom. The AtomSize field specifies the size of the structure (20 bytes).
 
-The AudioData field is a bitmapped flag that defines the data format of the audio, i.e. mono or stereo, compressed or non-compressed, 8-bit samples or 16-bit samples, and so forth. See Table \ref{tab:audioflags} for a definition of the meanings of each bit. Note that the proper utilization of this information is the responsiblity of the Cinepak player application. 
+The AudioData field is a bitmapped flag that defines the data format of the audio, i.e. mono or stereo, compressed or non-compressed, 8-bit samples or 16-bit samples, and so forth. See Table \ref{tab:audioflags} for a definition of the meanings of each bit. Note that the proper utilization of this information is the responsibility of the Cinepak player application. 
 
 \begin{table}[h]
 \centering
@@ -679,7 +679,7 @@ If your player code was originally set up to expect a film processed by FilmToAI
 See the Jaguar CD-ROM chapter for more information on CD mastering considerations. 
 
 \subsubsection{Other CD Mastering Considerations}
-Note that some older CD mastering software automatically inserts two seconds worth of silence at the start of each audio track. This results in extra data at the start of the track. Some versions of the sample Cinepak player code include a SILENCE equate that is used to skip past this data in a similar manner to the LEADER equate mentioned eariler. See the chapter Jaguar CD-ROM for more information.
+Note that some older CD mastering software automatically inserts two seconds worth of silence at the start of each audio track. This results in extra data at the start of the track. Some versions of the sample Cinepak player code include a SILENCE equate that is used to skip past this data in a similar manner to the LEADER equate mentioned earlier. See the chapter Jaguar CD-ROM for more information.
 
 \section{Sample Playback Code}
 
@@ -763,7 +763,7 @@ The \texttt{CBUF\_SIZE} equate controls the size of the circular buffer which is
 
 The \texttt{GPU\_OFFSET} equate determines the offset from the base of GPU internal RAM at which the Cinepak decompressor code is loaded. During initialization, its value is copied to the variable location \texttt{GPUOffset}, which the GPU code uses to relocate portions of its own code and data.
 
-The \texttt{FILM\_SYNC} equate must correspond to the 4-byte partition sync marker that is repeated 16 times (for 64 bytes total) immediately before the film data begins. The player code uses this to locate the beginning of the film data after it is ready from the CD. This sync marker is inserted in front of the Jaguar Cinepak film data by the Jaguar CD Track Creator program when you create the track files for the CD.\footnote{See the Jaguar CD Mastering section of the Jaguar CD-ROM chapter for more information on the Jaguar CD Track Creator tool.} The FilmToAIFF option of the Jaguar Cinepak Utilties program always creates a sync pattern of ``1111''.\footnote{Atari recommends that you no longer use FilmToAIFF. See the Using A Jaguar Cinepak Film With CD-ROM section for more information.}
+The \texttt{FILM\_SYNC} equate must correspond to the 4-byte partition sync marker that is repeated 16 times (for 64 bytes total) immediately before the film data begins. The player code uses this to locate the beginning of the film data after it is ready from the CD. This sync marker is inserted in front of the Jaguar Cinepak film data by the Jaguar CD Track Creator program when you create the track files for the CD.\footnote{See the Jaguar CD Mastering section of the Jaguar CD-ROM chapter for more information on the Jaguar CD Track Creator tool.} The FilmToAIFF option of the Jaguar Cinepak Utilities program always creates a sync pattern of ``1111''.\footnote{Atari recommends that you no longer use FilmToAIFF. See the Using A Jaguar Cinepak Film With CD-ROM section for more information.}
 
 The \texttt{DRIFT\_RATE} equate is used to account for the difference between the sample rate of the original audio data in the original QuickTime movie and the actual playback rate on the Jaguar. (See sections 3.1.3 and 5.6 for more information.)
 
